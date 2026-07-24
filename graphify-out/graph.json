@@ -1,0 +1,1857 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "build_srs.py",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L1",
+      "id": "build_srs_py",
+      "community": 1,
+      "norm_label": "build_srs.py"
+    },
+    {
+      "label": "add_page_number()",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L56",
+      "id": "vaxtrace_build_srs_add_page_number",
+      "community": 1,
+      "norm_label": "add_page_number()"
+    },
+    {
+      "label": "add_complex_field()",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L70",
+      "id": "vaxtrace_build_srs_add_complex_field",
+      "community": 1,
+      "norm_label": "add_complex_field()"
+    },
+    {
+      "label": "body()",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L77",
+      "id": "vaxtrace_build_srs_body",
+      "community": 1,
+      "norm_label": "body()"
+    },
+    {
+      "label": "bullet()",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L85",
+      "id": "vaxtrace_build_srs_bullet",
+      "community": 1,
+      "norm_label": "bullet()"
+    },
+    {
+      "label": "shade()",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L95",
+      "id": "vaxtrace_build_srs_shade",
+      "community": 1,
+      "norm_label": "shade()"
+    },
+    {
+      "label": "set_cell()",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L100",
+      "id": "vaxtrace_build_srs_set_cell",
+      "community": 1,
+      "norm_label": "set_cell()"
+    },
+    {
+      "label": "make_table()",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L111",
+      "id": "vaxtrace_build_srs_make_table",
+      "community": 1,
+      "norm_label": "make_table()"
+    },
+    {
+      "label": "_caption()",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L136",
+      "id": "vaxtrace_build_srs_caption",
+      "community": 1,
+      "norm_label": "_caption()"
+    },
+    {
+      "label": "_png_size()",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L144",
+      "id": "vaxtrace_build_srs_png_size",
+      "community": 1,
+      "norm_label": "_png_size()"
+    },
+    {
+      "label": "figure_fullpage()",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L155",
+      "id": "vaxtrace_build_srs_figure_fullpage",
+      "community": 1,
+      "norm_label": "figure_fullpage()"
+    },
+    {
+      "label": "table_caption()",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L168",
+      "id": "vaxtrace_build_srs_table_caption",
+      "community": 1,
+      "norm_label": "table_caption()"
+    },
+    {
+      "label": "heading()",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L176",
+      "id": "vaxtrace_build_srs_heading",
+      "community": 1,
+      "norm_label": "heading()"
+    },
+    {
+      "label": "center()",
+      "file_type": "code",
+      "source_file": "build_srs.py",
+      "source_location": "L180",
+      "id": "vaxtrace_build_srs_center",
+      "community": 1,
+      "norm_label": "center()"
+    },
+    {
+      "label": "Return (width, height) in pixels from a PNG header (no extra deps).",
+      "file_type": "rationale",
+      "source_file": "build_srs.py",
+      "source_location": "L145",
+      "id": "vaxtrace_build_srs_rationale_145",
+      "community": 1,
+      "norm_label": "return (width, height) in pixels from a png header (no extra deps)."
+    },
+    {
+      "label": "Place any diagram on its own A4 portrait page, scaled to fit the shared box.",
+      "file_type": "rationale",
+      "source_file": "build_srs.py",
+      "source_location": "L156",
+      "id": "vaxtrace_build_srs_rationale_156",
+      "community": 1,
+      "norm_label": "place any diagram on its own a4 portrait page, scaled to fit the shared box."
+    },
+    {
+      "label": "jsconfig.json",
+      "file_type": "code",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L1",
+      "id": "web_jsconfig_json",
+      "community": 7,
+      "norm_label": "jsconfig.json"
+    },
+    {
+      "label": "compilerOptions",
+      "file_type": "code",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L2",
+      "id": "web_jsconfig_compileroptions",
+      "community": 7,
+      "norm_label": "compileroptions"
+    },
+    {
+      "label": "baseUrl",
+      "file_type": "code",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L3",
+      "id": "web_jsconfig_compileroptions_baseurl",
+      "community": 7,
+      "norm_label": "baseurl"
+    },
+    {
+      "label": "paths",
+      "file_type": "code",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L4",
+      "id": "web_jsconfig_compileroptions_paths",
+      "community": 7,
+      "norm_label": "paths"
+    },
+    {
+      "label": "@/*",
+      "file_type": "code",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L5",
+      "id": "web_jsconfig_paths",
+      "community": 7,
+      "norm_label": "@/*"
+    },
+    {
+      "label": "next.config.js",
+      "file_type": "code",
+      "source_file": "web/next.config.js",
+      "source_location": "L1",
+      "id": "web_next_config_js",
+      "community": 10,
+      "norm_label": "next.config.js"
+    },
+    {
+      "label": "nextConfig",
+      "file_type": "code",
+      "source_file": "web/next.config.js",
+      "source_location": "L2",
+      "id": "web_next_config_nextconfig",
+      "community": 10,
+      "norm_label": "nextconfig"
+    },
+    {
+      "label": "package.json",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L1",
+      "id": "web_package_json",
+      "community": 3,
+      "norm_label": "package.json"
+    },
+    {
+      "label": "name",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L2",
+      "id": "web_package_name",
+      "community": 3,
+      "norm_label": "name"
+    },
+    {
+      "label": "version",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L3",
+      "id": "web_package_version",
+      "community": 3,
+      "norm_label": "version"
+    },
+    {
+      "label": "private",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L4",
+      "id": "web_package_private",
+      "community": 3,
+      "norm_label": "private"
+    },
+    {
+      "label": "scripts",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L5",
+      "id": "web_package_scripts",
+      "community": 8,
+      "norm_label": "scripts"
+    },
+    {
+      "label": "dev",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L6",
+      "id": "web_package_scripts_dev",
+      "community": 8,
+      "norm_label": "dev"
+    },
+    {
+      "label": "build",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L7",
+      "id": "web_package_scripts_build",
+      "community": 8,
+      "norm_label": "build"
+    },
+    {
+      "label": "start",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L8",
+      "id": "web_package_scripts_start",
+      "community": 8,
+      "norm_label": "start"
+    },
+    {
+      "label": "lint",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L9",
+      "id": "web_package_scripts_lint",
+      "community": 8,
+      "norm_label": "lint"
+    },
+    {
+      "label": "dependencies",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L11",
+      "id": "web_package_dependencies",
+      "community": 3,
+      "norm_label": "dependencies"
+    },
+    {
+      "label": "next",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L12",
+      "id": "web_package_dependencies_next",
+      "community": 3,
+      "norm_label": "next"
+    },
+    {
+      "label": "react",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L13",
+      "id": "web_package_dependencies_react",
+      "community": 3,
+      "norm_label": "react"
+    },
+    {
+      "label": "react-dom",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L14",
+      "id": "web_package_dependencies_react_dom",
+      "community": 3,
+      "norm_label": "react-dom"
+    },
+    {
+      "label": "devDependencies",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L16",
+      "id": "web_package_devdependencies",
+      "community": 3,
+      "norm_label": "devdependencies"
+    },
+    {
+      "label": "autoprefixer",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L17",
+      "id": "web_package_devdependencies_autoprefixer",
+      "community": 3,
+      "norm_label": "autoprefixer"
+    },
+    {
+      "label": "postcss",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L18",
+      "id": "web_package_devdependencies_postcss",
+      "community": 3,
+      "norm_label": "postcss"
+    },
+    {
+      "label": "tailwindcss",
+      "file_type": "code",
+      "source_file": "web/package.json",
+      "source_location": "L19",
+      "id": "web_package_devdependencies_tailwindcss",
+      "community": 3,
+      "norm_label": "tailwindcss"
+    },
+    {
+      "label": "postcss.config.js",
+      "file_type": "code",
+      "source_file": "web/postcss.config.js",
+      "source_location": "L1",
+      "id": "web_postcss_config_js",
+      "community": 11,
+      "norm_label": "postcss.config.js"
+    },
+    {
+      "label": "tailwind.config.js",
+      "file_type": "code",
+      "source_file": "web/tailwind.config.js",
+      "source_location": "L1",
+      "id": "web_tailwind_config_js",
+      "community": 12,
+      "norm_label": "tailwind.config.js"
+    },
+    {
+      "label": "icons.jsx",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L1",
+      "id": "web_components_icons_jsx",
+      "community": 0,
+      "norm_label": "icons.jsx"
+    },
+    {
+      "label": "Icon()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L1",
+      "id": "components_icons_icon",
+      "community": 0,
+      "norm_label": "icon()"
+    },
+    {
+      "label": "Home()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L18",
+      "id": "components_icons_home",
+      "community": 0,
+      "norm_label": "home()"
+    },
+    {
+      "label": "Calendar()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L19",
+      "id": "components_icons_calendar",
+      "community": 0,
+      "norm_label": "calendar()"
+    },
+    {
+      "label": "Bell()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L20",
+      "id": "components_icons_bell",
+      "community": 0,
+      "norm_label": "bell()"
+    },
+    {
+      "label": "User()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L21",
+      "id": "components_icons_user",
+      "community": 0,
+      "norm_label": "user()"
+    },
+    {
+      "label": "Users()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L22",
+      "id": "components_icons_users",
+      "community": 0,
+      "norm_label": "users()"
+    },
+    {
+      "label": "UserPlus()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L23",
+      "id": "components_icons_userplus",
+      "community": 0,
+      "norm_label": "userplus()"
+    },
+    {
+      "label": "Plus()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L24",
+      "id": "components_icons_plus",
+      "community": 0,
+      "norm_label": "plus()"
+    },
+    {
+      "label": "FileText()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L25",
+      "id": "components_icons_filetext",
+      "community": 0,
+      "norm_label": "filetext()"
+    },
+    {
+      "label": "MapPin()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L26",
+      "id": "components_icons_mappin",
+      "community": 0,
+      "norm_label": "mappin()"
+    },
+    {
+      "label": "Syringe()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L27",
+      "id": "components_icons_syringe",
+      "community": 0,
+      "norm_label": "syringe()"
+    },
+    {
+      "label": "Sun()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L28",
+      "id": "components_icons_sun",
+      "community": 0,
+      "norm_label": "sun()"
+    },
+    {
+      "label": "Moon()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L29",
+      "id": "components_icons_moon",
+      "community": 0,
+      "norm_label": "moon()"
+    },
+    {
+      "label": "Search()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L30",
+      "id": "components_icons_search",
+      "community": 0,
+      "norm_label": "search()"
+    },
+    {
+      "label": "Settings()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L31",
+      "id": "components_icons_settings",
+      "community": 0,
+      "norm_label": "settings()"
+    },
+    {
+      "label": "Package()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L32",
+      "id": "components_icons_package",
+      "community": 0,
+      "norm_label": "package()"
+    },
+    {
+      "label": "BarChart()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L33",
+      "id": "components_icons_barchart",
+      "community": 0,
+      "norm_label": "barchart()"
+    },
+    {
+      "label": "Grid()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L34",
+      "id": "components_icons_grid",
+      "community": 0,
+      "norm_label": "grid()"
+    },
+    {
+      "label": "Clipboard()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L35",
+      "id": "components_icons_clipboard",
+      "community": 0,
+      "norm_label": "clipboard()"
+    },
+    {
+      "label": "Play()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L36",
+      "id": "components_icons_play",
+      "community": 0,
+      "norm_label": "play()"
+    },
+    {
+      "label": "Eye()",
+      "file_type": "code",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L37",
+      "id": "components_icons_eye",
+      "community": 0,
+      "norm_label": "eye()"
+    },
+    {
+      "label": "theme-provider.jsx",
+      "file_type": "code",
+      "source_file": "web/components/theme-provider.jsx",
+      "source_location": "L1",
+      "id": "web_components_theme_provider_jsx",
+      "community": 9,
+      "norm_label": "theme-provider.jsx"
+    },
+    {
+      "label": "ThemeContext",
+      "file_type": "code",
+      "source_file": "web/components/theme-provider.jsx",
+      "source_location": "L5",
+      "id": "components_theme_provider_themecontext",
+      "community": 9,
+      "norm_label": "themecontext"
+    },
+    {
+      "label": "ThemeProvider()",
+      "file_type": "code",
+      "source_file": "web/components/theme-provider.jsx",
+      "source_location": "L7",
+      "id": "components_theme_provider_themeprovider",
+      "community": 9,
+      "norm_label": "themeprovider()"
+    },
+    {
+      "label": "useTheme()",
+      "file_type": "code",
+      "source_file": "web/components/theme-provider.jsx",
+      "source_location": "L28",
+      "id": "components_theme_provider_usetheme",
+      "community": 9,
+      "norm_label": "usetheme()"
+    },
+    {
+      "label": "ui.jsx",
+      "file_type": "code",
+      "source_file": "web/components/ui.jsx",
+      "source_location": "L1",
+      "id": "web_components_ui_jsx",
+      "community": 4,
+      "norm_label": "ui.jsx"
+    },
+    {
+      "label": "STATUS",
+      "file_type": "code",
+      "source_file": "web/components/ui.jsx",
+      "source_location": "L4",
+      "id": "components_ui_status",
+      "community": 4,
+      "norm_label": "status"
+    },
+    {
+      "label": "StatusChip()",
+      "file_type": "code",
+      "source_file": "web/components/ui.jsx",
+      "source_location": "L12",
+      "id": "components_ui_statuschip",
+      "community": 4,
+      "norm_label": "statuschip()"
+    },
+    {
+      "label": "Card()",
+      "file_type": "code",
+      "source_file": "web/components/ui.jsx",
+      "source_location": "L21",
+      "id": "components_ui_card",
+      "community": 4,
+      "norm_label": "card()"
+    },
+    {
+      "label": "Button()",
+      "file_type": "code",
+      "source_file": "web/components/ui.jsx",
+      "source_location": "L29",
+      "id": "components_ui_button",
+      "community": 4,
+      "norm_label": "button()"
+    },
+    {
+      "label": "ProgressRing()",
+      "file_type": "code",
+      "source_file": "web/components/ui.jsx",
+      "source_location": "L43",
+      "id": "components_ui_progressring",
+      "community": 4,
+      "norm_label": "progressring()"
+    },
+    {
+      "label": "Topbar()",
+      "file_type": "code",
+      "source_file": "web/components/ui.jsx",
+      "source_location": "L66",
+      "id": "components_ui_topbar",
+      "community": 4,
+      "norm_label": "topbar()"
+    },
+    {
+      "label": "VaxTrace_UIUX_MasterPlan.md",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L1",
+      "id": "vaxtrace_uiux_masterplan_md",
+      "community": 2,
+      "norm_label": "vaxtrace_uiux_masterplan.md"
+    },
+    {
+      "label": "VaxTrace \u2014 UI/UX Master Plan",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L1",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_vaxtrace_ui_ux_master_plan",
+      "community": 2,
+      "norm_label": "vaxtrace \u2014 ui/ux master plan"
+    },
+    {
+      "label": "0. Purpose of this document",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L8",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_0_purpose_of_this_document",
+      "community": 2,
+      "norm_label": "0. purpose of this document"
+    },
+    {
+      "label": "1. Design Principles (govern every screen)",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L18",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_1_design_principles_govern_every_screen",
+      "community": 2,
+      "norm_label": "1. design principles (govern every screen)"
+    },
+    {
+      "label": "2. Actors, Roles & Permission Matrix",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L33",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_2_actors_roles_permission_matrix",
+      "community": 2,
+      "norm_label": "2. actors, roles & permission matrix"
+    },
+    {
+      "label": "3. Information Architecture & Route Map (Next.js App Router)",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L55",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_3_information_architecture_route_map_next_js_app_router",
+      "community": 2,
+      "norm_label": "3. information architecture & route map (next.js app router)"
+    },
+    {
+      "label": "code:block1 (/login   /register   /forgot-password   /onboarding      (pu)",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L57",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_codeblock_1",
+      "community": 2,
+      "norm_label": "code:block1 (/login   /register   /forgot-password   /onboarding      (pu)"
+    },
+    {
+      "label": "4. Design System & Component Library",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L82",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_4_design_system_component_library",
+      "community": 5,
+      "norm_label": "4. design system & component library"
+    },
+    {
+      "label": "4.1 Foundations (Figma variables / design tokens)",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L84",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_4_1_foundations_figma_variables_design_tokens",
+      "community": 5,
+      "norm_label": "4.1 foundations (figma variables / design tokens)"
+    },
+    {
+      "label": "4.2 Core components",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L93",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_4_2_core_components",
+      "community": 5,
+      "norm_label": "4.2 core components"
+    },
+    {
+      "label": "4.3 Composite / data patterns (reused; not counted as screens)",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L96",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_4_3_composite_data_patterns_reused_not_counted_as_screens",
+      "community": 5,
+      "norm_label": "4.3 composite / data patterns (reused; not counted as screens)"
+    },
+    {
+      "label": "4.4 Dashboard widgets",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L100",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_4_4_dashboard_widgets",
+      "community": 5,
+      "norm_label": "4.4 dashboard widgets"
+    },
+    {
+      "label": "4.5 Domain primitives (VaxTrace-specific, reused everywhere)",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L103",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_4_5_domain_primitives_vaxtrace_specific_reused_everywhere",
+      "community": 5,
+      "norm_label": "4.5 domain primitives (vaxtrace-specific, reused everywhere)"
+    },
+    {
+      "label": "5. Screen Inventory \u2014 28 screens",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L108",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_5_screen_inventory_28_screens",
+      "community": 6,
+      "norm_label": "5. screen inventory \u2014 28 screens"
+    },
+    {
+      "label": "A. Authentication & Onboarding \u2014 4",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L112",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_a_authentication_onboarding_4",
+      "community": 6,
+      "norm_label": "a. authentication & onboarding \u2014 4"
+    },
+    {
+      "label": "B. Parent / Guardian (mobile-first, light) \u2014 6",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L118",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_b_parent_guardian_mobile_first_light_6",
+      "community": 6,
+      "norm_label": "b. parent / guardian (mobile-first, light) \u2014 6"
+    },
+    {
+      "label": "C. Healthcare Worker (ops console, tablet/desktop) \u2014 6",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L126",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_c_healthcare_worker_ops_console_tablet_desktop_6",
+      "community": 6,
+      "norm_label": "c. healthcare worker (ops console, tablet/desktop) \u2014 6"
+    },
+    {
+      "label": "D. Administrator (data-dense, dark-first) \u2014 8",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L134",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_d_administrator_data_dense_dark_first_8",
+      "community": 6,
+      "norm_label": "d. administrator (data-dense, dark-first) \u2014 8"
+    },
+    {
+      "label": "E. Shared / System \u2014 4",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L144",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_e_shared_system_4",
+      "community": 6,
+      "norm_label": "e. shared / system \u2014 4"
+    },
+    {
+      "label": "6. Key User Journeys / Flows",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L154",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_6_key_user_journeys_flows",
+      "community": 2,
+      "norm_label": "6. key user journeys / flows"
+    },
+    {
+      "label": "7. Responsive & Mobile Adaptations",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L166",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_7_responsive_mobile_adaptations",
+      "community": 2,
+      "norm_label": "7. responsive & mobile adaptations"
+    },
+    {
+      "label": "8. UX Improvements Beyond the SRS (folded into the 28 screens)",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L181",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_8_ux_improvements_beyond_the_srs_folded_into_the_28_screens",
+      "community": 2,
+      "norm_label": "8. ux improvements beyond the srs (folded into the 28 screens)"
+    },
+    {
+      "label": "9. Implementation Roadmap",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L187",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_9_implementation_roadmap",
+      "community": 2,
+      "norm_label": "9. implementation roadmap"
+    },
+    {
+      "label": "10. Open follow-ups",
+      "file_type": "document",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L202",
+      "id": "vaxtrace_vaxtrace_uiux_masterplan_10_open_follow_ups",
+      "community": 2,
+      "norm_label": "10. open follow-ups"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L56",
+      "weight": 1.0,
+      "source": "build_srs_py",
+      "target": "vaxtrace_build_srs_add_page_number",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L70",
+      "weight": 1.0,
+      "source": "build_srs_py",
+      "target": "vaxtrace_build_srs_add_complex_field",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L77",
+      "weight": 1.0,
+      "source": "build_srs_py",
+      "target": "vaxtrace_build_srs_body",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L85",
+      "weight": 1.0,
+      "source": "build_srs_py",
+      "target": "vaxtrace_build_srs_bullet",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L95",
+      "weight": 1.0,
+      "source": "build_srs_py",
+      "target": "vaxtrace_build_srs_shade",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L100",
+      "weight": 1.0,
+      "source": "build_srs_py",
+      "target": "vaxtrace_build_srs_set_cell",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L111",
+      "weight": 1.0,
+      "source": "build_srs_py",
+      "target": "vaxtrace_build_srs_make_table",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L136",
+      "weight": 1.0,
+      "source": "build_srs_py",
+      "target": "vaxtrace_build_srs_caption",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L144",
+      "weight": 1.0,
+      "source": "build_srs_py",
+      "target": "vaxtrace_build_srs_png_size",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L155",
+      "weight": 1.0,
+      "source": "build_srs_py",
+      "target": "vaxtrace_build_srs_figure_fullpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L168",
+      "weight": 1.0,
+      "source": "build_srs_py",
+      "target": "vaxtrace_build_srs_table_caption",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L176",
+      "weight": 1.0,
+      "source": "build_srs_py",
+      "target": "vaxtrace_build_srs_heading",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L180",
+      "weight": 1.0,
+      "source": "build_srs_py",
+      "target": "vaxtrace_build_srs_center",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L140",
+      "weight": 1.0,
+      "source": "vaxtrace_build_srs_caption",
+      "target": "vaxtrace_build_srs_add_complex_field",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L172",
+      "weight": 1.0,
+      "source": "vaxtrace_build_srs_table_caption",
+      "target": "vaxtrace_build_srs_add_complex_field",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L118",
+      "weight": 1.0,
+      "source": "vaxtrace_build_srs_make_table",
+      "target": "vaxtrace_build_srs_shade",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L117",
+      "weight": 1.0,
+      "source": "vaxtrace_build_srs_make_table",
+      "target": "vaxtrace_build_srs_set_cell",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L165",
+      "weight": 1.0,
+      "source": "vaxtrace_build_srs_figure_fullpage",
+      "target": "vaxtrace_build_srs_caption",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L157",
+      "weight": 1.0,
+      "source": "vaxtrace_build_srs_figure_fullpage",
+      "target": "vaxtrace_build_srs_png_size",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L145",
+      "weight": 1.0,
+      "source": "vaxtrace_build_srs_rationale_145",
+      "target": "vaxtrace_build_srs_png_size",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "build_srs.py",
+      "source_location": "L156",
+      "weight": 1.0,
+      "source": "vaxtrace_build_srs_rationale_156",
+      "target": "vaxtrace_build_srs_figure_fullpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "web_jsconfig_json",
+      "target": "web_jsconfig_compileroptions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "web_jsconfig_compileroptions",
+      "target": "web_jsconfig_compileroptions_baseurl",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "web_jsconfig_compileroptions",
+      "target": "web_jsconfig_compileroptions_paths",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/jsconfig.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "web_jsconfig_compileroptions_paths",
+      "target": "web_jsconfig_paths",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/next.config.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "web_next_config_js",
+      "target": "web_next_config_nextconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "web_package_json",
+      "target": "web_package_name",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "web_package_json",
+      "target": "web_package_version",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "web_package_json",
+      "target": "web_package_private",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "web_package_json",
+      "target": "web_package_scripts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "web_package_json",
+      "target": "web_package_dependencies",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "web_package_json",
+      "target": "web_package_devdependencies",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "web_package_scripts",
+      "target": "web_package_scripts_dev",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "web_package_scripts",
+      "target": "web_package_scripts_build",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "web_package_scripts",
+      "target": "web_package_scripts_start",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "web_package_scripts",
+      "target": "web_package_scripts_lint",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "web_package_dependencies",
+      "target": "web_package_dependencies_next",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "web_package_dependencies",
+      "target": "web_package_dependencies_react",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "web_package_dependencies",
+      "target": "web_package_dependencies_react_dom",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "web_package_devdependencies",
+      "target": "web_package_devdependencies_autoprefixer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "web_package_devdependencies",
+      "target": "web_package_devdependencies_postcss",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/package.json",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "web_package_devdependencies",
+      "target": "web_package_devdependencies_tailwindcss",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_icon",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_home",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_calendar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_bell",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_user",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_users",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_userplus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_plus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_filetext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_mappin",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_syringe",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L28",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_sun",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_moon",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_search",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_settings",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_package",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_barchart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_grid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_clipboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L36",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_play",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/icons.jsx",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "web_components_icons_jsx",
+      "target": "components_icons_eye",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/theme-provider.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "web_components_theme_provider_jsx",
+      "target": "components_theme_provider_themecontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/theme-provider.jsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "web_components_theme_provider_jsx",
+      "target": "components_theme_provider_themeprovider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/theme-provider.jsx",
+      "source_location": "L28",
+      "weight": 1.0,
+      "source": "web_components_theme_provider_jsx",
+      "target": "components_theme_provider_usetheme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/ui.jsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "web_components_ui_jsx",
+      "target": "components_ui_status",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/ui.jsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "web_components_ui_jsx",
+      "target": "components_ui_statuschip",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/ui.jsx",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "web_components_ui_jsx",
+      "target": "components_ui_card",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/ui.jsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "web_components_ui_jsx",
+      "target": "components_ui_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/ui.jsx",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "web_components_ui_jsx",
+      "target": "components_ui_progressring",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/components/ui.jsx",
+      "source_location": "L66",
+      "weight": 1.0,
+      "source": "web_components_ui_jsx",
+      "target": "components_ui_topbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "vaxtrace_uiux_masterplan_md",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_vaxtrace_ui_ux_master_plan",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_vaxtrace_ui_ux_master_plan",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_0_purpose_of_this_document",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_vaxtrace_ui_ux_master_plan",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_1_design_principles_govern_every_screen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_vaxtrace_ui_ux_master_plan",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_2_actors_roles_permission_matrix",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L55",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_vaxtrace_ui_ux_master_plan",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_3_information_architecture_route_map_next_js_app_router",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L82",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_vaxtrace_ui_ux_master_plan",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_4_design_system_component_library",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L108",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_vaxtrace_ui_ux_master_plan",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_5_screen_inventory_28_screens",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L154",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_vaxtrace_ui_ux_master_plan",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_6_key_user_journeys_flows",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L166",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_vaxtrace_ui_ux_master_plan",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_7_responsive_mobile_adaptations",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L181",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_vaxtrace_ui_ux_master_plan",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_8_ux_improvements_beyond_the_srs_folded_into_the_28_screens",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L187",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_vaxtrace_ui_ux_master_plan",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_9_implementation_roadmap",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L202",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_vaxtrace_ui_ux_master_plan",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_10_open_follow_ups",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_3_information_architecture_route_map_next_js_app_router",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_codeblock_1",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_4_design_system_component_library",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_4_1_foundations_figma_variables_design_tokens",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L93",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_4_design_system_component_library",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_4_2_core_components",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L96",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_4_design_system_component_library",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_4_3_composite_data_patterns_reused_not_counted_as_screens",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L100",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_4_design_system_component_library",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_4_4_dashboard_widgets",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L103",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_4_design_system_component_library",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_4_5_domain_primitives_vaxtrace_specific_reused_everywhere",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L112",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_5_screen_inventory_28_screens",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_a_authentication_onboarding_4",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L118",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_5_screen_inventory_28_screens",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_b_parent_guardian_mobile_first_light_6",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L126",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_5_screen_inventory_28_screens",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_c_healthcare_worker_ops_console_tablet_desktop_6",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L134",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_5_screen_inventory_28_screens",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_d_administrator_data_dense_dark_first_8",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "VaxTrace_UIUX_MasterPlan.md",
+      "source_location": "L144",
+      "weight": 1.0,
+      "source": "vaxtrace_vaxtrace_uiux_masterplan_5_screen_inventory_28_screens",
+      "target": "vaxtrace_vaxtrace_uiux_masterplan_e_shared_system_4",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": []
+}

@@ -1,0 +1,77 @@
+{
+  "D:\\New folder\\ea\\VaxTrace\\build_srs.py": {
+    "mtime": 1782012891.8893485,
+    "ast_hash": "cee4e755cf196539efc1db005bc2be0c",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\web\\jsconfig.json": {
+    "mtime": 1782140911.2261665,
+    "ast_hash": "1785e71c7510902b04f35784b434ec4b",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\web\\next.config.js": {
+    "mtime": 1782140903.2933867,
+    "ast_hash": "d19f64d106a9928b9d8ee6041dfdbb40",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\web\\package.json": {
+    "mtime": 1782140885.0541315,
+    "ast_hash": "75f6a447e1f91c11ba942a8ab39f8984",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\web\\postcss.config.js": {
+    "mtime": 1782140915.896238,
+    "ast_hash": "8640f9b2e6475cc3f5b1ff4548925765",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\web\\tailwind.config.js": {
+    "mtime": 1782140926.3735828,
+    "ast_hash": "cca093ad3cb793ef638e000a13366d25",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\web\\components\\icons.jsx": {
+    "mtime": 1782141006.1874473,
+    "ast_hash": "352589115a76674c36e6fa92e0aa2a62",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\web\\components\\theme-provider.jsx": {
+    "mtime": 1782140977.896096,
+    "ast_hash": "ab97c5c97717a644db8ea0acb15457a4",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\web\\components\\ui.jsx": {
+    "mtime": 1782141024.9563656,
+    "ast_hash": "e557a3d8c9e7c5e229e49c98f8be30ea",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\VaxTrace_UIUX_MasterPlan.md": {
+    "mtime": 1782137383.6771646,
+    "ast_hash": "5b6442f69746b82581bd66a7c3d3a2e9",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\Phase-I SRS.pdf": {
+    "mtime": 1781976829.6563973,
+    "ast_hash": "8a6dbb7dffbb40dde6e20a159171eaf7",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\VaxTrace_SRS_Final.pdf": {
+    "mtime": 1782012952.927296,
+    "ast_hash": "02eb94947fb3fe407736a581d7195301",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\figures\\fig1_architecture.png": {
+    "mtime": 1781978947.9688246,
+    "ast_hash": "fd16d8a1aec2a5d387af9ed50cf89664",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\figures\\fig3_usecase.png": {
+    "mtime": 1781978949.9539254,
+    "ast_hash": "f7acccc02822d666af0cac1011ca70bb",
+    "semantic_hash": ""
+  },
+  "D:\\New folder\\ea\\VaxTrace\\figures\\fig4_erd.png": {
+    "mtime": 1781978950.7126784,
+    "ast_hash": "bac8be6d07862d14a034dcb36a1ca78d",
+    "semantic_hash": ""
+  }
+}
