@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "vaxtrace-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@vaxtrace/web", "dev"],
+      "port": 3000
+    }
+  ]
+}
