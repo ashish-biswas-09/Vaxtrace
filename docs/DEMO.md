@@ -1,21 +1,21 @@
 # Running the VaxTrace Demo
 
-## One-time setup: enable the Custom Access Token Hook (blocks login redirect)
+## Custom Access Token Hook (login works — this is context, not a required step)
 
-**Do this before demoing — login currently "succeeds" but redirects back to the splash
-page instead of the correct role's screen, because the JWT has no `user_role` claim yet.**
+Login is working: signing in stamps the JWT with the `user_role` claim and routes each
+role to its own screen. Two things had to be true, both now done:
 
-The `custom_access_token_hook` Postgres function and its grant are already deployed
-(migration `20260724115100_rls.sql`), but Supabase Auth won't *call* it until the hook is
-turned on for the project — that toggle lives outside Postgres (GoTrue config), so it can
-only be done from the Dashboard or the Management API. No CLI/MCP tool can flip it.
+1. **Hook enabled** in GoTrue (Dashboard → Auth → Hooks → Custom Access Token → the
+   `public.custom_access_token_hook` function). That toggle lives outside Postgres, so it
+   can only be flipped from the Dashboard/Management API — it is already enabled for
+   project `ptcxxyeaakbiqhmkmgwo`.
+2. **Grants for `supabase_auth_admin`** so the hook can read `user_roles` (migration
+   `20260724140000_auth_hook_grants.sql`). Without these the hook returned HTTP 500 and
+   every sign-in failed; the migration grants schema usage + SELECT and an RLS read policy
+   for that role.
 
-1. Open https://supabase.com/dashboard/project/ptcxxyeaakbiqhmkmgwo/auth/hooks
-2. Under **Custom Access Token**, click **Enable**.
-3. Postgres function: select `public.custom_access_token_hook`.
-4. Save.
-
-After this, log out and back in (the JWT is only re-stamped on a fresh sign-in/refresh).
+If you ever re-point this app at a fresh Supabase project, redo step 1 in the Dashboard and
+make sure every migration (including the grants one) is applied before signing in.
 
 ## Start the app
 
