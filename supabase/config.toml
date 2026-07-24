@@ -1,0 +1,37 @@
+project_id = "VaxTrace"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+[auth.sms]
+enable_signup = true
+enable_confirmations = true
+
+# Custom Access Token Hook — stamps `user_role` onto the JWT from user_roles (handbook §8.5).
+# This is the single most load-bearing auth config: without it every RLS policy silently denies.
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
