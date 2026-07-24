@@ -5,7 +5,8 @@
       "name": "vaxtrace-web",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@vaxtrace/web", "dev"],
-      "port": 3000
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

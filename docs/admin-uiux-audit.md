@@ -250,3 +250,92 @@ Sequence rationale: A before B (screens are trivial once the kit exists); B befo
 ---
 
 *Delivered this session: the missing **শিশু / Children** screen (`/admin/children`) — registry table (name+age+gender / guardian / contact / coverage / registered), app-side per-child coverage, added to sidebar in the Figma nav position, verified live against seed data (6 children, correct null-vs-0% coverage handling), zero console errors.*
+
+---
+
+## Design-quality re-audit (2026-07-24, post-ADM-09)
+
+The parity audit above compares **code vs Figma**. This section audits the **Figma design itself** — heuristic/institutional UI/UX review of all **9 admin screens** now that the missing **শিশু** screen is designed.
+
+**Figma now = 9 screens (Dark+Light each):** ADM-01 Dashboard, ADM-02 Users, ADM-03 Catalog, ADM-04 Inventory, ADM-05 Reports&Analytics, ADM-06 Audit, ADM-07 Notifications, ADM-08 Settings, **ADM-09 শিশু/Children (`249:2` Dark, `249:214` Light)** — built this session by cloning ADM-02 and remapping to the child model (name+age·gender / টিকা স্ট্যাটাস badge / অভিভাবক / কভারেজ badge / নিবন্ধিত), tone-correct badges (success/info/warning/danger) in both themes, nav active-state moved to শিশু. Requirement of "exactly 9 screens" is met (impl still carries an off-design 10th, `/admin/analytics` — recommend folding into Reports to match ADM-05).
+
+### Findings (design lens) — most severe first
+
+| ID | Finding | Screens | Priority | Complexity | UX gain |
+|----|---------|---------|----------|-----------|---------|
+| UX-01 | **No empty / loading / error / zero-result states designed** — every table shows only the happy path | all 9 | Critical | M | High |
+| UX-02 | **No confirmation / destructive-action dialogs** — delete user, void batch, delete vaccine, "run now" have no modal states | Users, Catalog, Inventory, Notifications | Critical | M | High |
+| UX-03 | **Mixed-language leak** — English placeholder "Search vaccine or batch…" on Inventory; violates Bangla-only | Inventory (ADM-04) | Critical | S | Med |
+| UX-04 | **No pagination / bulk actions** anywhere — tables break past ~50 rows (children, audit, users grow unbounded) | Users, Inventory, Catalog, Audit, Notifications, শিশু | High | M | High |
+| UX-05 | **Inconsistent row-action pattern** — kebab "⋯" (Users/Inventory/শিশু) vs text link "সম্পাদনা" (Catalog) vs "দেখুন" (Audit) vs card "রিপোর্ট চালান →" (Reports) | all list screens | High | S | Med |
+| UX-06 | **Context-wrong global control persisted** — date-range pill "গত ৩০ দিন ▾" shown on Settings & Audit & Catalog where it does nothing | Settings, Audit, Catalog, Users, শিশু | High | S | Med |
+| UX-07 | **Charts are decorative, not informational** — coverage bars have no axis, values, or tooltips; reads as placeholder | Dashboard, Reports | High | M | High |
+| UX-08 | **Ambiguous account control** — top-right "অ" glyph unclear (language? avatar?); no user name/role/logout affordance | all 9 | High | S | Med |
+| UX-09 | **Detail screens undesigned** — catalog/[id], inventory/[id] batch detail exist in code, no Figma frame, no breadcrumb/back pattern | Catalog, Inventory | High | M | Med |
+| UX-10 | **Numeric columns left-aligned** — doses, stock, coverage% hard to scan/compare | Inventory, Catalog, শিশু | Medium | S | Med |
+| UX-11 | **Settings persistence model unclear** — no Save button; auto-save vs explicit ambiguous; security toggles (2-step OTP off) lack guardrails | Settings | Medium | S | Med |
+| UX-12 | **No focus-visible / keyboard-nav tokens** — no focus ring defined in the system; blocks a11y AA | all 9 | Medium | M | Med |
+| UX-13 | **Contrast risk on muted text & badge-on-tint** — verify #9499b2 body-muted and warning #fbbf24-on-#3a2c10 hit WCAG AA (4.5:1 / 3:1) | all 9 | Medium | S | Med |
+| UX-14 | **Decorative status dot conveys nothing** — identical blue dot before every catalog/inventory row item | Catalog, Inventory | Low | S | Low |
+| UX-15 | **Orphan hidden text node** "শিশু, ব্যাচ খুঁজুন…" left behind the search field (design debt, cloned into ADM-09 too) | Users, শিশু | Low | S | Low |
+| UX-16 | **No responsive/tablet frames** — 1440 desktop only; state admin-desktop-only or add a collapse breakpoint | all 9 | Low | L | Low |
+
+### Micro-TODO roadmap
+
+**Critical**
+- `T-C1` (UX-01) Design the 6-state kit (default/loading-skeleton/empty/zero-result/error/success-toast) as shared components; apply to all 9 tables. Dep: shared component kit. Effort: 1.5d. Done when every table has an empty + loading + error frame in both themes.
+- `T-C2` (UX-02) ConfirmDialog component (title/body/confirm-danger/cancel) + wire to delete-user, void-batch, delete-vaccine, run-now. Dep: none. Effort: 0.5d. Done when every destructive/irreversible action has a modal state.
+- `T-C3` (UX-03) Replace English Inventory placeholder with "টিকা বা ব্যাচ খুঁজুন…"; lint rule to block Latin-only strings in screen text. Effort: 0.25d.
+
+**High**
+- `T-H1` (UX-04) Table footer component: pagination (৳ Bengali page numbers) + rows-per-page + optional bulk-select checkbox column. Apply to 6 list screens. Effort: 1d.
+- `T-H2` (UX-05) Standardize on one row-action pattern (kebab menu with labelled items); demote text-links. Effort: 0.5d.
+- `T-H3` (UX-06) Make the date-range pill contextual — render only on time-series screens (Dashboard, Reports, Audit-with-range); remove from Settings/Catalog/Users/শিশু. Effort: 0.25d.
+- `T-H4` (UX-07) Real chart component with axis labels, value tooltips, and a legend that shows values; replace gradient placeholder bars on Dashboard + Reports. Effort: 1d.
+- `T-H5` (UX-08) Account menu: avatar with initials + name + role + logout; disambiguate from theme/language toggle. Effort: 0.5d.
+- `T-H6` (UX-09) Design catalog + inventory detail frames with a breadcrumb/back header pattern. Effort: 1d.
+
+**Medium**
+- `T-M1` (UX-10) Right-align numeric columns; tabular-figures. Effort: 0.25d.
+- `T-M2` (UX-11) Decide Settings persistence (recommend explicit Save + dirty-state); add confirm for security toggles. Effort: 0.5d.
+- `T-M3` (UX-12) Add focus-visible ring token; apply to all interactive components. Effort: 0.5d.
+- `T-M4` (UX-13) Contrast pass — verify/adjust muted text + badge tints to WCAG AA; document ratios. Effort: 0.5d.
+
+**Low**
+- `T-L1` (UX-14) Remove or give meaning to the row status dot (e.g. active/inactive color). Effort: 0.1d.
+- `T-L2` (UX-15) Delete the orphan hidden search text node in ADM-02 and ADM-09. Effort: 0.1d.
+- `T-L3` (UX-16) Decision: declare admin desktop-only, or add a ≤768 sidebar-collapse + table-reflow variant. Effort: 1d if pursued.
+
+**Sequencing:** the shared **admin component kit** (Table + Toolbar + StatusPill-registry + ConfirmDialog + StateKit + Pagination + AccountMenu) is the enabler — build it first, then T-C1/T-C2/T-H1/T-H2 fall out cheaply and consistently across all 9 screens. This is the same "system fix covers all screens" leverage flagged in the combined cross-role audit.*
+
+---
+
+## Delivered 2026-07-24 — Phase C + D slice
+
+Shipped the code-actionable, schema-backed, testable subset of §5 Phase C/D. Deliberately did **not** fabricate data or half-build flows that need infra we don't have.
+
+**Shared kit (enabler)**
+- `_components/DataTable.tsx` — generic client list table: search box + filter chips + empty state over already-fetched rows. Pure `filterRows()` extracted and unit-tested. Client-side filter (no server pagination) — right for the demo dataset; `ponytail:` note points to Supabase `.range()` if a list grows.
+- `_components/Chart.tsx` — `Bar` + `CoverageBars` extracted from the old analytics page; now shared by Dashboard and Reports so the coverage chart can't drift.
+
+**Phase C**
+- **C1 Dashboard** — added the per-vaccine coverage chart and an **actionable stock-alert panel** (real low/expiring batches with per-row "পুনঃমজুদ" links), replacing the dead low-stock count. KPI **deltas intentionally omitted** — no historical snapshot exists, so a delta would be fabricated.
+- **C3 Inventory** — search + a "মনোযোগ প্রয়োজন" filter that isolates low/expiring batches (via shared `DataTable`).
+- **C4 Reports** — **merged `/admin/analytics` into `/admin/reports`** (removed the duplicate IA; old route now 302s to reports; nav item dropped). Added **PDF export** via native `window.print()` + a print stylesheet (no PDF dependency), alongside the existing CSV.
+- **C5 Children** — search over name/guardian/contact; per-child coverage extracted to `children/coverage.ts` and unit-tested for the empty-vs-zero rule.
+
+**Phase D**
+- **D1** — shared `loading.tsx` (skeleton) + `error.tsx` (retry boundary) for the whole `/admin` subtree.
+- **D3 (partial)** — global `:focus-visible` ring token (was absent); status pills already carry text, not color alone.
+- **D4 (partial)** — a **destinations smoke test** asserts all 9 sidebar routes have a page module; the full auth-driven "visit all 9 → one write" E2E is deferred (needs a live Supabase + login).
+
+**Top bar (from mid-session request / audit UX-08)**
+- New admin header with a **light/dark theme toggle** (retargets the `#admin-root` token scope, persisted) and an **account menu** (avatar initial → email + role + logout). Logout moved out of the sidebar.
+
+**Tests:** `apps/web/tests/format.test.tsx` + `apps/web/tests/admin.test.tsx` — 24 assertions covering `filterRows`, `batchStatus`, `childCoverage`, `auditLabel`, the Bengali formatters, and the destinations manifest. `pnpm test` / `typecheck` / `lint` all green.
+
+**Deferred (with reason, not silently):**
+- **C2 user invite / status lifecycle / center column** — no `profiles.status`, no `center`, and no email/admin-API wiring in the schema; building it would need real infra decisions, not a UI stub.
+- **C5 child-detail drill-in + `v_child_coverage` view** — YAGNI at 6 seed rows (the page already `ponytail:`-notes the view).
+- **D2 responsive/tablet redesign** and **full D3 axe pass** — a real design/tooling effort; only the print-clean and focus-ring pieces were cheap enough to land now.
+- KPI deltas — need a historical metrics snapshot table first.

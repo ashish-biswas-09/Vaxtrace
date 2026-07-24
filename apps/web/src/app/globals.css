@@ -12,3 +12,17 @@ body {
   color: var(--color-fg);
   font-family: var(--font-sans);
 }
+
+/* Keyboard focus ring — audit D3/UX-12 flagged no focus-visible token in the system. */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Reports print-to-PDF: force a light, ink-friendly page (admin is dark on screen). */
+@media print {
+  * {
+    background: #fff !important;
+    color: #000 !important;
+  }
+}
