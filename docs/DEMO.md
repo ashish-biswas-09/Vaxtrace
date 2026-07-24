@@ -1,5 +1,22 @@
 # Running the VaxTrace Demo
 
+## One-time setup: enable the Custom Access Token Hook (blocks login redirect)
+
+**Do this before demoing — login currently "succeeds" but redirects back to the splash
+page instead of the correct role's screen, because the JWT has no `user_role` claim yet.**
+
+The `custom_access_token_hook` Postgres function and its grant are already deployed
+(migration `20260724115100_rls.sql`), but Supabase Auth won't *call* it until the hook is
+turned on for the project — that toggle lives outside Postgres (GoTrue config), so it can
+only be done from the Dashboard or the Management API. No CLI/MCP tool can flip it.
+
+1. Open https://supabase.com/dashboard/project/ptcxxyeaakbiqhmkmgwo/auth/hooks
+2. Under **Custom Access Token**, click **Enable**.
+3. Postgres function: select `public.custom_access_token_hook`.
+4. Save.
+
+After this, log out and back in (the JWT is only re-stamped on a fresh sign-in/refresh).
+
 ## Start the app
 
 ```bash
