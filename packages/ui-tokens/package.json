@@ -1,0 +1,10 @@
+{
+  "name": "@vaxtrace/ui-tokens",
+  "private": true,
+  "version": "0.0.0",
+  "main": "tokens.css",
+  "exports": {
+    "./tokens.css": "./tokens.css"
+  },
+  "files": ["tokens.css"]
+}

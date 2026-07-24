@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@import "@vaxtrace/ui-tokens/tokens.css";
+
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-fg);
+  --font-sans: var(--font-sans);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+}

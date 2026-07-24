@@ -1,0 +1,26 @@
+/* ponytail: placeholder values, Figma desktop access was blocked (TODO 1.23) — sync real
+   hex/font values from file S1n9q5mqPNEzIks9FgUx0E once the Figma desktop app is available. */
+:root {
+  --color-bg: #ffffff;
+  --color-fg: #0a0a0a;
+  --color-primary: #0f766e;
+  --color-primary-fg: #ffffff;
+  --color-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --color-danger: #dc2626;
+  --color-warning: #d97706;
+  --color-success: #16a34a;
+  --font-sans: "Noto Sans Bengali", "Noto Sans", system-ui, sans-serif;
+}
+
+[data-theme="dark"] {
+  --color-bg: #0a0a0a;
+  --color-fg: #fafafa;
+  --color-primary: #2dd4bf;
+  --color-primary-fg: #0a0a0a;
+  --color-muted: #9ca3af;
+  --color-border: #27272a;
+  --color-danger: #f87171;
+  --color-warning: #fbbf24;
+  --color-success: #4ade80;
+}
