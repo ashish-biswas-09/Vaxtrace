@@ -1,0 +1,71 @@
+"use client";
+
+import { useFormStatus } from "react-dom";
+
+type Tone = "muted" | "success" | "warning" | "danger" | "primary";
+
+const TONE_VAR: Record<Tone, string> = {
+  muted: "var(--color-muted)",
+  success: "var(--color-success)",
+  warning: "var(--color-warning)",
+  danger: "var(--color-danger)",
+  primary: "var(--color-primary)",
+};
+
+export function StatusBadge({ tone, children }: { tone: Tone; children: React.ReactNode }) {
+  return (
+    <span
+      className="inline-block rounded-full px-2 py-0.5 text-xs font-medium"
+      style={{ color: TONE_VAR[tone], border: `1px solid ${TONE_VAR[tone]}` }}
+    >
+      {children}
+    </span>
+  );
+}
+
+export function StatCard({
+  label,
+  value,
+  hint,
+  tone = "primary",
+}: {
+  label: string;
+  value: React.ReactNode;
+  hint?: string;
+  tone?: Tone;
+}) {
+  return (
+    <div className="rounded-xl border border-[var(--color-border)] p-4">
+      <p className="text-sm text-[var(--color-muted)]">{label}</p>
+      <p className="mt-1 text-3xl font-semibold" style={{ color: TONE_VAR[tone] }}>
+        {value}
+      </p>
+      {hint && <p className="mt-1 text-xs text-[var(--color-muted)]">{hint}</p>}
+    </div>
+  );
+}
+
+// Submit button that reflects the enclosing <form>'s pending state.
+export function SubmitButton({
+  children,
+  pendingLabel,
+  variant = "primary",
+}: {
+  children: React.ReactNode;
+  pendingLabel?: string;
+  variant?: "primary" | "danger" | "ghost";
+}) {
+  const { pending } = useFormStatus();
+  const base = "rounded-md px-4 py-2 text-sm font-medium disabled:opacity-60";
+  const styles =
+    variant === "danger"
+      ? "bg-[var(--color-danger)] text-white"
+      : variant === "ghost"
+        ? "border border-[var(--color-border)]"
+        : "bg-[var(--color-primary)] text-[var(--color-primary-fg)]";
+  return (
+    <button type="submit" disabled={pending} className={`${base} ${styles}`}>
+      {pending ? (pendingLabel ?? children) : children}
+    </button>
+  );
+}
