@@ -19,6 +19,18 @@ export function dateBn(iso: string | null | undefined): string {
   return toBn(`${d}/${m}/${y}`);
 }
 
+// Age from date-of-birth in Bengali: infants in months ("৮ মাস"), ≥1yr in years ("৩ বছর").
+// Matches the Parent screens' single-unit convention (see vaxtrace-figma-ui).
+export function ageBn(dob: string | null | undefined): string {
+  if (!dob) return "—";
+  const b = new Date(dob);
+  const now = new Date();
+  let months = (now.getFullYear() - b.getFullYear()) * 12 + (now.getMonth() - b.getMonth());
+  if (now.getDate() < b.getDate()) months -= 1;
+  if (months < 0) months = 0;
+  return months < 12 ? `${toBn(months)} মাস` : `${toBn(Math.floor(months / 12))} বছর`;
+}
+
 // Whole days between today and an ISO date (negative = already past).
 export function daysUntil(iso: string): number {
   const today = new Date();

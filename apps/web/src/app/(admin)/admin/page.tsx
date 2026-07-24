@@ -1,18 +1,9 @@
 import { requireRole } from "@/lib/auth";
 import { pctBn, toBn, dateBn } from "@/lib/format";
 import { StatCard, StatusBadge } from "./_components/ui";
+import { auditLabel } from "./_audit";
 
 export const dynamic = "force-dynamic";
-
-// Bengali labels for audit actions (table.op or the domain-logic action strings).
-function auditLabel(action: string): string {
-  if (action.startsWith("inventories")) return "মজুদ হালনাগাদ";
-  if (action.startsWith("vaccine_doses")) return "ডোজ সূচি পরিবর্তন";
-  if (action.startsWith("vaccines")) return "টিকা তালিকা পরিবর্তন";
-  if (action.startsWith("user_roles")) return "ভূমিকা পরিবর্তন";
-  if (action.startsWith("dose") || action.startsWith("vaccination_records")) return "ডোজ প্রদান";
-  return action;
-}
 
 export default async function AdminDashboardPage() {
   const supabase = await requireRole("admin");

@@ -5,11 +5,15 @@ import { usePathname } from "next/navigation";
 
 const NAV = [
   { href: "/admin", label: "ড্যাশবোর্ড" },
+  { href: "/admin/children", label: "শিশু" },
   { href: "/admin/inventory", label: "টিকা মজুদ" },
   { href: "/admin/catalog", label: "টিকা তালিকা" },
   { href: "/admin/reports", label: "রিপোর্ট" },
   { href: "/admin/analytics", label: "বিশ্লেষণ" },
   { href: "/admin/users", label: "ব্যবহারকারী" },
+  { href: "/admin/audit", label: "অডিট লগ" },
+  { href: "/admin/notifications", label: "বিজ্ঞপ্তি" },
+  { href: "/admin/settings", label: "সেটিংস" },
 ];
 
 export function AdminNav() {

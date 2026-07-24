@@ -31,7 +31,15 @@ export function RoleSelect({
         name="role"
         defaultValue={currentRole}
         disabled={disabled || pending}
-        onChange={() => formRef.current?.requestSubmit()}
+        onChange={(e) => {
+          // Privileged change (can grant admin) — confirm before submit; revert on cancel.
+          const label = ROLES.find((r) => r.value === e.target.value)?.label ?? e.target.value;
+          if (window.confirm(`এই ব্যবহারকারীর ভূমিকা "${label}" করবেন?`)) {
+            formRef.current?.requestSubmit();
+          } else {
+            e.target.value = currentRole;
+          }
+        }}
         className="rounded-md border border-[var(--color-border)] bg-transparent px-2 py-1 text-sm disabled:opacity-50"
       >
         {ROLES.map((r) => (
