@@ -47,8 +47,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      app_settings: {
+        Row: {
+          key: string;
+          updated_at: string;
+          updated_by: string | null;
+          value: Json;
+        };
+        Insert: {
+          key: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          value: Json;
+        };
+        Update: {
+          key?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          value?: Json;
+        };
+        Relationships: [];
+      };
       children: {
         Row: {
+          child_id: string;
           created_at: string;
           created_by: string | null;
           date_of_birth: string;
@@ -59,6 +81,7 @@ export type Database = {
           id: string;
         };
         Insert: {
+          child_id?: string;
           created_at?: string;
           created_by?: string | null;
           date_of_birth: string;
@@ -69,6 +92,7 @@ export type Database = {
           id?: string;
         };
         Update: {
+          child_id?: string;
           created_at?: string;
           created_by?: string | null;
           date_of_birth?: string;
@@ -151,27 +175,36 @@ export type Database = {
       };
       profiles: {
         Row: {
+          address: string | null;
+          avatar_path: string | null;
           contact: string | null;
           created_at: string;
           full_name: string;
           id: string;
           locale: string;
+          status: Database["public"]["Enums"]["user_status"];
           updated_at: string;
         };
         Insert: {
+          address?: string | null;
+          avatar_path?: string | null;
           contact?: string | null;
           created_at?: string;
           full_name: string;
           id: string;
           locale?: string;
+          status?: Database["public"]["Enums"]["user_status"];
           updated_at?: string;
         };
         Update: {
+          address?: string | null;
+          avatar_path?: string | null;
           contact?: string | null;
           created_at?: string;
           full_name?: string;
           id?: string;
           locale?: string;
+          status?: Database["public"]["Enums"]["user_status"];
           updated_at?: string;
         };
         Relationships: [];
@@ -209,14 +242,17 @@ export type Database = {
       user_roles: {
         Row: {
           role: Database["public"]["Enums"]["user_role"];
+          staff_code: string;
           user_id: string;
         };
         Insert: {
           role: Database["public"]["Enums"]["user_role"];
+          staff_code?: string;
           user_id: string;
         };
         Update: {
           role?: Database["public"]["Enums"]["user_role"];
+          staff_code?: string;
           user_id?: string;
         };
         Relationships: [];
@@ -225,34 +261,40 @@ export type Database = {
         Row: {
           administered_by: string;
           administered_date: string;
+          adverse_event: string | null;
           batch_number: string | null;
           child_id: string;
           created_at: string;
           dose_number: number;
           id: string;
           next_due_date: string | null;
+          notes: string | null;
           vaccine_id: string;
         };
         Insert: {
           administered_by: string;
           administered_date?: string;
+          adverse_event?: string | null;
           batch_number?: string | null;
           child_id: string;
           created_at?: string;
           dose_number: number;
           id?: string;
           next_due_date?: string | null;
+          notes?: string | null;
           vaccine_id: string;
         };
         Update: {
           administered_by?: string;
           administered_date?: string;
+          adverse_event?: string | null;
           batch_number?: string | null;
           child_id?: string;
           created_at?: string;
           dose_number?: number;
           id?: string;
           next_due_date?: string | null;
+          notes?: string | null;
           vaccine_id?: string;
         };
         Relationships: [];
@@ -321,6 +363,8 @@ export type Database = {
         Row: {
           code: string | null;
           coverage_rate: number | null;
+          done_count: number | null;
+          due_count: number | null;
           name_bn: string | null;
           name_en: string | null;
         };
@@ -341,7 +385,17 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_role"];
       };
       custom_access_token_hook: { Args: { event: Json }; Returns: Json };
+      enqueue_reminders: { Args: Record<PropertyKey, never>; Returns: number };
       generate_schedule: { Args: { p_child_id: string }; Returns: undefined };
+      luhn_check_digit: { Args: { p_digits: string }; Returns: number };
+      reminder_send_at: { Args: { p_day: string }; Returns: string };
+      setting_bool: { Args: { p_key: string }; Returns: boolean };
+      setting_int: { Args: { p_key: string }; Returns: number };
+      next_child_id: { Args: Record<PropertyKey, never>; Returns: string };
+      next_staff_code: {
+        Args: { p_role: Database["public"]["Enums"]["user_role"] };
+        Returns: string;
+      };
     };
     Enums: {
       child_gender: "male" | "female" | "other";
@@ -349,6 +403,7 @@ export type Database = {
       notification_status: "queued" | "sent" | "failed" | "dead";
       schedule_status: "pending" | "done" | "missed";
       user_role: "parent" | "worker" | "admin";
+      user_status: "invited" | "active" | "inactive";
     };
     CompositeTypes: Record<string, never>;
   };
