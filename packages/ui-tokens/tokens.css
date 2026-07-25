@@ -7,9 +7,14 @@
   --color-primary-fg: #ffffff;
   --color-muted: #6b7280;
   --color-border: #e5e7eb;
+  /* These are used as TEXT colours (status pills, KPI values), not just as fills, so they
+     have to clear WCAG AA 4.5:1 against --color-bg, not the 3:1 that would do for a border.
+     Measured on #ffffff: danger 4.83, warning 5.02, success 5.02. The previous amber-600
+     (#d97706, 3.19) and green-600 (#16a34a, 3.30) both failed. The dark theme's variants
+     already pass comfortably (7.16 / 11.86 / 11.36) and are unchanged. */
   --color-danger: #dc2626;
-  --color-warning: #d97706;
-  --color-success: #16a34a;
+  --color-warning: #b45309;
+  --color-success: #15803d;
   --font-sans: "Noto Sans Bengali", "Noto Sans", system-ui, sans-serif;
 }
 

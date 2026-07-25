@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
-import { pctBn, toBn, dateBn } from "@/lib/format";
+import { pctBn, toBn, dateBn, dateTimeBn, todayIso } from "@/lib/format";
 import { StatCard, StatusBadge } from "./_components/ui";
 import { CoverageBars, type CoverageRow } from "./_components/Chart";
 import { batchStatus } from "./inventory/status";
@@ -11,11 +11,25 @@ export const dynamic = "force-dynamic";
 export default async function AdminDashboardPage() {
   const supabase = await requireRole("admin");
 
-  const [{ data: cov }, { data: drop }, usersRes, { data: stock }, { data: audit }] =
-    await Promise.all([
-      supabase.from("v_coverage").select("code, name_bn, coverage_rate").order("code"),
+  const today = todayIso();
+
+  const [
+    { data: cov },
+    { data: drop },
+    childrenRes,
+    { data: stock },
+    { data: audit },
+    { data: aefi },
+    dueRes,
+    missedRes,
+  ] = await Promise.all([
+      supabase
+        .from("v_coverage")
+        .select("code, name_bn, coverage_rate, done_count, due_count")
+        .order("code"),
       supabase.from("v_dropout").select("started, completed"),
-      supabase.from("profiles").select("*", { count: "exact", head: true }),
+      // Registered children, not user accounts: the programme is measured in children reached.
+      supabase.from("children").select("*", { count: "exact", head: true }),
       supabase
         .from("inventories")
         .select("id, vaccine_id, batch_number, stock_quantity, expiry_date")
@@ -25,6 +39,23 @@ export default async function AdminDashboardPage() {
         .select("id, action, at, actor_id")
         .order("at", { ascending: false })
         .limit(8),
+      // Adverse events following immunisation. Nothing else on the admin surface would ever
+      // raise one, and it is the single most time-critical thing in the dataset.
+      supabase
+        .from("vaccination_records")
+        .select("id, child_id, vaccine_id, dose_number, administered_date, adverse_event")
+        .not("adverse_event", "is", null)
+        .order("administered_date", { ascending: false })
+        .limit(5),
+      // Coverage and dropout are lagging indicators — they describe what already went wrong.
+      // Doses due and doses missed are the leading ones, and the only numbers on this screen
+      // an admin can still act on today.
+      supabase
+        .from("schedules")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending")
+        .lte("due_date", today),
+      supabase.from("schedules").select("*", { count: "exact", head: true }).eq("status", "missed"),
     ]);
 
   const rates = (cov ?? []).map((r) => r.coverage_rate).filter((r): r is number => r != null);
@@ -34,10 +65,17 @@ export default async function AdminDashboardPage() {
   const completed = (drop ?? []).reduce((a, r) => a + (r.completed ?? 0), 0);
   const dropoutRate = started ? 1 - completed / started : null;
 
-  const usersCount = usersRes.count ?? 0;
+  const childrenCount = childrenRes.count ?? 0;
 
   const { data: vaccines } = await supabase.from("vaccines").select("id, name_bn");
   const vaccineById = new Map((vaccines ?? []).map((v) => [v.id, v.name_bn]));
+
+  // Names for the children named in AEFI rows, so the alert is actionable rather than a uuid.
+  const aefiChildIds = [...new Set((aefi ?? []).map((r) => r.child_id))];
+  const { data: aefiKids } = aefiChildIds.length
+    ? await supabase.from("children").select("id, full_name, child_id").in("id", aefiChildIds)
+    : { data: [] };
+  const kidById = new Map((aefiKids ?? []).map((k) => [k.id, k]));
 
   // Actionable alerts: the actual batches needing attention (low/expiring), not just a count.
   const alerts = (stock ?? [])
@@ -54,34 +92,135 @@ export default async function AdminDashboardPage() {
     : { data: [] };
   const nameById = new Map((actors ?? []).map((a) => [a.id, a.full_name]));
 
+  const dueCount = dueRes.count ?? 0;
+  const missedCount = missedRes.count ?? 0;
+
+  // First run: an admin looking at a dashboard of dashes needs to be told what to do, not
+  // left to guess whether the system is broken or simply empty.
+  if (childrenCount === 0) {
+    return (
+      <div className="flex flex-col gap-6">
+        <header>
+          <h1 className="text-2xl font-semibold">ড্যাশবোর্ড</h1>
+        </header>
+        <section className="rounded-xl border border-[var(--color-border)] p-8 text-center">
+          <h2 className="text-lg font-medium">এখনো কোনো শিশু নিবন্ধিত নেই</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-[var(--color-muted)]">
+            প্রথম শিশু নিবন্ধন করলেই তার ১০-সংখ্যার আইডি ও সম্পূর্ণ টিকার সূচি স্বয়ংক্রিয়ভাবে
+            তৈরি হবে, এবং এই ড্যাশবোর্ডে কভারেজ ও ড্রপআউট দেখা যাবে।
+          </p>
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <Link
+              href="/admin/children/new"
+              className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-primary-fg)]"
+            >
+              + শিশু নিবন্ধন করুন
+            </Link>
+            <Link
+              href="/admin/catalog"
+              className="rounded-md border border-[var(--color-border)] px-4 py-2 text-sm"
+            >
+              টিকা তালিকা দেখুন
+            </Link>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-8">
-      <header>
-        <h1 className="text-2xl font-semibold">ড্যাশবোর্ড</h1>
-        <p className="text-sm text-[var(--color-muted)]">টিকাদান কর্মসূচির সারসংক্ষেপ</p>
+      <header className="flex flex-wrap items-baseline justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-semibold">ড্যাশবোর্ড</h1>
+          <p className="text-sm text-[var(--color-muted)]">টিকাদান কর্মসূচির সারসংক্ষেপ</p>
+        </div>
+        {/* Every number below is "now" with nothing saying so. A dashboard that gets
+            screenshotted into a report needs to carry its own timestamp. */}
+        <p className="text-xs text-[var(--color-muted)]">হালনাগাদ: {dateTimeBn(new Date().toISOString())}</p>
       </header>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Act-now first, then explain. The two counts an admin can still do something about
+          lead; the lagging rates that describe the past follow. */}
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <StatCard
+          label="দেয় ডোজ"
+          value={toBn(dueCount)}
+          tone={dueCount > 0 ? "warning" : "success"}
+          hint="আজ বা তার আগে নির্ধারিত, এখনো দেওয়া হয়নি"
+          href="/admin/children"
+        />
+        <StatCard
+          label="বাদ পড়া ডোজ"
+          value={toBn(missedCount)}
+          tone={missedCount > 0 ? "danger" : "success"}
+          hint="১৪ দিনের বেশি বিলম্বিত"
+          href="/admin/children"
+        />
+        <StatCard
+          label="মনোযোগ প্রয়োজন (মজুদ)"
+          value={toBn(lowStockCount)}
+          tone={lowStockCount > 0 ? "warning" : "success"}
+          hint="স্বল্প, মেয়াদোত্তীর্ণ বা মেয়াদ-ঘনিয়ে-আসা ব্যাচ"
+          href="/admin/inventory"
+        />
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
           label="গড় টিকা কভারেজ"
           value={pctBn(avgCoverage)}
           tone={avgCoverage != null && avgCoverage >= 0.8 ? "success" : "warning"}
-          hint="সময়মতো প্রাপ্ত ডোজের গড় হার"
+          hint="দেয় ডোজের মধ্যে সম্পন্ন"
+          href="/admin/reports"
         />
         <StatCard
           label="ড্রপআউট হার"
           value={pctBn(dropoutRate)}
           tone={dropoutRate != null && dropoutRate > 0.1 ? "danger" : "success"}
           hint="প্রথম ডোজ নিয়েছে কিন্তু সম্পূর্ণ করেনি"
+          href="/admin/reports"
         />
         <StatCard
-          label="মনোযোগ প্রয়োজন (মজুদ)"
-          value={toBn(lowStockCount)}
-          tone={lowStockCount > 0 ? "warning" : "success"}
-          hint="স্বল্প বা মেয়াদ-ঘনিয়ে-আসা ব্যাচ"
+          label="নিবন্ধিত শিশু"
+          value={toBn(childrenCount)}
+          tone="primary"
+          hint="প্রত্যেকের একটি অপরিবর্তনীয় ১০-সংখ্যার আইডি"
+          href="/admin/children"
         />
-        <StatCard label="মোট ব্যবহারকারী" value={toBn(usersCount)} tone="primary" />
       </section>
+
+      {(aefi ?? []).length > 0 && (
+        <section className="rounded-xl border border-[var(--color-danger)] p-5">
+          <h2 className="mb-3 text-lg font-medium text-[var(--color-danger)]">
+            বিরূপ প্রতিক্রিয়া (AEFI)
+          </h2>
+          <ul className="flex flex-col gap-3">
+            {(aefi ?? []).map((r) => {
+              const kid = kidById.get(r.child_id);
+              return (
+                <li key={r.id} className="flex items-start justify-between gap-4 text-sm">
+                  <div className="min-w-0">
+                    <Link
+                      href={`/admin/children/${r.child_id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {kid?.full_name ?? "—"}
+                    </Link>
+                    <span className="ml-2 font-mono text-xs text-[var(--color-muted)]">
+                      {kid ? toBn(kid.child_id) : ""}
+                    </span>
+                    <div className="text-xs text-[var(--color-danger)]">{r.adverse_event}</div>
+                  </div>
+                  <span className="shrink-0 text-xs text-[var(--color-muted)]">
+                    {vaccineById.get(r.vaccine_id) ?? ""} · {dateBn(r.administered_date)}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr_1fr]">
         <section className="rounded-xl border border-[var(--color-border)] p-5">
@@ -125,15 +264,20 @@ export default async function AdminDashboardPage() {
       </div>
 
       <section>
-        <h2 className="mb-3 text-lg font-medium">সাম্প্রতিক কার্যক্রম</h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-medium">সাম্প্রতিক কার্যক্রম</h2>
+          <Link href="/admin/audit" className="text-xs text-[var(--color-primary)]">
+            সম্পূর্ণ অডিট লগ →
+          </Link>
+        </div>
         {audit && audit.length > 0 ? (
-          <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
+          <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
             <table className="w-full text-sm">
               <thead className="bg-[var(--color-border)]/40 text-left text-[var(--color-muted)]">
                 <tr>
-                  <th className="px-4 py-2 font-medium">কার্যক্রম</th>
-                  <th className="px-4 py-2 font-medium">ব্যবহারকারী</th>
-                  <th className="px-4 py-2 font-medium">সময়</th>
+                  <th scope="col" className="px-4 py-2 font-medium">কার্যক্রম</th>
+                  <th scope="col" className="px-4 py-2 font-medium">ব্যবহারকারী</th>
+                  <th scope="col" className="px-4 py-2 font-medium">সময়</th>
                 </tr>
               </thead>
               <tbody>
@@ -142,8 +286,12 @@ export default async function AdminDashboardPage() {
                     <td className="px-4 py-2">
                       <StatusBadge tone="muted">{auditLabel(row.action)}</StatusBadge>
                     </td>
-                    <td className="px-4 py-2">{nameById.get(row.actor_id ?? "") ?? "—"}</td>
-                    <td className="px-4 py-2 text-[var(--color-muted)]">{dateBn(row.at)}</td>
+                    <td className="px-4 py-2">
+                      {row.actor_id ? (nameById.get(row.actor_id) ?? "—") : "সিস্টেম"}
+                    </td>
+                    {/* dateBn alone rendered every entry from today as the same string, so
+                        the feed read as unordered. The time is the whole point of a feed. */}
+                    <td className="px-4 py-2 text-[var(--color-muted)]">{dateTimeBn(row.at)}</td>
                   </tr>
                 ))}
               </tbody>

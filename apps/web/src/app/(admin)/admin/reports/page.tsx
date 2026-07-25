@@ -10,7 +10,10 @@ export const dynamic = "force-dynamic";
 export default async function ReportsPage() {
   const supabase = await requireRole("admin");
   const [{ data: coverage }, { data: dropout }, { data: daily }] = await Promise.all([
-    supabase.from("v_coverage").select("code, name_bn, coverage_rate").order("code"),
+    supabase
+      .from("v_coverage")
+      .select("code, name_bn, coverage_rate, done_count, due_count")
+      .order("code"),
     supabase.from("v_dropout").select("code, started, completed").order("code"),
     supabase.from("mv_daily_doses").select("administered_date, doses").order("administered_date"),
   ]);
@@ -42,13 +45,15 @@ export default async function ReportsPage() {
 
       <section>
         <h2 className="mb-3 text-lg font-medium">কভারেজ (বিস্তারিত)</h2>
-        <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
+        <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
           <table className="w-full text-sm">
             <thead className="bg-[var(--color-border)]/40 text-left text-[var(--color-muted)]">
               <tr>
-                <th className="px-4 py-3 font-medium">কোড</th>
-                <th className="px-4 py-3 font-medium">টিকা</th>
-                <th className="px-4 py-3 text-right font-medium">কভারেজ</th>
+                <th scope="col" className="px-4 py-3 font-medium">কোড</th>
+                <th scope="col" className="px-4 py-3 font-medium">টিকা</th>
+                <th scope="col" className="px-4 py-3 text-right font-medium">সম্পন্ন</th>
+                <th scope="col" className="px-4 py-3 text-right font-medium">দেয়</th>
+                <th scope="col" className="px-4 py-3 text-right font-medium">কভারেজ</th>
               </tr>
             </thead>
             <tbody>
@@ -56,6 +61,10 @@ export default async function ReportsPage() {
                 <tr key={r.code} className="border-t border-[var(--color-border)]">
                   <td className="px-4 py-3 font-mono text-xs">{r.code}</td>
                   <td className="px-4 py-3">{r.name_bn}</td>
+                  {/* Numerator and denominator alongside the rate: a report that is going to
+                      be defended needs its N visible, not inferred. */}
+                  <td className="px-4 py-3 text-right tabular-nums">{toBn(r.done_count ?? 0)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{toBn(r.due_count ?? 0)}</td>
                   <td className="px-4 py-3 text-right">
                     <StatusBadge
                       tone={
@@ -80,14 +89,14 @@ export default async function ReportsPage() {
 
       <section>
         <h2 className="mb-3 text-lg font-medium">ড্রপআউট</h2>
-        <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
+        <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
           <table className="w-full text-sm">
             <thead className="bg-[var(--color-border)]/40 text-left text-[var(--color-muted)]">
               <tr>
-                <th className="px-4 py-3 font-medium">কোড</th>
-                <th className="px-4 py-3 text-right font-medium">শুরু করেছে</th>
-                <th className="px-4 py-3 text-right font-medium">সম্পূর্ণ করেছে</th>
-                <th className="px-4 py-3 text-right font-medium">ড্রপআউট হার</th>
+                <th scope="col" className="px-4 py-3 font-medium">কোড</th>
+                <th scope="col" className="px-4 py-3 text-right font-medium">শুরু করেছে</th>
+                <th scope="col" className="px-4 py-3 text-right font-medium">সম্পূর্ণ করেছে</th>
+                <th scope="col" className="px-4 py-3 text-right font-medium">ড্রপআউট হার</th>
               </tr>
             </thead>
             <tbody>

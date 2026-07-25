@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { requireRole } from "@/lib/auth";
-import { toBn } from "@/lib/format";
+import { toBn, todayIso } from "@/lib/format";
 import { childCoverage } from "./coverage";
 import { ChildrenTable, type ChildRow } from "./_components/ChildrenTable";
 
@@ -11,7 +12,9 @@ export default async function ChildrenPage() {
   const [{ data: kids }, { data: scheds }] = await Promise.all([
     supabase
       .from("children")
-      .select("id, full_name, date_of_birth, gender, guardian_id, guardian_contact, created_at")
+      .select(
+        "id, child_id, full_name, date_of_birth, gender, guardian_id, guardian_contact, created_at",
+      )
       .order("created_at", { ascending: false }),
     supabase.from("schedules").select("child_id, status, due_date"),
   ]);
@@ -22,11 +25,11 @@ export default async function ChildrenPage() {
     : { data: [] };
   const guardianById = new Map((guardians ?? []).map((g) => [g.id, g.full_name]));
 
-  const today = new Date().toISOString().slice(0, 10);
-  const rateFor = childCoverage(scheds ?? [], today);
+  const rateFor = childCoverage(scheds ?? [], todayIso());
 
   const rows: ChildRow[] = (kids ?? []).map((k) => ({
     id: k.id,
+    child_id: k.child_id,
     full_name: k.full_name,
     date_of_birth: k.date_of_birth,
     gender: k.gender,
@@ -38,11 +41,19 @@ export default async function ChildrenPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="text-2xl font-semibold">শিশু</h1>
-        <p className="text-sm text-[var(--color-muted)]">
-          মোট {toBn(rows.length)} জন নিবন্ধিত শিশু — নিবন্ধনের সময় অনুসারে সাজানো
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">শিশু</h1>
+          <p className="text-sm text-[var(--color-muted)]">
+            মোট {toBn(rows.length)} জন নিবন্ধিত শিশু — নিবন্ধনের সময় অনুসারে সাজানো
+          </p>
+        </div>
+        <Link
+          href="/admin/children/new"
+          className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-primary-fg)]"
+        >
+          + নতুন শিশু
+        </Link>
       </header>
       <ChildrenTable rows={rows} />
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { fromBn, toBn } from "@/lib/format";
 
 export type Column<T> = {
   header: string;
@@ -12,10 +13,14 @@ export type Filter<T> = { label: string; predicate: (row: T) => boolean };
 
 // Client-side substring match over a row's searchable text. Pure so it can be unit-tested
 // without React. Case-insensitive; empty query returns everything.
+//
+// Both sides are digit-normalised to ASCII. Numerals render in Bengali everywhere in this
+// app, but they are typed in whichever script the keyboard is in — so "১০০০০০০০০৮" and
+// "1000000008" have to find the same child. Doing it here means no caller has to remember.
 export function filterRows<T>(rows: T[], searchText: (row: T) => string, q: string): T[] {
-  const needle = q.trim().toLowerCase();
+  const needle = fromBn(q).trim().toLowerCase();
   if (!needle) return rows;
-  return rows.filter((r) => searchText(r).toLowerCase().includes(needle));
+  return rows.filter((r) => fromBn(searchText(r)).toLowerCase().includes(needle));
 }
 
 // Shared admin list table: a search box + optional filter chips over already-fetched rows.
@@ -29,6 +34,7 @@ export function DataTable<T>({
   searchPlaceholder,
   filters,
   empty,
+  pageSize = 25,
 }: {
   rows: T[];
   columns: Column<T>[];
@@ -37,12 +43,20 @@ export function DataTable<T>({
   searchPlaceholder?: string;
   filters?: Filter<T>[];
   empty: string;
+  pageSize?: number;
 }) {
   const [q, setQ] = useState("");
   const [active, setActive] = useState(-1);
+  const [page, setPage] = useState(0);
 
   let shown = searchText ? filterRows(rows, searchText, q) : rows;
   if (filters && active >= 0) shown = shown.filter(filters[active].predicate);
+
+  // Clamp rather than reset-on-change: narrowing a filter while on page 5 should land on the
+  // last page that still has rows, not silently show an empty table.
+  const pageCount = Math.max(1, Math.ceil(shown.length / pageSize));
+  const current = Math.min(page, pageCount - 1);
+  const paged = shown.slice(current * pageSize, current * pageSize + pageSize);
 
   return (
     <div className="flex flex-col gap-3">
@@ -52,7 +66,10 @@ export function DataTable<T>({
             <input
               type="search"
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(e) => {
+                setQ(e.target.value);
+                setPage(0);
+              }}
               placeholder={searchPlaceholder ?? "খুঁজুন…"}
               aria-label={searchPlaceholder ?? "খুঁজুন"}
               className="w-64 rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
@@ -60,13 +77,23 @@ export function DataTable<T>({
           )}
           {filters && (
             <div className="flex flex-wrap gap-1">
-              <FilterChip label="সব" on={active === -1} onClick={() => setActive(-1)} />
+              <FilterChip
+                label="সব"
+                on={active === -1}
+                onClick={() => {
+                  setActive(-1);
+                  setPage(0);
+                }}
+              />
               {filters.map((f, i) => (
                 <FilterChip
                   key={f.label}
                   label={f.label}
                   on={active === i}
-                  onClick={() => setActive(i)}
+                  onClick={() => {
+                    setActive(i);
+                    setPage(0);
+                  }}
                 />
               ))}
             </div>
@@ -74,13 +101,16 @@ export function DataTable<T>({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
-        <table className="w-full text-sm">
+      {/* overflow-x-auto, not overflow-hidden: a wide table has to scroll inside its own box
+          rather than clipping columns or forcing the whole page sideways on a tablet. */}
+      <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
+        <table className="w-full min-w-[40rem] text-sm">
           <thead className="bg-[var(--color-border)]/40 text-left text-[var(--color-muted)]">
             <tr>
               {columns.map((c) => (
                 <th
                   key={c.header}
+                  scope="col"
                   className={`px-4 py-3 font-medium ${c.align === "right" ? "text-right" : ""}`}
                 >
                   {c.header}
@@ -89,7 +119,7 @@ export function DataTable<T>({
             </tr>
           </thead>
           <tbody>
-            {shown.map((row) => (
+            {paged.map((row) => (
               <tr key={rowKey(row)} className="border-t border-[var(--color-border)]">
                 {columns.map((c) => (
                   <td
@@ -107,14 +137,57 @@ export function DataTable<T>({
                   colSpan={columns.length}
                   className="px-4 py-8 text-center text-[var(--color-muted)]"
                 >
-                  {empty}
+                  {/* Zero-result is not the same as empty: "no batches exist" and "your
+                      search matched nothing" need different next actions. */}
+                  {q || active >= 0 ? "এই অনুসন্ধানে কিছু পাওয়া যায়নি।" : empty}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {pageCount > 1 && (
+        <nav aria-label="পৃষ্ঠা" className="flex items-center justify-between text-xs">
+          <span className="text-[var(--color-muted)]">
+            {toBn(current * pageSize + 1)}–{toBn(current * pageSize + paged.length)} /{" "}
+            {toBn(shown.length)}
+          </span>
+          <div className="flex items-center gap-2">
+            <PageButton disabled={current === 0} onClick={() => setPage(current - 1)}>
+              ← আগের
+            </PageButton>
+            <span className="text-[var(--color-muted)]">
+              {toBn(current + 1)} / {toBn(pageCount)}
+            </span>
+            <PageButton disabled={current >= pageCount - 1} onClick={() => setPage(current + 1)}>
+              পরের →
+            </PageButton>
+          </div>
+        </nav>
+      )}
     </div>
+  );
+}
+
+function PageButton({
+  disabled,
+  onClick,
+  children,
+}: {
+  disabled: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className="rounded-md border border-[var(--color-border)] px-2 py-1 disabled:opacity-40"
+    >
+      {children}
+    </button>
   );
 }
 

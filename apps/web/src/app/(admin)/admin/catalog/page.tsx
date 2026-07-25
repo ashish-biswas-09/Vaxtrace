@@ -1,16 +1,29 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { toBn } from "@/lib/format";
-import { StatusBadge } from "../_components/ui";
+import { CatalogTable, type VaccineRow } from "./_components/CatalogTable";
 
 export const dynamic = "force-dynamic";
 
 export default async function CatalogPage() {
   const supabase = await requireRole("admin");
-  const { data: vaccines } = await supabase
-    .from("vaccines")
-    .select("id, code, name_bn, name_en, total_doses, is_active")
-    .order("code");
+
+  const [{ data: vaccines }, { data: doses }] = await Promise.all([
+    supabase.from("vaccines").select("id, code, name_bn, name_en, total_doses, is_active").order("code"),
+    supabase.from("vaccine_doses").select("vaccine_id"),
+  ]);
+
+  const definedByVaccine = new Map<string, number>();
+  for (const d of doses ?? []) {
+    definedByVaccine.set(d.vaccine_id, (definedByVaccine.get(d.vaccine_id) ?? 0) + 1);
+  }
+
+  const rows: VaccineRow[] = (vaccines ?? []).map((v) => ({
+    ...v,
+    doses_defined: definedByVaccine.get(v.id) ?? 0,
+  }));
+
+  const incomplete = rows.filter((v) => v.doses_defined !== v.total_doses).length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -18,7 +31,8 @@ export default async function CatalogPage() {
         <div>
           <h1 className="text-2xl font-semibold">টিকা তালিকা</h1>
           <p className="text-sm text-[var(--color-muted)]">
-            মোট {toBn((vaccines ?? []).length)} টি টিকা
+            মোট {toBn(rows.length)} টি টিকা
+            {incomplete > 0 && ` — ${toBn(incomplete)} টির ডোজ সূচি অসম্পূর্ণ`}
           </p>
         </div>
         <Link
@@ -29,44 +43,7 @@ export default async function CatalogPage() {
         </Link>
       </header>
 
-      <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
-        <table className="w-full text-sm">
-          <thead className="bg-[var(--color-border)]/40 text-left text-[var(--color-muted)]">
-            <tr>
-              <th className="px-4 py-3 font-medium">কোড</th>
-              <th className="px-4 py-3 font-medium">নাম</th>
-              <th className="px-4 py-3 font-medium">ডোজ</th>
-              <th className="px-4 py-3 font-medium">অবস্থা</th>
-              <th className="px-4 py-3 font-medium"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {(vaccines ?? []).map((v) => (
-              <tr key={v.id} className="border-t border-[var(--color-border)]">
-                <td className="px-4 py-3 font-mono text-xs">{v.code}</td>
-                <td className="px-4 py-3">
-                  {v.name_bn}
-                  <span className="ml-2 text-xs text-[var(--color-muted)]">{v.name_en}</span>
-                </td>
-                <td className="px-4 py-3">{toBn(v.total_doses)}</td>
-                <td className="px-4 py-3">
-                  <StatusBadge tone={v.is_active ? "success" : "muted"}>
-                    {v.is_active ? "সক্রিয়" : "নিষ্ক্রিয়"}
-                  </StatusBadge>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <Link
-                    href={`/admin/catalog/${v.id}`}
-                    className="text-[var(--color-primary)] hover:underline"
-                  >
-                    সম্পাদনা
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <CatalogTable rows={rows} />
     </div>
   );
 }

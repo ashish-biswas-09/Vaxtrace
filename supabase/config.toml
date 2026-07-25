@@ -25,6 +25,11 @@ enable_signup = true
 [auth.email]
 enable_signup = true
 enable_confirmations = false
+# Reject passwords found in the HaveIBeenPwned corpus (security advisor
+# `auth_leaked_password_protection`). This covers local `supabase start`; the hosted project
+# needs the same switch under Dashboard → Authentication → Password settings, since it is an
+# Auth service setting rather than something a SQL migration can reach.
+enable_leaked_password_protection = true
 
 [auth.sms]
 enable_signup = true

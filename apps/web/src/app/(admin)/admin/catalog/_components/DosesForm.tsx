@@ -29,9 +29,9 @@ export function DosesForm({
       <table className="w-full text-sm">
         <thead className="text-left text-[var(--color-muted)]">
           <tr>
-            <th className="py-1 font-medium">ডোজ</th>
-            <th className="py-1 font-medium">প্রস্তাবিত বয়স (দিন)</th>
-            <th className="py-1 font-medium">ন্যূনতম বিরতি (দিন)</th>
+            <th scope="col" className="py-1 font-medium">ডোজ</th>
+            <th scope="col" className="py-1 font-medium">প্রস্তাবিত বয়স (দিন)</th>
+            <th scope="col" className="py-1 font-medium">ন্যূনতম বিরতি (দিন)</th>
           </tr>
         </thead>
         <tbody>

@@ -21,10 +21,29 @@ export async function getUserRole(supabase: SupabaseServerClient): Promise<UserR
 
   try {
     const claims = JSON.parse(Buffer.from(payload, "base64url").toString("utf-8"));
+    // A suspended account is already denied by RLS — auth_role() returns NULL for anything
+    // but 'active', so every role-based policy fails. Mirroring that here is what stops the
+    // account from *reaching* an admin screen and finding every table mysteriously empty.
+    // Missing claim means the token predates the status hook: treat it as active, exactly as
+    // the SQL side does, so an existing session is not signed out mid-migration.
+    const status = (claims.user_status as string | undefined) ?? "active";
+    if (status !== "active") return null;
     return (claims.user_role as UserRole | undefined) ?? null;
   } catch {
     return null;
   }
+}
+
+// Guards a page that any signed-in user may see, whatever their role (account management).
+// Uses getUser(), not getSession(), because this one *is* a boundary — the account screen
+// mutates credentials, so the token gets verified with the auth server rather than decoded.
+export async function requireUser() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/sign-in");
+  return { supabase, user };
 }
 
 // Guards a role's landing page: no session -> sign in; wrong role -> their own landing.
