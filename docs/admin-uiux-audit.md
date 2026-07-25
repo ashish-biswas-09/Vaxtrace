@@ -339,3 +339,149 @@ Shipped the code-actionable, schema-backed, testable subset of §5 Phase C/D. De
 - **C5 child-detail drill-in + `v_child_coverage` view** — YAGNI at 6 seed rows (the page already `ponytail:`-notes the view).
 - **D2 responsive/tablet redesign** and **full D3 axe pass** — a real design/tooling effort; only the print-clean and focus-ring pieces were cheap enough to land now.
 - KPI deltas — need a historical metrics snapshot table first.
+
+---
+
+## Delivered 2026-07-25 — Identity system, child history, account management, module pass
+
+### 1. Unique identification system (schema-enforced)
+
+| Entity | Identifier | Shape | Guarantee |
+|---|---|---|---|
+| Child | `children.child_id` | 10 digits — 9 from a sequence + a **Luhn check digit** | Unique by construction, generated in a `BEFORE INSERT` trigger; `BEFORE UPDATE` rejects any change |
+| Admin | `user_roles.staff_code` | `ADM-000001` | Same guards, per-role sequence |
+| Worker | `user_roles.staff_code` | `WKR-000001` | " |
+| Parent | `user_roles.staff_code` | `PAR-000001` | " |
+
+Design notes:
+
+- **Why a trigger, not a `DEFAULT`.** A default can be overridden by any caller. The guard trigger *overwrites* whatever the client sent, so the invariant holds for server actions, the SQL console, service-role jobs and future importers alike. The `DEFAULT`s that do exist are there only so the generated TypeScript `Insert` types treat the column as optional; `user_roles`' default is the sentinel `'UNSET'`, which deliberately **violates** the format CHECK, so a bypassed trigger fails closed instead of storing junk.
+- **Why 10 digits and not 9.** The tenth is a Luhn checksum over the first nine, so a mistyped or transposed Child ID is rejected at data entry rather than silently attaching a dose to the wrong child.
+- **Why the code lives on `user_roles`, not `profiles`.** The identifier names a *capacity*. Someone who is both a worker and an admin holds one of each, and neither number is ever reused.
+- Verified live against the project database and rolled back: a client-supplied `0000000000` came back as `1000000073`; `UPDATE ... SET child_id` raised; a worker grant minted `WKR-000001`; `luhn_check_digit('12a')` raised. Locked in as `supabase/tests/identity_ids.test.sql` (9 pgTAP assertions).
+
+### 2. Child vaccination history — `/admin/children/[id]`
+
+The Children screen was a registry with no drill-in. Every row now opens a full immunisation record: Child ID (headline), name / age / gender / DOB, guardian and contact, the registering staff member **with their Worker ID**, and a dose table covering **vaccine, dose number, scheduled date, administered date, status, administering worker (+ ID), batch number, and remarks / adverse events**.
+
+- History is the **schedule joined to administered doses**, not just the doses given — showing only what happened hides what was missed, which is the question the screen exists to answer. Extracted to `children/[id]/history.ts` and unit-tested (orphan records, ordering, status precedence).
+- `schedules.status` only knows pending/done/missed, so `doseStatus()` splits pending into **due** (past) and **upcoming** (future). Without that split, every newborn's entire future calendar reads as outstanding.
+- **Remarks and adverse events (AEFI)** are new columns on `vaccination_records`, editable inline. Everything clinical — child, vaccine, dose, date, who administered — stays append-only; a column-level `GRANT UPDATE (notes, adverse_event)` enforces that at the database, not just in the server action. AEFI rows also surface as a dedicated dashboard alert.
+- Child ID search accepts **either script**: `filterRows` normalises Bengali digits to ASCII, so a card read aloud in Bangla and one scanned in Latin find the same child.
+
+### 3. Account management — `/account`
+
+Built **outside** the admin shell so all three roles reach the same screen: profile picture upload / replace / delete, name, contact, address, language, email change, password change, immutable role ID, and personal account activity.
+
+- **Private** avatars bucket (not public), one folder per user id enforced by a storage policy, served through short-lived signed URLs — the object path is otherwise the only thing between a stranger and a health worker's photograph. Replacing a `.jpg` with a `.png` removes the old object rather than orphaning it.
+- **Password change re-authenticates.** The current password is verified on a `persistSession:false` client before `updateUser`, so a borrowed session cannot silently take over an account on a shared clinic workstation — and a wrong guess cannot disturb the live session.
+- Account activity is powered by a merged `audit_log` SELECT policy: an admin reads the whole trail, everyone else reads only the entries they caused.
+- `profiles.updated_at` existed but nothing ever moved it, so "last updated" was always the creation time. One trigger fixed every write path.
+
+### 4. Module pass
+
+| Module | Change |
+|---|---|
+| ড্যাশবোর্ড | KPI switched from user accounts to **registered children**; new **AEFI alert panel**; recent activity links through to the audit log |
+| শিশু | Child ID column, per-row drill-in, coverage filters, dual-script search |
+| টিকা তালিকা | Search, active/inactive filters, and a **`total_doses` vs `vaccine_doses` mismatch warning** — when they disagree, children silently get an incomplete calendar |
+| টিকা মজুদ | **`/admin/inventory/new`** — receiving stock previously had no entry point at all; a duplicate batch is reported as a conflict, not a crash |
+| রিপোর্ট | CSV export refactored onto a shared `lib/csv.ts` |
+| ব্যবহারকারী | Rebuilt on the shared table: staff-ID column, search, per-role filters |
+| অডিট লগ | Search, entity filters, pagination and **CSV export** — an audit trail that cannot leave the screen is not evidence. `auditLabel` now separates a *dose amendment* from a *dose given* |
+| বিজ্ঞপ্তি | Status registry extracted and shared; attempts and `last_error` surfaced; status filters |
+| সিস্টেম সেটিংস | Rewritten to report **only facts the database can prove**. The previous screen showed invented values (lead time, daily run time) for a dispatcher that does not exist; unbuilt behaviour is now labelled **পরিকল্পিত** |
+| Shared | `DataTable` gained **pagination** and a distinct **zero-result vs empty** message |
+
+### 5. Bugs found and fixed along the way
+
+- **Timezone off-by-one in `daysUntil`.** `new Date("2026-07-25")` parses as UTC midnight; `setHours(0,0,0,0)` then snapped it to the local day that instant falls in — a day early east of Greenwich. In Bangladesh (UTC+6) every dose due today read as *upcoming* and every batch expiring today read as *expired*, for the first six hours of every day. Fixed at the root with a local-date constructor plus a new `todayIso()`; call sites moved off `toISOString().slice(0,10)`. This was surfacing as a failing test that predated this session.
+- **Audit coverage holes.** Child registration, profile edits and dose amendments were untracked. Triggers added — the trail has to be complete to be evidence.
+- **`trg_admin_audit()` was callable over the public REST API** by `anon` and `authenticated`. It is a trigger function; `EXECUTE` revoked. The earlier hardening migration applied this rule to the functions that existed then; this one was added afterwards and missed.
+
+### 6. Advisor status
+
+- **Security: 4 WARN → 1.** Fixed the two `trg_admin_audit` exposures, and **removed** an `admin_cron_jobs()` SECURITY DEFINER function built earlier in this same session — a definer function reachable over the public REST API is not worth two informational cards, even with an internal admin check. The remaining item, **leaked-password protection**, is an Auth *service* setting no SQL migration can reach: added to `supabase/config.toml` for local, but **the hosted project needs the switch flipped under Dashboard → Authentication → Password settings**.
+- **Performance: all WARN cleared.** Every RLS policy re-evaluated `auth.uid()` / `auth_role()` per row; now wrapped as `(select ...)` so the planner evaluates once per statement. Overlapping permissive policies merged — the `for all` policies were split into explicit insert/update/delete so they stop shadowing the select policy. Five missing foreign-key covering indexes added.
+- **Remaining: 9 × INFO `unused_index`, deliberately not actioned.** Five are the FK indexes just created — unused because they are new. The others (`schedules (status, due_date)`, `children (guardian_id)`) are the reminder-sweep and parent-RLS indexes. Dropping an index because a seed-sized database has not needed it yet is optimising for the linter instead of for the query it was built for; the lint self-resolves under real traffic.
+
+### 7. Verification
+
+`pnpm typecheck`, `pnpm lint`, `pnpm build` and `pnpm test` all clean — **37/37 tests passing** (was 23/24). The production build emits no warnings. Every route was compiled and swept against a freshly restarted dev server with zero server errors.
+
+### 8. Still open
+
+- **User invite flow and status lifecycle** — needs the Supabase Admin API and email wiring, not a UI stub.
+- **Reminder dispatcher (SMS / email)** — until it exists, Settings correctly labels those rows পরিকল্পিত and Notifications has no "run now".
+- **Child registration UI** — the schema and ID generation are ready; the worker-facing form is not built.
+- **KPI deltas** — need a historical metrics snapshot table; a delta without history would be fabricated.
+- **Worker and Parent shells** — still stubs; `/account` already serves them.
+- **Responsive / tablet pass and a full axe a11y run** — a real design effort, untouched here.
+- **Auth-driven E2E smoke** — the destinations manifest test covers the navigable surface; the login-and-write pass needs a seeded live session.
+- **Visual sign-off** — every screen was compile- and log-verified, but rendering was not eyeballed while signed in as an admin.
+
+---
+
+## Delivered 2026-07-25 (phase 2) — Reminders, account lifecycle, worker console, responsive/a11y
+
+### 9. Reminder system
+
+Split deliberately in two, along the line of what can be guaranteed:
+
+- **Enqueue — in the database, no provider needed.** `enqueue_reminders()` walks pending schedules falling due inside the configured lead time and inserts one `notifications` row per enabled channel, at a send time computed by `reminder_send_at()` (which pushes into the next morning if the configured run hour falls inside quiet hours). Idempotent by the table's own `unique(schedule_id, channel, due_date)`, so cron and a manual run cannot double-send. Scheduled daily via `pg_cron`.
+- **Dispatch — an Edge Function, deployed.** `dispatch-reminders` claims `queued` *and* `failed` rows (a first transient provider error must not be permanent), sends via Resend / SMS gateway, and retires a row to `dead` after 5 attempts so a permanently bad address stops consuming the retry budget. Gated on a shared secret and **fails closed**: verified live returning `401` both with no secret and with a wrong one. With no provider keys configured it reports `skipped`, rather than failing every row and filling the delivery log with noise.
+
+`enqueue_reminders()` is deliberately **SECURITY INVOKER**. A definer function is reachable at `/rest/v1/rpc/<name>` by every signed-in user — exactly what the security advisor flags, and what an `admin_cron_jobs()` function was deleted for earlier. RLS already grants an admin the reads, and a narrow `notifications_admin_insert` policy authorises the write.
+
+**Settings is now real.** The reminder group is backed by `app_settings` rows that `enqueue_reminders()` actually reads. Verified live and rolled back: **8 enqueued → re-run 0** (idempotent), **channel toggle gates the insert** (8 → 4 with SMS off), **a 23:00 run time pushed to 07:00 next morning**. Only the gateway row remains labelled পরিকল্পিত, because that is the only part still waiting on infrastructure.
+
+### 10. Account lifecycle and invitations
+
+`profiles.status` (`invited` / `active` / `inactive`) is **enforced, not decorative**. The access token hook stamps `user_status` onto the JWT; `auth_role()` returns `NULL` for anything but `active`, which makes every role-based RLS policy deny — one change, denying system-wide. `getUserRole()` mirrors it so a suspended account is redirected at the door instead of landing on an admin screen full of mysteriously empty tables.
+
+Two traps closed on the way:
+
+- Column grants cannot tell an admin from a parent — both are `authenticated`. Granting `update(status)` would have let a deactivated user set themselves back to `active`. A `BEFORE UPDATE` trigger rejects the change unless the caller is an admin.
+- A missing `user_status` claim is treated as `active`, in both the SQL and the TypeScript. Treating it as suspended would have signed out every live session the moment the migration ran.
+
+The hook now reads `profiles` as well as `user_roles`, so it needed the same grant + RLS policy that a previous 500-on-every-sign-in was traced to. Verified before moving on: `supabase_auth_admin` has schema usage, SELECT on both tables, EXECUTE on the hook, **and does not bypass RLS** — so both explicit policies are load-bearing, and both exist.
+
+Invitations use the Admin API and therefore the service role, read at call time. Without `SUPABASE_SERVICE_ROLE_KEY` the action says so plainly rather than reporting a success that did not happen. `requireRole("admin")` runs *before* the service key is ever touched.
+
+### 11. Responsive and accessibility
+
+- **Contrast measured, not eyeballed.** Light-theme `warning` (#d97706, **3.19:1**) and `success` (#16a34a, **3.30:1**) both failed WCAG AA — and both are used as *text* colour in status pills and KPI values, not just as fills. Replaced with #b45309 and #15803d (**5.02:1** each). Dark theme already passed (7.16 / 11.86 / 11.36) and is untouched.
+- **Sidebar collapses below `lg`** into a header disclosure; a fixed `w-56` rail ate a third of a tablet viewport. Closing on navigation is done by keying the panel on the pathname rather than resetting state from an effect — the same result without the extra render pass the lint rule objects to.
+- **`min-w-0` on the main flex column.** Without it a flex child will not shrink below its content width, so `overflow-x-auto` on a wide table never engages and the *page* scrolls sideways instead of the table.
+- Every table now scrolls inside its own box (`overflow-x-auto`, not `overflow-hidden`, which was silently clipping columns), and every `<th>` carries `scope="col"`.
+
+### 12. Dashboard UI/UX audit — findings, justification, and what was changed
+
+Reviewed as a design surface rather than a feature list. Six findings survived scrutiny; each is recorded with why it is a real defect and not a preference.
+
+| # | Finding | Why it is a defect | Change |
+|---|---|---|---|
+| D1 | **A rate with no denominator.** The coverage chart showed only a percentage. | "১০০%" from one dose and "১০০%" from four thousand render identically. Misreading one as the other is precisely what a coverage dashboard exists to prevent — this is a correctness defect wearing a visual-design costume. | `v_coverage` now returns `done_count` / `due_count`; the chart shows `৪/৫` under the rate, the report table gains both columns, and the CSV export carries them so the figures can be re-aggregated downstream. |
+| D2 | **Only lagging indicators.** Coverage and dropout describe what already went wrong. | An admin opening a dashboard is asking "what do I do *now*". Nothing on the screen answered it — due and missed dose counts existed only on the worker console. | Act-now row added first (**দেয় ডোজ**, **বাদ পড়া ডোজ**, stock attention), with the lagging rates demoted to a second row. Order encodes priority. |
+| D3 | **KPIs were dead ends.** A number with no way through to the rows behind it. | The question after every KPI is "show me which ones". The reader had to navigate by hand and reconstruct the filter. | `StatCard` takes an optional `href`; all six now link to the list they summarise. |
+| D4 | **No temporal context.** Every figure was "now", with nothing saying so. | This screen gets screenshotted into reports. A number without its as-of time is unciteable. | Header carries a live হালনাগাদ timestamp. |
+| D5 | **Activity feed had no time.** `dateBn` renders date only. | All eight entries from today rendered as the identical string, so the feed looked unordered and conveyed no recency — the one thing a feed is for. | New `dateTimeBn`, unit-tested. System-authored rows now attribute to **সিস্টেম** instead of an em-dash that reads as missing data. |
+| D6 | **No first-run state.** Zero children produced a grid of em-dashes. | Indistinguishable from a broken dashboard. The one moment a new admin most needs direction is the moment they get least. | Dedicated empty state explaining that registering a child mints its ID and schedule, with the two actions that matter. |
+
+Two candidate findings were **rejected** after examination rather than implemented for appearance's sake: a dashboard date-range picker (the KPIs are point-in-time by definition — a range control over them would be a lie, and the audit log and reports already carry their own scoping), and KPI trend deltas (still no historical snapshot table, so any delta would be fabricated — unchanged from the earlier finding).
+
+### 13. Verification
+
+`pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm test` all clean — **43/43 tests** (from 37, and from 23/24 before this work began). Production build emits no warnings. Full route sweep against a freshly restarted dev server: zero server errors.
+
+Supabase advisors: **security 1** (the hosted leaked-password toggle, which no migration can reach), **performance 0 WARN**. The only remaining entries are INFO `unused_index` on indexes that are either newly created or back queries a seed-sized database has not run yet.
+
+One regression caught and fixed during this phase: `app_settings_write` was created `for all`, which also matches SELECT and re-introduced on the settings table exactly the overlapping-policy problem removed from every other table one migration earlier. Split per action.
+
+### 14. Still open
+
+- **Leaked-password protection** — Dashboard → Authentication → Password settings (set in `config.toml` for local; the hosted toggle is a user action).
+- **Provider keys** — `RESEND_API_KEY` / `SMS_GATEWAY_*` and `CRON_SECRET` for actual delivery; `SUPABASE_SERVICE_ROLE_KEY` for invitations. Every code path is built and fails honestly without them.
+- **Parent shell** — still a stub; `/account` already serves parents.
+- **Dose recording from the worker console** — registration ships here; recording an administered dose is the next worker screen.
+- **Visual sign-off** — everything is compile-, log- and contrast-verified, but not eyeballed while signed in.
