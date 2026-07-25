@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useFormStatus } from "react-dom";
 
 type Tone = "muted" | "success" | "warning" | "danger" | "primary";
@@ -23,25 +24,43 @@ export function StatusBadge({ tone, children }: { tone: Tone; children: React.Re
   );
 }
 
+// A KPI answers "how are we doing"; the next question is always "show me which ones". When
+// `href` is given the whole card becomes that link, so the number is an entry point into the
+// list behind it rather than a dead end the reader has to navigate away from by hand.
 export function StatCard({
   label,
   value,
   hint,
   tone = "primary",
+  href,
 }: {
   label: string;
   value: React.ReactNode;
   hint?: string;
   tone?: Tone;
+  href?: string;
 }) {
-  return (
-    <div className="rounded-xl border border-[var(--color-border)] p-4">
+  const body = (
+    <>
       <p className="text-sm text-[var(--color-muted)]">{label}</p>
       <p className="mt-1 text-3xl font-semibold" style={{ color: TONE_VAR[tone] }}>
         {value}
       </p>
       {hint && <p className="mt-1 text-xs text-[var(--color-muted)]">{hint}</p>}
-    </div>
+    </>
+  );
+
+  const base = "block rounded-xl border border-[var(--color-border)] p-4";
+  if (!href) return <div className={base}>{body}</div>;
+
+  return (
+    <Link
+      href={href}
+      className={`${base} transition-colors hover:border-[var(--color-primary)]`}
+    >
+      {body}
+      <span className="mt-2 block text-xs text-[var(--color-primary)]">বিস্তারিত →</span>
+    </Link>
   );
 }
 
