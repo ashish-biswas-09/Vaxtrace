@@ -1,9 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/auth";
-import { ageBn, dateBn, pctBn, toBn, todayIso } from "@/lib/format";
+import { ageBn, dateBn, dateTimeBn, pctBn, toBn, todayIso } from "@/lib/format";
+import {
+  CHILD_STATUS,
+  RELATIONSHIP_LABEL_BN,
+  hasUsablePhone,
+  type ChildStatus,
+  type GuardianRelationship,
+} from "@/lib/guardians";
 import { StatCard, StatusBadge } from "../../_components/ui";
 import { buildHistory, summarise, type DoseStatus } from "./history";
+import { ChildStatusForm } from "./_components/ChildStatusForm";
 import { DoseNote } from "./_components/DoseNote";
 
 export const dynamic = "force-dynamic";
@@ -23,34 +31,51 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
 
   const { data: child } = await supabase
     .from("children")
+    // One string literal, not a concatenation: supabase-js infers the row type from the
+    // literal, and `"a, b" + "c"` widens it to GenericStringError and takes every column type
+    // with it.
     .select(
-      "id, child_id, full_name, date_of_birth, gender, guardian_id, guardian_contact, created_at, created_by",
+      "id, child_id, full_name, date_of_birth, gender, guardian_id, created_at, created_by, status, status_reason, status_changed_at, birth_registration_no, merged_into_id",
     )
     .eq("id", id)
     .maybeSingle();
 
   if (!child) notFound();
 
-  const [{ data: scheds }, { data: records }, { data: vaccines }] = await Promise.all([
-    supabase.from("schedules").select("vaccine_id, dose_number, due_date, status").eq("child_id", id),
-    supabase
-      .from("vaccination_records")
-      .select(
-        "id, vaccine_id, dose_number, administered_date, administered_by, batch_number, notes, adverse_event",
-      )
-      .eq("child_id", id),
-    supabase.from("vaccines").select("id, code, name_bn"),
-  ]);
+  const [{ data: scheds }, { data: records }, { data: vaccines }, { data: guardian }, { data: history }] =
+    await Promise.all([
+      supabase
+        .from("schedules")
+        .select("vaccine_id, dose_number, due_date, status")
+        .eq("child_id", id),
+      supabase
+        .from("vaccination_records")
+        .select(
+          "id, vaccine_id, dose_number, administered_date, administered_by, batch_number, notes, adverse_event",
+        )
+        .eq("child_id", id)
+        .is("voided_at", null),
+      supabase.from("vaccines").select("id, code, name_bn"),
+      supabase
+        .from("guardians")
+        .select("id, full_name, phone, email, relationship, user_id")
+        .eq("id", child.guardian_id)
+        .maybeSingle(),
+      supabase
+        .from("child_status_history")
+        .select("id, from_status, to_status, reason, changed_at")
+        .eq("child_id", id)
+        .order("changed_at", { ascending: false }),
+    ]);
 
-  // People referenced by this child's record: the guardian, whoever registered them, and
-  // every worker who administered a dose. One round trip instead of one per row.
+  // Staff referenced by this child's record: whoever registered them, and every worker who
+  // administered a dose. The guardian is no longer among them — a guardian is a domain
+  // record, not a login (BS-02).
   const personIds = [
     ...new Set(
-      [
-        child.guardian_id,
-        child.created_by,
-        ...(records ?? []).map((r) => r.administered_by),
-      ].filter(Boolean) as string[],
+      [child.created_by, ...(records ?? []).map((r) => r.administered_by)].filter(
+        Boolean,
+      ) as string[],
     ),
   ];
   const [{ data: people }, { data: staffRoles }] = await Promise.all([
@@ -66,8 +91,8 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
   const rows = buildHistory(scheds ?? [], records ?? [], todayIso());
   const stats = summarise(rows);
 
-  const guardian = personById.get(child.guardian_id);
   const registrar = child.created_by ? personById.get(child.created_by) : null;
+  const status = CHILD_STATUS[child.status as ChildStatus];
 
   return (
     <div className="flex flex-col gap-8">
@@ -111,11 +136,69 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
           অভিভাবক ও নিবন্ধন
         </h2>
         <dl className="grid grid-cols-1 gap-x-8 gap-y-3 p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          <Field label="অভিভাবক" value={guardian?.full_name ?? "—"} />
-          <Field label="যোগাযোগ" value={child.guardian_contact ?? guardian?.contact ?? "—"} />
-          <Field label="নিবন্ধনকারী" value={registrar?.full_name ?? "—"} hint={registrar ? codeByUser.get(registrar.id) : undefined} />
+          <Field
+            label="অভিভাবক"
+            value={guardian?.full_name ?? "—"}
+            hint={
+              guardian
+                ? RELATIONSHIP_LABEL_BN[guardian.relationship as GuardianRelationship]
+                : undefined
+            }
+          />
+          <Field
+            label="যোগাযোগ"
+            value={hasUsablePhone(guardian?.phone) ? guardian!.phone : "নম্বর নেই"}
+            hint={
+              guardian?.user_id
+                ? "অ্যাকাউন্ট যুক্ত আছে"
+                : "অ্যাকাউন্ট যুক্ত হয়নি — শিশু আইডি দিয়ে যুক্ত করা যাবে"
+            }
+          />
+          <Field
+            label="নিবন্ধনকারী"
+            value={registrar?.full_name ?? "—"}
+            hint={registrar ? codeByUser.get(registrar.id) : undefined}
+          />
           <Field label="নিবন্ধনের তারিখ" value={dateBn(child.created_at)} />
+          <Field label="জন্ম নিবন্ধন নম্বর" value={child.birth_registration_no ?? "—"} />
         </dl>
+      </section>
+
+      <section className="rounded-xl border border-[var(--color-border)]">
+        <h2 className="border-b border-[var(--color-border)] px-4 py-3 text-sm font-semibold text-[var(--color-muted)]">
+          শিশুর অবস্থা
+        </h2>
+        <div className="flex flex-col gap-4 p-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <StatusBadge tone={status?.tone ?? "muted"}>{status?.label ?? child.status}</StatusBadge>
+            <span className="text-sm text-[var(--color-muted)]">
+              {status?.hint} · {dateTimeBn(child.status_changed_at)}
+            </span>
+          </div>
+          {child.status_reason && (
+            <p className="text-sm text-[var(--color-muted)]">কারণ: {child.status_reason}</p>
+          )}
+
+          {/* FR-56. Changing to a non-reachable status cancels queued messages in the same
+              transaction, not at the next nightly run — the difference between "we will not
+              send another" and "we already have one queued for tomorrow morning". */}
+          <ChildStatusForm childId={child.id} current={child.status as ChildStatus} />
+
+          {(history ?? []).length > 0 && (
+            <ul className="flex flex-col gap-1 border-t border-[var(--color-border)] pt-3 text-xs text-[var(--color-muted)]">
+              {(history ?? []).map((h) => (
+                <li key={h.id}>
+                  {dateTimeBn(h.changed_at)} —{" "}
+                  {h.from_status
+                    ? `${CHILD_STATUS[h.from_status as ChildStatus]?.label ?? h.from_status} → `
+                    : ""}
+                  {CHILD_STATUS[h.to_status as ChildStatus]?.label ?? h.to_status}
+                  {h.reason ? ` · ${h.reason}` : ""}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </section>
 
       <section>

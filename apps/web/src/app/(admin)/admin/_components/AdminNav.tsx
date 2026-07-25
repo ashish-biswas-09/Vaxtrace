@@ -7,9 +7,11 @@ import { useState } from "react";
 const NAV = [
   { href: "/admin", label: "ড্যাশবোর্ড" },
   { href: "/admin/children", label: "শিশু" },
+  { href: "/admin/guardians", label: "অভিভাবক" },
   { href: "/admin/inventory", label: "টিকা মজুদ" },
   { href: "/admin/catalog", label: "টিকা তালিকা" },
   { href: "/admin/reports", label: "রিপোর্ট" },
+  { href: "/admin/data-quality", label: "তথ্যের মান" },
   // Geography, service points and the denominator are one group: they are the three things a
   // coverage number needs before it means anything, and they are managed together.
   { href: "/admin/locations", label: "প্রশাসনিক এলাকা" },

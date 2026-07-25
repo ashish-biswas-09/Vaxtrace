@@ -215,7 +215,7 @@ Existing requirements are restated compactly; **new or corrected ones are bold**
 
 | ID | Requirement | Pri | Status | Verify |
 |---|---|:--:|---|:--:|
-| FR-01 | Sign up / sign in with email+password (staff) and phone+OTP (guardians) | M | Partial — OTP path still blocked on an SMS provider (§21.3) | T |
+| FR-01 | Sign up / sign in with email+password (staff) and phone+OTP (guardians) | M | Partial — OTP path still blocked on an SMS provider (§21.4) | T |
 | FR-02 | Role stamped into JWT server-side; client role selection is never trusted | M | ✅ Done | T |
 | FR-03 | Account status lifecycle `invited → active → inactive` denying access when not active | M | ✅ Done | T |
 | FR-04 | Staff invitation by an administrator | M | ✅ Done | D |
@@ -233,11 +233,11 @@ Existing requirements are restated compactly; **new or corrected ones are bold**
 | FR-11 | Register a child with name, DOB, sex, guardian | M | ✅ Done | D |
 | FR-12 | Immutable, server-generated, check-digited Child ID | M | ✅ Done | T |
 | FR-13 | Registration auto-generates the full dose schedule | M | ✅ Done | T |
-| **FR-14** | **A child MUST be registerable when the guardian has no user account** (guardian as a domain record, not a login) | **M** | ❌ `BS-02` | T |
-| **FR-15** | **A guardian MUST be able to claim a child registered on their behalf, via Child ID + OTP to the recorded phone** | **M** | ❌ Missing | D |
-| **FR-16** | **Registration MUST run a duplicate check on (name-normalised, DOB, guardian phone) and warn before insert** | **M** | ❌ `BS-05` | T |
-| **FR-17** | **Two child records MUST be mergeable by an authorised user, preserving both IDs and all doses, with full audit** | **S** | ❌ `BS-05` | T |
-| **FR-18** | **A child MUST carry a lifecycle status: `active · moved_out · transferred · refused · deceased · aged_out`** | **M** | ❌ `BS-06` | T |
+| **FR-14** | **A child MUST be registerable when the guardian has no user account** (guardian as a domain record, not a login) | **M** | ✅ **Done** — `guardians` table; registration form creates one inline | T |
+| **FR-15** | **A guardian MUST be able to claim a child registered on their behalf, via Child ID + OTP to the recorded phone** | **M** | ✅ **Done** — `claim_child()` + [`/claim`](<../apps/web/src/app/(auth)/claim/page.tsx>). No second OTP: Supabase Auth has already proved control of the number, so the check is phone-on-guardian vs phone-on-session | D |
+| **FR-16** | **Registration MUST run a duplicate check on (name-normalised, DOB, guardian phone) and warn before insert** | **M** | ✅ **Done** — `find_duplicate_children()`, shown as a warning with an explicit "this is a new child" confirm | T |
+| **FR-17** | **Two child records MUST be mergeable by an authorised user, preserving both IDs and all doses, with full audit** | **S** | ✅ **Done** — `merge_children()`; `resolve_child()` follows the chain so a printed card with the old number still resolves | T |
+| **FR-18** | **A child MUST carry a lifecycle status: `active · moved_out · transferred · refused · deceased · aged_out`** | **M** | ✅ **Done** — `child_status` + `child_status_history` + control on the child detail screen | T |
 | **FR-19** | **A child MUST carry a location (down to ward/village) and an assigned facility/catchment** | **M** | ✅ **Done** — `children.location_id` NOT NULL + trigger-maintained `location_path`; `facility_id` added | T |
 | **FR-20** | **Optional national identifiers: Birth Registration Number for the child, guardian NID — captured, validated for format, never mandatory** | **S** | ❌ Missing | I |
 | **FR-21** | **Registration MUST support a "newborn at facility" fast path and a "catch-up child" path (child registered late, past doses back-entered)** | **S** | ❌ Missing | D |
@@ -253,7 +253,7 @@ Existing requirements are restated compactly; **new or corrected ones are bold**
 | **FR-26** | **Dose recording MUST exist in the worker UI** (currently registration only) | **M** | ❌ `GAP-01` | D |
 | **FR-27** | **Schedules MUST be re-derived when the catalog changes** (a new vaccine or dose added must appear for already-registered, still-eligible children) | **M** | ✅ **Done** — `rederive_schedules()` + statement triggers on the catalog; `BUG-02` closed | T |
 | **FR-28** | **The scheduler MUST honour `min_interval_days` against the actual administration date**, not only `date_of_birth + recommended_age_days` | **M** | ✅ **Done** — `dose_due_date()` takes the later of the two constraints; `BUG-03` closed | T |
-| **FR-29** | **A dose MUST record where it was given: `facility_id` and, for outreach, `session_id`** | **M** | Partial — `facility_id` + `location_path` land with facilities; `session_id` waits on §21.2 | T |
+| **FR-29** | **A dose MUST record where it was given: `facility_id` and, for outreach, `session_id`** | **M** | Partial — `facility_id` + `location_path` land with facilities; `session_id` waits on §21.3 | T |
 | **FR-30** | **A dose MUST reference the stock batch by foreign key, not free text** | **M** | ✅ **Done** — `inventory_id` FK, back-filled, `batch_number` stamped from it; `BUG-05` closed | T |
 | **FR-31** | **The system MUST reject or warn on a clinically invalid dose: below minimum age, below minimum interval, out of dose order, duplicate on the same day** | **M** | ✅ **Done** — `trg_record_validate()`, with an audited `override_reason` escape hatch | T |
 | **FR-32** | **A dose MUST be correctable and voidable (`void` with reason, never hard-deleted), fully audited** | **M** | ✅ **Done** — void columns + guard, partial unique index frees the slot, schedule reopens | T |
@@ -289,13 +289,13 @@ Existing requirements are restated compactly; **new or corrected ones are bold**
 |---|---|:--:|---|:--:|
 | FR-48 | Idempotent reminder enqueue with lead-time, quiet hours, channel toggles | M | ✅ Done | T |
 | FR-49 | Dispatcher with retry budget and dead-letter | M | ✅ Done | T |
-| **FR-50** | **Channel MUST be routed by contact type** — SMS to a phone, email to an email address | **M** | ❌ `BUG-06` | T |
-| **FR-51** | **Per-guardian notification preferences and opt-out MUST be honoured** | **M** | ❌ `BUG-07` | T |
-| **FR-52** | **Reminders MUST be batched per child per day** — one message listing all doses due, not one per dose per channel | **M** | ❌ `BUG-08` | T |
-| **FR-53** | **Delivery receipts from the provider MUST be ingested via webhook and written back to status** | **S** | ❌ Missing | T |
-| **FR-54** | **A missed-dose (overdue) reminder MUST exist, distinct from the due-soon reminder, with its own cadence** | **S** | ❌ Missing | D |
-| **FR-55** | **All message bodies MUST be templates with versioned Bangla text, not string literals in a Deno function** | **S** | ❌ Partial | I |
-| **FR-56** | **Reminders MUST stop immediately when a child's status is `deceased`, `moved_out` or `refused`** | **M** | ❌ `BS-06` | T |
+| **FR-50** | **Channel MUST be routed by contact type** — SMS to a phone, email to an email address | **M** | ✅ **Done** — a channel is queued only if the guardian has an address *of that kind*; `BUG-06` closed | T |
+| **FR-51** | **Per-guardian notification preferences and opt-out MUST be honoured** | **M** | ✅ **Done** — `notification_preferences`, opt-out evaluated before any per-channel setting; `BUG-07` closed | T |
+| **FR-52** | **Reminders MUST be batched per child per day** — one message listing all doses due, not one per dose per channel | **M** | ✅ **Done** — queue re-keyed to `(child, channel, kind, send_date)` with `dose_count`; `BUG-08` closed | T |
+| **FR-53** | **Delivery receipts from the provider MUST be ingested via webhook and written back to status** | **S** | Partial — `provider_status` column exists; the webhook route handler is outstanding | T |
+| **FR-54** | **A missed-dose (overdue) reminder MUST exist, distinct from the due-soon reminder, with its own cadence** | **S** | ✅ **Done** — `notification_kind`, overdue on a weekly cadence so a family already told is not told again every morning | D |
+| **FR-55** | **All message bodies MUST be templates with versioned Bangla text, not string literals in a Deno function** | **S** | ✅ **Done** — `message_templates` (key, version, channel, locale) + `notification_payload()` | I |
+| **FR-56** | **Reminders MUST stop immediately when a child's status is `deceased`, `moved_out` or `refused`** | **M** | ✅ **Done** — `child_is_reachable()` gates the enqueue, and the status trigger marks already-queued rows `dead` in the same transaction | T |
 
 > **FR-56 is not a nicety.** A system that texts a bereaved family "your child's next vaccine is due" has failed in a way no coverage metric captures. Say this in the defense; it demonstrates that you thought about the human on the other end of the SMS.
 
@@ -304,7 +304,7 @@ Existing requirements are restated compactly; **new or corrected ones are bold**
 | ID | Requirement | Pri | Status | Verify |
 |---|---|:--:|---|:--:|
 | FR-57 | Coverage and dropout views; CSV export; audit export | M | ✅ Done | D |
-| **FR-58** | **Coverage MUST be computed against a population denominator (target children in the catchment), with the registry-based rate shown separately and labelled** | **M** | Partial — `population_estimates` + [admin screen](<../apps/web/src/app/(admin)/admin/population/page.tsx>) exist and `v_coverage` is now explicitly labelled *registry* coverage; `v_coverage_by_area` waits on §21.2 | A |
+| **FR-58** | **Coverage MUST be computed against a population denominator (target children in the catchment), with the registry-based rate shown separately and labelled** | **M** | Partial — `population_estimates` + [admin screen](<../apps/web/src/app/(admin)/admin/population/page.tsx>) exist and `v_coverage` is now explicitly labelled *registry* coverage; `v_coverage_by_area` waits on §21.3 | A |
 | **FR-59** | **Dropout MUST follow the WHO formula on a single cohort: `(dose1 − doseN) / dose1`, computed in one pass** | **M** | ✅ **Done** — one-pass conditional aggregation, emits `dropout_rate`; `BUG-09` closed | T |
 | **FR-60** | **Every report MUST be filterable by geography, facility, period and vaccine, and MUST display its N** | **M** | ❌ Missing | D |
 | **FR-61** | **Left-and-right comparison: this period vs last, this union vs district average** | **S** | ❌ Missing | D |
@@ -496,7 +496,7 @@ The prior audit already caught the cosmetic half of this — adding `done_count`
 
 ### BS-13 — Verified defects in committed code
 
-> **Status, 2026-07-26.** Nine of the twelve are closed by [`20260726100000_defect_sweep.sql`](../supabase/migrations/20260726100000_defect_sweep.sql) and [`20260726110000_geography_and_scope.sql`](../supabase/migrations/20260726110000_geography_and_scope.sql). The three that remain — `BUG-04`, `BUG-06`, `BUG-07`, `BUG-08`, `BUG-11` — are structural rather than local and land with the entities they belong to (the stock ledger, and the guardians/notifications rebuild); see §21.2. The findings below are kept in their original wording, with the fix appended, because a defect register that quietly rewrites itself is not evidence of anything.
+> **Status, 2026-07-26.** Eleven of the twelve are closed, across [`20260726100000_defect_sweep.sql`](../supabase/migrations/20260726100000_defect_sweep.sql), [`20260726110000_geography_and_scope.sql`](../supabase/migrations/20260726110000_geography_and_scope.sql) and [`20260726130000_guardians_lifecycle_notifications.sql`](../supabase/migrations/20260726130000_guardians_lifecycle_notifications.sql). Only `BUG-04` (the stock ledger) remains, and it is structural rather than local — it lands with the entity it belongs to; see §21.3. The findings below are kept in their original wording, with the fix appended, because a defect register that quietly rewrites itself is not evidence of anything.
 >
 > **One finding was down-rated on re-verification.** `BUG-12` claimed a child could be hard-deleted. Re-reading the policy set shows `children` has no `DELETE` policy at all, and RLS is deny-by-default — so the delete was already denied to every client role, and the exposure was to the service role and direct SQL only. The real gap was the absence of *any* deregistration path, which is what the fix provides. Recorded here rather than silently corrected: the review was wrong about the severity, and saying so is cheaper than being caught.
 
@@ -524,14 +524,14 @@ The prior audit already caught the cosmetic half of this — adding `done_count`
 | `BUG-01` | ✅ Closed | `role_rank()` states the privilege ladder as data and the hook orders by it descending. Ordering by the enum in the *other* direction was rejected: that is what caused the bug, and the next person to insert a role mid-enum would re-create it. |
 | `BUG-02` | ✅ Closed | `rederive_schedules()` inserts missing rows and refreshes un-administered due dates; statement-level triggers on `vaccines`/`vaccine_doses` fire it on any catalog edit. Back-fill is bounded by `vaccines.max_age_days`, so catalogued MR does not hand every four-year-old an instantly-overdue dose. |
 | `BUG-03` | ✅ Closed | `dose_due_date()` returns the later of `dob + recommended_age_days` and `previous dose administered + min_interval_days`. Recording a dose re-derives the child's remaining schedule before reading `next_due_date`. |
-| `BUG-04` | ⏳ Open | Stock ledger — §21.2. |
+| `BUG-04` | ⏳ Open | Stock ledger — §21.3. |
 | `BUG-05` | ✅ Closed | `vaccination_records.inventory_id` FK, back-filled from the matching batch text; the validation trigger stamps `batch_number` from the FK so the two can never disagree again, and rejects a batch of the wrong antigen or one expired on the day. |
-| `BUG-06` | ⏳ Open (half done) | `profiles.phone` / `profiles.email` now exist as typed, separately-validated columns with a shape-based backfill; the dispatcher rewrite that routes on them is §21.2. |
-| `BUG-07` | ⏳ Open | Opt-out — §21.2. |
-| `BUG-08` | ⏳ Open | Batching key — §21.2. |
+| `BUG-06` | ✅ Closed | Typed `phone`/`email` on both `profiles` and `guardians`, and `enqueue_reminders()` queues a channel only when the guardian has an address *of that kind*. No email is ever addressed to a phone number again. |
+| `BUG-07` | ✅ Closed | `notification_preferences` with a blunt `opted_out_at` evaluated before any per-channel flag — a guardian who says stop must not require reasoning about three booleans to work out that it worked. |
+| `BUG-08` | ✅ Closed | Queue re-keyed from `(schedule, channel, due_date)` to `(child, channel, kind, send_date)`, carrying `dose_count`. Six messages in one evening becomes one. |
 | `BUG-09` | ✅ Closed | `v_dropout` rewritten as one pass of conditional aggregation over `vaccination_records`, excluding voided doses, and now emitting `dropout_rate` rather than only its two inputs. |
 | `BUG-10` | ✅ Closed | `app_settings.missed_grace_days` with a per-antigen `vaccines.grace_period_days` override. The sweep resolves grace once per call and joins, rather than calling a settings-reading function per schedule row. |
-| `BUG-11` | ⏳ Open (half done) | `children.created_by` is now `NOT NULL`; the `guardian_contact` vs `profiles.contact` duplication resolves when `guardians` lands — §21.2. |
+| `BUG-11` | ✅ Closed | `children.created_by` is `NOT NULL`, and `children.guardian_contact` was **dropped** rather than kept in sync — `guardians.phone` is the single source of truth for the number reminders are sent to. |
 | `BUG-12` | ✅ Closed (down-rated) | `deleted_at`/`deleted_by`/`delete_reason` with an admin-only guard; deregistered children leave every worker and guardian surface but stay visible to a manager in scope. See the severity correction above. |
 
 ---
@@ -1683,7 +1683,53 @@ New: account security / TOTP enrolment · admin user detail with role × scope a
 7. **`geo_code` was left NULL.** It is the join key to census data. A plausible-looking wrong geocode joins silently to the wrong census row; a NULL does not. Loading the official BBS/DGHS list is a data task, recorded rather than faked.
 8. **The hierarchy is seeded to district nationally, and deeper only where the demo needs it.** All 8 divisions and all 64 districts are administrative fact and ship in the migration; Gazipur's upazilas, two Kaliakair unions with their statutory nine wards, and one city-corporation branch give the tree real depth on both the rural and urban sides. The remaining ~490 upazilas load from the official reference file. Say this out loud in the defense — the model is what is being graded, not the row count.
 
-### 21.2 Carried forward
+### 21.2 Round 2 — guardians, lifecycle, merge, notifications (2026-07-26)
+
+One migration, because these are one dependency chain and not four features: the authoritative
+phone number lives on the guardian, the decision to send at all depends on the child's
+lifecycle, and the dispatcher could not be fixed without both.
+
+[`20260726130000_guardians_lifecycle_notifications.sql`](../supabase/migrations/20260726130000_guardians_lifecycle_notifications.sql) closes `BS-02` `BS-05` `BS-06`, `BUG-06` `BUG-07` `BUG-08` `BUG-11`, and `FR-14` `FR-15` `FR-16` `FR-17` `FR-18` `FR-50` `FR-51` `FR-52` `FR-54` `FR-55` `FR-56`, plus a first cut of `BS-11` (`v_data_quality`).
+
+**The re-pointing trick worth knowing about.** `children.guardian_id` used to reference
+`profiles(id)`. Backfilled `guardians` rows deliberately take *the same uuid* as the profile
+they derive from, so every existing `children.guardian_id` value stayed valid and the foreign
+key was re-pointed without touching a single child row. Ownership checks did have to change —
+`guardian_id = auth.uid()` became a join through `guardians.user_id` — because the id equality
+is an artefact of the backfill and is false for every guardian created since.
+
+**Application:** registration rewritten (guardian created inline, duplicate check in front of
+the insert, area and BRN captured) · `/claim` · `/scope` working-area selector · `/role`
+rewritten to stop implying it picks a role · admin guardians list · admin data-quality
+dashboard · child lifecycle control with history on the child detail screen · notifications
+list now shows the address actually used and the batch size.
+
+**Verification:** typecheck, lint, build, 53 unit tests all pass. `seed.sql` was rewritten for
+the new model — postings, facilities with a genuinely asymmetric catchment, population
+estimates, a guardian with no account, a moved-out child and an opted-out guardian, so every
+new rule is demonstrable rather than merely present.
+
+**Decisions worth defending**
+
+1. **No second OTP for the claim.** Supabase Auth has already proved control of the phone
+   number by the time `claim_child()` runs; the check is the guardian's recorded number
+   against the session's verified number. Inventing another one-time code would be a second
+   thing to get wrong.
+2. **"No such child" and "wrong phone" return the same message.** Distinguishing them turns
+   the claim form into an oracle for whether a Child ID exists.
+3. **A merge voids colliding doses rather than dropping them**, and writes `merged_into_id`
+   so `resolve_child()` still resolves the loser's Child ID. A family holding a printed card
+   with the old number must not be the one who pays for the duplicate.
+4. **The duplicate check warns, it does not block.** Twins share a surname, a date of birth
+   and a phone number, and a worker who cannot register the second twin will register them as
+   something else.
+5. **A guardian with no recoverable phone gets `+000000000000`**, not a fabricated number and
+   not a failed migration. It is never sent to, and `v_data_quality` counts it as a
+   field-collection task.
+6. **Overdue reminders run weekly, not daily.** The cadence is the difference between a
+   reminder and harassment.
+
+### 21.3 Carried forward
 
 Unchanged in priority from §17.1, with the round-1 dependencies now removed:
 
@@ -1696,7 +1742,7 @@ Unchanged in priority from §17.1, with the round-1 dependencies now removed:
 | Dose recording + child search in the worker UI (`GAP-01` `GAP-04`) | The product's core verb, still unimplemented in the role that performs it |
 | Handbook errata + ADR-011…019 (`REC-01`) | Nine of these ADRs now describe shipped code rather than proposals |
 
-### 21.3 Known gaps in what was delivered
+### 21.4 Known gaps in what was delivered
 
 Stated here rather than discovered later:
 

@@ -12,32 +12,37 @@ export default async function ChildrenPage() {
   const [{ data: kids }, { data: scheds }] = await Promise.all([
     supabase
       .from("children")
-      .select(
-        "id, child_id, full_name, date_of_birth, gender, guardian_id, guardian_contact, created_at",
-      )
+      .select("id, child_id, full_name, date_of_birth, gender, guardian_id, status, created_at")
+      .is("deleted_at", null)
       .order("created_at", { ascending: false }),
     supabase.from("schedules").select("child_id, status, due_date"),
   ]);
 
+  // The guardian is a domain record now, not a profile — and it is the single source of truth
+  // for the number reminders are sent to (BUG-11 was two columns disagreeing about that).
   const guardianIds = [...new Set((kids ?? []).map((k) => k.guardian_id))];
   const { data: guardians } = guardianIds.length
-    ? await supabase.from("profiles").select("id, full_name").in("id", guardianIds)
-    : { data: [] };
-  const guardianById = new Map((guardians ?? []).map((g) => [g.id, g.full_name]));
+    ? await supabase.from("guardians").select("id, full_name, phone").in("id", guardianIds)
+    : { data: [] as { id: string; full_name: string; phone: string }[] };
+  const guardianById = new Map((guardians ?? []).map((g) => [g.id, g]));
 
   const rateFor = childCoverage(scheds ?? [], todayIso());
 
-  const rows: ChildRow[] = (kids ?? []).map((k) => ({
-    id: k.id,
-    child_id: k.child_id,
-    full_name: k.full_name,
-    date_of_birth: k.date_of_birth,
-    gender: k.gender,
-    guardian_name: guardianById.get(k.guardian_id) ?? null,
-    guardian_contact: k.guardian_contact,
-    created_at: k.created_at,
-    coverage: rateFor(k.id),
-  }));
+  const rows: ChildRow[] = (kids ?? []).map((k) => {
+    const g = guardianById.get(k.guardian_id);
+    return {
+      id: k.id,
+      child_id: k.child_id,
+      full_name: k.full_name,
+      date_of_birth: k.date_of_birth,
+      gender: k.gender,
+      guardian_name: g?.full_name ?? null,
+      guardian_contact: g?.phone ?? null,
+      status: k.status,
+      created_at: k.created_at,
+      coverage: rateFor(k.id),
+    };
+  });
 
   return (
     <div className="flex flex-col gap-6">

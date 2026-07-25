@@ -40,13 +40,15 @@ select gen_random_uuid(), u.id::text, u.id, jsonb_build_object('sub', u.id::text
    'a0000000-0000-0000-0000-000000000013', 'a0000000-0000-0000-0000-000000000014'
  );
 
-insert into profiles (id, full_name, contact, locale) values
-  ('a0000000-0000-0000-0000-000000000001', 'অ্যাডমিন সালমা রহমান', 'admin@vaxtrace.bd', 'bn'),
-  ('a0000000-0000-0000-0000-000000000002', 'স্বাস্থ্যকর্মী নাসরিন আক্তার', 'worker@vaxtrace.bd', 'bn'),
-  ('a0000000-0000-0000-0000-000000000011', 'রোকসানা বেগম', '+8801710000011', 'bn'),
-  ('a0000000-0000-0000-0000-000000000012', 'কামাল হোসেন', '+8801710000012', 'bn'),
-  ('a0000000-0000-0000-0000-000000000013', 'সালমা খাতুন', '+8801710000013', 'bn'),
-  ('a0000000-0000-0000-0000-000000000014', 'জসিম উদ্দিন', '+8801710000014', 'bn');
+-- `contact` is display-only now; `phone` and `email` are the typed columns channel routing
+-- reads (BUG-06 was one column doing both jobs and the dispatcher guessing which).
+insert into profiles (id, full_name, contact, email, phone, locale) values
+  ('a0000000-0000-0000-0000-000000000001', 'অ্যাডমিন সালমা রহমান', 'admin@vaxtrace.bd',  'admin@vaxtrace.bd',  null, 'bn'),
+  ('a0000000-0000-0000-0000-000000000002', 'স্বাস্থ্যকর্মী নাসরিন আক্তার', 'worker@vaxtrace.bd', 'worker@vaxtrace.bd', null, 'bn'),
+  ('a0000000-0000-0000-0000-000000000011', 'রোকসানা বেগম',  '+8801710000011', null, '+8801710000011', 'bn'),
+  ('a0000000-0000-0000-0000-000000000012', 'কামাল হোসেন',   '+8801710000012', null, '+8801710000012', 'bn'),
+  ('a0000000-0000-0000-0000-000000000013', 'সালমা খাতুন',   '+8801710000013', null, '+8801710000013', 'bn'),
+  ('a0000000-0000-0000-0000-000000000014', 'জসিম উদ্দিন',   '+8801710000014', null, '+8801710000014', 'bn');
 
 insert into user_roles (user_id, role) values
   ('a0000000-0000-0000-0000-000000000001', 'admin'),
@@ -55,6 +57,92 @@ insert into user_roles (user_id, role) values
   ('a0000000-0000-0000-0000-000000000012', 'parent'),
   ('a0000000-0000-0000-0000-000000000013', 'parent'),
   ('a0000000-0000-0000-0000-000000000014', 'parent');
+
+-- ============================================================================
+-- POSTINGS — role x scope (report §10). The migration's backfill puts every existing staff
+-- account at the root, but a fresh database has no staff at migration time, so the demo's
+-- postings are set here.
+--
+-- Deliberately NOT both at root: the admin is national (and holds the technical estate
+-- separately), while the worker is posted to one union. That difference is the whole point of
+-- the model, and a demo where everyone can see everything demonstrates nothing.
+-- ============================================================================
+insert into user_assignments (user_id, role, location_id) values
+  ('a0000000-0000-0000-0000-000000000001', 'programme_manager',
+   (select id from locations where path = 'bd')),
+  ('a0000000-0000-0000-0000-000000000001', 'system_admin',
+   (select id from locations where path = 'bd')),
+  ('a0000000-0000-0000-0000-000000000002', 'field_worker',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak'));
+
+-- ============================================================================
+-- FACILITIES — a facility is LOCATED IN one place and SERVES a set of places, and the two
+-- are different: the outreach site sits in ward 3 and serves wards 3, 4 and 5.
+-- ============================================================================
+insert into facilities (id, name_bn, name_en, type, location_id, is_store) values
+  ('f0000000-0000-0000-0000-000000000001', 'কালিয়াকৈর উপজেলা স্বাস্থ্য কমপ্লেক্স',
+   'Kaliakair Upazila Health Complex', 'upazila_health_complex',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair'), true),
+  ('f0000000-0000-0000-0000-000000000002', 'মৌচাক ইউনিয়ন স্বাস্থ্য কেন্দ্র',
+   'Mouchak Union Health Centre', 'union_health_centre',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak'), true),
+  ('f0000000-0000-0000-0000-000000000003', 'মৌচাক ওয়ার্ড ৩ আউটরিচ কেন্দ্র',
+   'Mouchak Ward 3 Outreach Site', 'outreach_site',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_3'), false);
+
+insert into facility_catchments (facility_id, location_id, is_primary) values
+  ('f0000000-0000-0000-0000-000000000001',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair'), true),
+  ('f0000000-0000-0000-0000-000000000002',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak'), true),
+  -- The asymmetry that makes facility_catchments a table rather than a column.
+  ('f0000000-0000-0000-0000-000000000003',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_3'), true),
+  ('f0000000-0000-0000-0000-000000000003',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_4'), false),
+  ('f0000000-0000-0000-0000-000000000003',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_5'), false);
+
+-- ============================================================================
+-- POPULATION ESTIMATES — the denominator (BS-07). Without these rows every coverage figure
+-- is a registry measuring itself. The numbers are illustrative and the `source` says so:
+-- a denominator whose provenance is unknown cannot be used in a report anyone has to sign.
+-- ============================================================================
+insert into population_estimates (location_id, year, age_band, estimate, source) values
+  ((select id from locations where path = 'bd.dhaka.gazipur.kaliakair'),
+   extract(year from current_date)::int, 'surviving_infants', 9800, 'ডেমো অনুমান — সরকারি উৎস নয়'),
+  ((select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak'),
+   extract(year from current_date)::int, 'surviving_infants', 1150, 'ডেমো অনুমান — সরকারি উৎস নয়'),
+  ((select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak'),
+   extract(year from current_date)::int, 'live_births', 1240, 'ডেমো অনুমান — সরকারি উৎস নয়');
+
+-- ============================================================================
+-- GUARDIANS — a domain record, not a login (BS-02). These four happen to have accounts
+-- because the demo needs a parent sign-in, but `user_id` is nullable precisely so the
+-- overwhelming majority of guardians, who have no account, are representable.
+-- ============================================================================
+insert into guardians (id, user_id, full_name, phone, relationship, location_id, created_by) values
+  ('d0000000-0000-0000-0000-000000000011', 'a0000000-0000-0000-0000-000000000011',
+   'রোকসানা বেগম', '+8801710000011', 'mother',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_3'),
+   'a0000000-0000-0000-0000-000000000002'),
+  ('d0000000-0000-0000-0000-000000000012', 'a0000000-0000-0000-0000-000000000012',
+   'কামাল হোসেন', '+8801710000012', 'father',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_4'),
+   'a0000000-0000-0000-0000-000000000002'),
+  ('d0000000-0000-0000-0000-000000000013', 'a0000000-0000-0000-0000-000000000013',
+   'সালমা খাতুন', '+8801710000013', 'mother',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_5'),
+   'a0000000-0000-0000-0000-000000000002'),
+  ('d0000000-0000-0000-0000-000000000014', 'a0000000-0000-0000-0000-000000000014',
+   'জসিম উদ্দিন', '+8801710000014', 'father',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_3'),
+   'a0000000-0000-0000-0000-000000000002'),
+  -- The case the whole redesign exists for: a guardian with no account at all.
+  ('d0000000-0000-0000-0000-000000000015', null,
+   'ফাতেমা বিবি', '+8801710000015', 'mother',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_4'),
+   'a0000000-0000-0000-0000-000000000002');
 
 -- ============================================================================
 -- VACCINE CATALOG — Bangladesh EPI schedule subset (§8.1: vaccine_doses normalizes
@@ -99,19 +187,40 @@ insert into vaccine_doses (vaccine_id, dose_number, recommended_age_days, min_in
 -- schedules row from the catalog above (§8.4). Ages are relative to `current_date`
 -- so the demo stays realistic no matter when this seed runs.
 -- ============================================================================
-insert into children (id, full_name, date_of_birth, gender, guardian_id, guardian_contact, created_by) values
+-- location_id is supplied explicitly so the demo has children spread across wards; without it
+-- trg_child_location would still fill it from the registrar's posting, but every child would
+-- land in the same union and the area reports would have nothing to compare.
+insert into children (id, full_name, date_of_birth, gender, guardian_id, created_by, location_id, facility_id) values
   ('b0000000-0000-0000-0000-000000000001', 'আয়েশা আক্তার', current_date - interval '15 months', 'female',
-   'a0000000-0000-0000-0000-000000000011', '+8801710000011', 'a0000000-0000-0000-0000-000000000002'),
+   'd0000000-0000-0000-0000-000000000011', 'a0000000-0000-0000-0000-000000000002',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_3'),
+   'f0000000-0000-0000-0000-000000000002'),
   ('b0000000-0000-0000-0000-000000000002', 'রাফি ইসলাম', current_date - interval '3 months', 'male',
-   'a0000000-0000-0000-0000-000000000011', '+8801710000011', 'a0000000-0000-0000-0000-000000000002'),
+   'd0000000-0000-0000-0000-000000000011', 'a0000000-0000-0000-0000-000000000002',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_3'),
+   'f0000000-0000-0000-0000-000000000002'),
   ('b0000000-0000-0000-0000-000000000003', 'নুসরাত জাহান', current_date - interval '10 months', 'female',
-   'a0000000-0000-0000-0000-000000000012', '+8801710000012', 'a0000000-0000-0000-0000-000000000002'),
+   'd0000000-0000-0000-0000-000000000012', 'a0000000-0000-0000-0000-000000000002',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_4'),
+   'f0000000-0000-0000-0000-000000000003'),
   ('b0000000-0000-0000-0000-000000000004', 'আরিফ হাসান', current_date - interval '2 years', 'male',
-   'a0000000-0000-0000-0000-000000000013', '+8801710000013', 'a0000000-0000-0000-0000-000000000002'),
+   'd0000000-0000-0000-0000-000000000013', 'a0000000-0000-0000-0000-000000000002',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_5'),
+   'f0000000-0000-0000-0000-000000000002'),
   ('b0000000-0000-0000-0000-000000000005', 'তানিয়া সুলতানা', current_date - interval '20 days', 'female',
-   'a0000000-0000-0000-0000-000000000014', '+8801710000014', 'a0000000-0000-0000-0000-000000000002'),
+   'd0000000-0000-0000-0000-000000000014', 'a0000000-0000-0000-0000-000000000002',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_3'),
+   'f0000000-0000-0000-0000-000000000001'),
   ('b0000000-0000-0000-0000-000000000006', 'মেহেদী হাসান', current_date - interval '6 weeks', 'male',
-   'a0000000-0000-0000-0000-000000000012', '+8801710000012', 'a0000000-0000-0000-0000-000000000002');
+   'd0000000-0000-0000-0000-000000000012', 'a0000000-0000-0000-0000-000000000002',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_4'),
+   'f0000000-0000-0000-0000-000000000003'),
+  -- Registered for a guardian who has no account, and never will have one unless she claims
+  -- it with the Child ID. This row is unregisterable in the pre-BS-02 model.
+  ('b0000000-0000-0000-0000-000000000007', 'সাদিয়া ইসলাম', current_date - interval '8 months', 'female',
+   'd0000000-0000-0000-0000-000000000015', 'a0000000-0000-0000-0000-000000000002',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_4'),
+   'f0000000-0000-0000-0000-000000000003');
 
 -- ============================================================================
 -- VACCINATION RECORDS — inserting fires trg_record_after_insert, which flips the
@@ -167,20 +276,40 @@ select 'b0000000-0000-0000-0000-000000000006', s.vaccine_id, s.dose_number,
    and s.due_date <= current_date - interval '3 days'
  order by s.vaccine_id, s.dose_number;
 
--- Run the missed-dose sweep once now (normally the nightly pg_cron job, §8.4) so
--- Child 3's abandoned schedule shows as 'missed' immediately for the demo, instead
--- of waiting for the next 01:00 UTC run.
-update schedules set status = 'missed'
- where status = 'pending' and due_date < current_date - interval '14 days';
+-- Run the sweep once now (normally the nightly pg_cron job) so Child 3's abandoned schedule
+-- shows as 'missed' immediately for the demo, instead of waiting for the next 01:00 UTC run.
+--
+-- Calls the function rather than repeating its WHERE clause: the grace period is a programme
+-- setting with a per-antigen override now (BUG-10), and a hardcoded 14 days here would drift
+-- from it the first time anyone changed it.
+select public.reconcile_schedule_status();
+
+-- ============================================================================
+-- LIFECYCLE — one child who has left the catchment, so the reports have a non-active status
+-- to show and FR-56's "reminders stop" is demonstrable rather than merely asserted.
+-- ============================================================================
+update children
+   set status = 'moved_out',
+       status_reason = 'পরিবার ঢাকায় স্থানান্তরিত হয়েছে'
+ where id = 'b0000000-0000-0000-0000-000000000004';
+
+-- One guardian who has opted out (BUG-07), which the pre-rebuild system could not represent.
+insert into notification_preferences (guardian_id, opted_out_at, opt_out_reason)
+values ('d0000000-0000-0000-0000-000000000013', now(), 'অভিভাবক এসএমএস বন্ধ করতে বলেছেন');
 
 -- ============================================================================
 -- INVENTORY — a couple of near-expiry batches and one low-stock batch, per TODO 3.2.
 -- ============================================================================
-insert into inventories (vaccine_id, batch_number, stock_quantity, expiry_date) values
-  ((select id from vaccines where code = 'BCG'),   'BCG-2026-A1',   420, current_date + interval '9 months'),
-  ((select id from vaccines where code = 'OPV'),   'OPV-2026-B2',   180, current_date + interval '18 days'),
-  ((select id from vaccines where code = 'PENTA'), 'PENTA-2025-C7',  35, current_date + interval '11 days'),
-  ((select id from vaccines where code = 'PENTA'), 'PENTA-2026-C8', 300, current_date + interval '7 months'),
-  ((select id from vaccines where code = 'PCV'),   'PCV-2026-D3',   150, current_date + interval '4 months'),
-  ((select id from vaccines where code = 'IPV'),   'IPV-2026-E1',    90, current_date + interval '6 months'),
-  ((select id from vaccines where code = 'MR'),    'MR-2026-F4',    210, current_date + interval '10 months');
+-- Stock is held at a store, not in a global pool (FR-40): the same batch legitimately exists
+-- in two places, which is why the unique key is (facility, vaccine, batch).
+insert into inventories (vaccine_id, batch_number, stock_quantity, expiry_date, facility_id) values
+  ((select id from vaccines where code = 'BCG'),   'BCG-2026-A1',   420, current_date + interval '9 months',  'f0000000-0000-0000-0000-000000000001'),
+  ((select id from vaccines where code = 'OPV'),   'OPV-2026-B2',   180, current_date + interval '18 days',   'f0000000-0000-0000-0000-000000000001'),
+  ((select id from vaccines where code = 'PENTA'), 'PENTA-2025-C7',  35, current_date + interval '11 days',   'f0000000-0000-0000-0000-000000000001'),
+  ((select id from vaccines where code = 'PENTA'), 'PENTA-2026-C8', 300, current_date + interval '7 months',  'f0000000-0000-0000-0000-000000000001'),
+  ((select id from vaccines where code = 'PCV'),   'PCV-2026-D3',   150, current_date + interval '4 months',  'f0000000-0000-0000-0000-000000000001'),
+  ((select id from vaccines where code = 'IPV'),   'IPV-2026-E1',    90, current_date + interval '6 months',  'f0000000-0000-0000-0000-000000000001'),
+  ((select id from vaccines where code = 'MR'),    'MR-2026-F4',    210, current_date + interval '10 months', 'f0000000-0000-0000-0000-000000000001'),
+  -- The same PENTA batch, issued down to the union centre. One batch, two stores, two
+  -- balances — impossible to express before facility_id existed.
+  ((select id from vaccines where code = 'PENTA'), 'PENTA-2026-C8',  60, current_date + interval '7 months',  'f0000000-0000-0000-0000-000000000002');
