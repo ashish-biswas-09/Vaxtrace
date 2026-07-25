@@ -35,6 +35,43 @@ export async function editBatchAction(_prev: ActionState, formData: FormData): P
   return { ok: true };
 }
 
+const createSchema = z.object({
+  vaccine_id: z.string().uuid("টিকা নির্বাচন করুন"),
+  batch_number: z.string().trim().min(1, "ব্যাচ নম্বর দিন").max(64),
+  expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "মেয়াদের তারিখ সঠিক নয়"),
+  stock_quantity: z.coerce.number().int().min(0, "মজুদ ঋণাত্মক হতে পারে না"),
+});
+
+// Receiving new stock had no entry point at all — a batch could only be edited once it
+// somehow already existed. The (vaccine, batch) unique constraint is what stops the same
+// delivery being booked in twice, so a conflict is reported as such rather than as a crash.
+export async function createBatchAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const parsed = createSchema.safeParse({
+    vaccine_id: formData.get("vaccine_id"),
+    batch_number: formData.get("batch_number"),
+    expiry_date: formData.get("expiry_date"),
+    stock_quantity: formData.get("stock_quantity"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "তথ্য সঠিক নয়" };
+
+  const supabase = await requireRole("admin");
+  const { error } = await supabase.from("inventories").insert(parsed.data);
+  if (error) {
+    return {
+      error:
+        error.code === "23505"
+          ? "এই টিকার জন্য এই ব্যাচ নম্বর ইতিমধ্যে আছে।"
+          : "ব্যাচ যোগ করা যায়নি — আবার চেষ্টা করুন।",
+    };
+  }
+
+  revalidatePath("/admin/inventory");
+  return { ok: true };
+}
+
 const adjustSchema = z.object({
   id: z.string().uuid(),
   delta: z.coerce.number().int().refine((n) => n !== 0, "পরিমাণ শূন্য হতে পারে না"),
