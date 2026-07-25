@@ -1,5 +1,5 @@
 import { requireRole } from "@/lib/auth";
-import { toBn } from "@/lib/format";
+import { dateTimeBn, toBn } from "@/lib/format";
 import { StatusBadge } from "../_components/ui";
 import {
   ReminderSettingsForm,
@@ -64,12 +64,22 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 export default async function SettingsPage() {
   const supabase = await requireRole("admin");
 
-  const [{ data: vaccines }, { data: doses }, notifRes, { data: settingRows }] = await Promise.all([
-    supabase.from("vaccines").select("id, is_active"),
-    supabase.from("vaccine_doses").select("vaccine_id"),
-    supabase.from("notifications").select("*", { count: "exact", head: true }),
-    supabase.from("app_settings").select("key, value"),
-  ]);
+  const [{ data: vaccines }, { data: doses }, notifRes, { data: settingRows }, { data: jobs }] =
+    await Promise.all([
+      supabase.from("vaccines").select("id, is_active"),
+      supabase.from("vaccine_doses").select("vaccine_id"),
+      supabase.from("notifications").select("*", { count: "exact", head: true }),
+      supabase.from("app_settings").select("key, value"),
+      // NFR-19 / REC-02. Read through ordinary RLS from a view over job_runs — no SECURITY
+      // DEFINER function and no RPC surface, which is the constraint the prior audit set when
+      // it removed admin_cron_jobs().
+      supabase
+        .from("v_job_health")
+        .select(
+          "job_name, last_success_at, last_duration_ms, last_result, last_error, failures_total, is_stale",
+        )
+        .order("job_name"),
+    ]);
 
   const activeVaccines = (vaccines ?? []).filter((v) => v.is_active).length;
   const queuedNotifications = notifRes.count ?? 0;
@@ -98,6 +108,38 @@ export default async function SettingsPage() {
 
       <Group title="রিমাইন্ডার ও বিজ্ঞপ্তি">
         <ReminderSettingsForm settings={settings} />
+      </Group>
+
+      <Group title="নির্ধারিত কাজের স্বাস্থ্য">
+        {/* pg_cron jobs stop — on plan changes, restores and extension upgrades — and nothing
+            in the product used to notice. Each job now writes a row as it runs, and this is
+            where a stopped job becomes visible instead of silently ending the reminders. */}
+        {(jobs ?? []).length === 0 ? (
+          <Row
+            label="কোনো তথ্য নেই"
+            desc="কোনো নির্ধারিত কাজ এখনো চলেনি — মাইগ্রেশনের পর প্রথম রান পর্যন্ত এটি স্বাভাবিক"
+            value={<Badge tone="warning">অজানা</Badge>}
+          />
+        ) : (
+          (jobs ?? []).map((j) => (
+            <Row
+              key={j.job_name}
+              label={j.job_name ?? "—"}
+              desc={
+                j.last_error
+                  ? `সর্বশেষ ত্রুটি: ${j.last_error}`
+                  : j.last_success_at
+                    ? `সফল ${dateTimeBn(j.last_success_at)} · ${toBn(j.last_duration_ms ?? 0)} মিলিসেকেন্ড · ${j.last_result ?? ""}`
+                    : "এখনো কোনো সফল রান হয়নি"
+              }
+              value={
+                <Badge tone={j.is_stale ? "warning" : "success"}>
+                  {j.is_stale ? "বন্ধ থাকতে পারে" : "চলছে"}
+                </Badge>
+              }
+            />
+          ))
+        )}
       </Group>
 
       <Group title="সূচি নিয়ম">
@@ -181,8 +223,31 @@ export default async function SettingsPage() {
           value={<Badge tone="success">সক্রিয়</Badge>}
         />
         <Row
-          label="স্টাফদের জন্য দ্বি-স্তর OTP"
-          desc="কর্মী ও অ্যাডমিন লগইনে বাধ্যতামূলক OTP"
+          label="এলাকাভিত্তিক প্রবেশাধিকার"
+          desc="প্রতিটি নীতিতে location_path <@ auth_scopes() — কেউ নিজের বরাদ্দকৃত এলাকার বাইরের শিশুর তথ্য দেখতে পান না"
+          value={<Badge tone="success">সক্রিয়</Badge>}
+        />
+        <Row
+          label="দুই-ধাপ যাচাই (TOTP)"
+          desc={
+            bool("require_mfa_elevated", false)
+              ? "জেলা বা উপরের স্তরের দায়িত্বে বাধ্যতামূলক — ভূমিকা বরাদ্দ, সেটিংস, জনসংখ্যার হিসাব ও অডিট লগে প্রয়োগ হয়"
+              : "ব্যবস্থা প্রস্তুত, কিন্তু এখনো বাধ্যতামূলক নয় — require_mfa_elevated চালু করলে প্রয়োগ শুরু হবে"
+          }
+          value={
+            <Badge tone={bool("require_mfa_elevated", false) ? "success" : "warning"}>
+              {bool("require_mfa_elevated", false) ? "বাধ্যতামূলক" : "ঐচ্ছিক"}
+            </Badge>
+          }
+        />
+        <Row
+          label="ব্যয়বহুল কাজে সীমা"
+          desc="ম্যানুয়াল রিমাইন্ডার রান ও জরুরি প্রবেশাধিকারে প্রতি ঘণ্টার সীমা, ডাটাবেসে প্রয়োগকৃত"
+          value={<Badge tone="success">সক্রিয়</Badge>}
+        />
+        <Row
+          label="অভিভাবকদের জন্য ফোন OTP"
+          desc="phone+OTP সাইন-ইনের জন্য একটি SMS প্রোভাইডার প্রয়োজন — কী সেট করা হলে চালু হবে"
           value={<Planned />}
         />
       </Group>

@@ -10,7 +10,13 @@ const NAV = [
   { href: "/admin/inventory", label: "টিকা মজুদ" },
   { href: "/admin/catalog", label: "টিকা তালিকা" },
   { href: "/admin/reports", label: "রিপোর্ট" },
+  // Geography, service points and the denominator are one group: they are the three things a
+  // coverage number needs before it means anything, and they are managed together.
+  { href: "/admin/locations", label: "প্রশাসনিক এলাকা" },
+  { href: "/admin/facilities", label: "সেবা কেন্দ্র" },
+  { href: "/admin/population", label: "জনসংখ্যার হিসাব" },
   { href: "/admin/users", label: "ব্যবহারকারী" },
+  { href: "/admin/break-glass", label: "জরুরি প্রবেশাধিকার" },
   { href: "/admin/audit", label: "অডিট লগ" },
   { href: "/admin/notifications", label: "বিজ্ঞপ্তি" },
   { href: "/admin/settings", label: "সেটিংস" },

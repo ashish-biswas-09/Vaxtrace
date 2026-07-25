@@ -68,46 +68,143 @@ export type Database = {
         };
         Relationships: [];
       };
+      break_glass_access: {
+        Row: {
+          child_id: string;
+          expires_at: string;
+          granted_at: string;
+          id: string;
+          reason: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          user_id: string;
+        };
+        Insert: {
+          child_id: string;
+          expires_at?: string;
+          granted_at?: string;
+          id?: string;
+          reason: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          user_id: string;
+        };
+        Update: {
+          child_id?: string;
+          expires_at?: string;
+          granted_at?: string;
+          id?: string;
+          reason?: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       children: {
         Row: {
           child_id: string;
           created_at: string;
-          created_by: string | null;
+          created_by: string;
           date_of_birth: string;
+          delete_reason: string | null;
+          deleted_at: string | null;
+          deleted_by: string | null;
+          facility_id: string | null;
           full_name: string;
           gender: Database["public"]["Enums"]["child_gender"];
           guardian_contact: string | null;
           guardian_id: string;
           id: string;
+          location_id: string;
+          location_path: string;
         };
         Insert: {
           child_id?: string;
           created_at?: string;
-          created_by?: string | null;
+          created_by: string;
           date_of_birth: string;
+          delete_reason?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          facility_id?: string | null;
           full_name: string;
           gender: Database["public"]["Enums"]["child_gender"];
           guardian_contact?: string | null;
           guardian_id: string;
           id?: string;
+          location_id?: string;
+          location_path?: string;
         };
         Update: {
           child_id?: string;
           created_at?: string;
-          created_by?: string | null;
+          created_by?: string;
           date_of_birth?: string;
+          delete_reason?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          facility_id?: string | null;
           full_name?: string;
           gender?: Database["public"]["Enums"]["child_gender"];
           guardian_contact?: string | null;
           guardian_id?: string;
           id?: string;
+          location_id?: string;
+          location_path?: string;
         };
+        Relationships: [];
+      };
+      facilities: {
+        Row: {
+          code: string;
+          created_at: string;
+          geo: unknown | null;
+          id: string;
+          is_active: boolean;
+          is_store: boolean;
+          location_id: string;
+          name_bn: string;
+          name_en: string;
+          type: Database["public"]["Enums"]["facility_type"];
+        };
+        Insert: {
+          code?: string;
+          created_at?: string;
+          geo?: unknown | null;
+          id?: string;
+          is_active?: boolean;
+          is_store?: boolean;
+          location_id: string;
+          name_bn: string;
+          name_en: string;
+          type: Database["public"]["Enums"]["facility_type"];
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          geo?: unknown | null;
+          id?: string;
+          is_active?: boolean;
+          is_store?: boolean;
+          location_id?: string;
+          name_bn?: string;
+          name_en?: string;
+          type?: Database["public"]["Enums"]["facility_type"];
+        };
+        Relationships: [];
+      };
+      facility_catchments: {
+        Row: { facility_id: string; is_primary: boolean; location_id: string };
+        Insert: { facility_id: string; is_primary?: boolean; location_id: string };
+        Update: { facility_id?: string; is_primary?: boolean; location_id?: string };
         Relationships: [];
       };
       inventories: {
         Row: {
           batch_number: string;
           expiry_date: string;
+          facility_id: string | null;
           id: string;
           stock_quantity: number;
           updated_at: string;
@@ -116,6 +213,7 @@ export type Database = {
         Insert: {
           batch_number: string;
           expiry_date: string;
+          facility_id?: string | null;
           id?: string;
           stock_quantity: number;
           updated_at?: string;
@@ -124,10 +222,95 @@ export type Database = {
         Update: {
           batch_number?: string;
           expiry_date?: string;
+          facility_id?: string | null;
           id?: string;
           stock_quantity?: number;
           updated_at?: string;
           vaccine_id?: string;
+        };
+        Relationships: [];
+      };
+      job_runs: {
+        Row: {
+          expected_interval: string;
+          failures_total: number;
+          job_name: string;
+          last_duration_ms: number | null;
+          last_error: string | null;
+          last_result: string | null;
+          last_started_at: string | null;
+          last_success_at: string | null;
+          runs_total: number;
+        };
+        Insert: {
+          expected_interval?: string;
+          failures_total?: number;
+          job_name: string;
+          last_duration_ms?: number | null;
+          last_error?: string | null;
+          last_result?: string | null;
+          last_started_at?: string | null;
+          last_success_at?: string | null;
+          runs_total?: number;
+        };
+        Update: {
+          expected_interval?: string;
+          failures_total?: number;
+          job_name?: string;
+          last_duration_ms?: number | null;
+          last_error?: string | null;
+          last_result?: string | null;
+          last_started_at?: string | null;
+          last_success_at?: string | null;
+          runs_total?: number;
+        };
+        Relationships: [];
+      };
+      locations: {
+        Row: {
+          centroid: unknown | null;
+          created_at: string;
+          geo_code: string | null;
+          id: string;
+          is_urban: boolean;
+          level: Database["public"]["Enums"]["location_level"];
+          name_bn: string;
+          name_en: string;
+          parent_id: string | null;
+          path: string;
+          slug: string;
+          valid_from: string;
+          valid_to: string | null;
+        };
+        Insert: {
+          centroid?: unknown | null;
+          created_at?: string;
+          geo_code?: string | null;
+          id?: string;
+          is_urban?: boolean;
+          level: Database["public"]["Enums"]["location_level"];
+          name_bn: string;
+          name_en: string;
+          parent_id?: string | null;
+          path?: string;
+          slug: string;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Update: {
+          centroid?: unknown | null;
+          created_at?: string;
+          geo_code?: string | null;
+          id?: string;
+          is_urban?: boolean;
+          level?: Database["public"]["Enums"]["location_level"];
+          name_bn?: string;
+          name_en?: string;
+          parent_id?: string | null;
+          path?: string;
+          slug?: string;
+          valid_from?: string;
+          valid_to?: string | null;
         };
         Relationships: [];
       };
@@ -173,15 +356,49 @@ export type Database = {
         };
         Relationships: [];
       };
+      population_estimates: {
+        Row: {
+          age_band: string;
+          estimate: number;
+          location_id: string;
+          source: string;
+          updated_at: string;
+          updated_by: string | null;
+          year: number;
+        };
+        Insert: {
+          age_band: string;
+          estimate: number;
+          location_id: string;
+          source: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          year: number;
+        };
+        Update: {
+          age_band?: string;
+          estimate?: number;
+          location_id?: string;
+          source?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          year?: number;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           address: string | null;
           avatar_path: string | null;
           contact: string | null;
+          contact_verified_at: string | null;
           created_at: string;
+          default_location_id: string | null;
+          email: string | null;
           full_name: string;
           id: string;
           locale: string;
+          phone: string | null;
           status: Database["public"]["Enums"]["user_status"];
           updated_at: string;
         };
@@ -189,10 +406,14 @@ export type Database = {
           address?: string | null;
           avatar_path?: string | null;
           contact?: string | null;
+          contact_verified_at?: string | null;
           created_at?: string;
+          default_location_id?: string | null;
+          email?: string | null;
           full_name: string;
           id: string;
           locale?: string;
+          phone?: string | null;
           status?: Database["public"]["Enums"]["user_status"];
           updated_at?: string;
         };
@@ -200,13 +421,23 @@ export type Database = {
           address?: string | null;
           avatar_path?: string | null;
           contact?: string | null;
+          contact_verified_at?: string | null;
           created_at?: string;
+          default_location_id?: string | null;
+          email?: string | null;
           full_name?: string;
           id?: string;
           locale?: string;
+          phone?: string | null;
           status?: Database["public"]["Enums"]["user_status"];
           updated_at?: string;
         };
+        Relationships: [];
+      };
+      rate_limits: {
+        Row: { bucket: string; hits: number; user_id: string; window_start: string };
+        Insert: { bucket: string; hits?: number; user_id: string; window_start: string };
+        Update: { bucket?: string; hits?: number; user_id?: string; window_start?: string };
         Relationships: [];
       };
       schedules: {
@@ -216,6 +447,8 @@ export type Database = {
           dose_number: number;
           due_date: string;
           id: string;
+          recalculated_at: string | null;
+          source: string;
           status: Database["public"]["Enums"]["schedule_status"];
           vaccine_id: string;
         };
@@ -225,6 +458,8 @@ export type Database = {
           dose_number: number;
           due_date: string;
           id?: string;
+          recalculated_at?: string | null;
+          source?: string;
           status?: Database["public"]["Enums"]["schedule_status"];
           vaccine_id: string;
         };
@@ -234,8 +469,46 @@ export type Database = {
           dose_number?: number;
           due_date?: string;
           id?: string;
+          recalculated_at?: string | null;
+          source?: string;
           status?: Database["public"]["Enums"]["schedule_status"];
           vaccine_id?: string;
+        };
+        Relationships: [];
+      };
+      user_assignments: {
+        Row: {
+          created_at: string;
+          facility_id: string | null;
+          granted_by: string | null;
+          id: string;
+          location_id: string | null;
+          role: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+          valid_from: string;
+          valid_to: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          facility_id?: string | null;
+          granted_by?: string | null;
+          id?: string;
+          location_id?: string | null;
+          role: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          facility_id?: string | null;
+          granted_by?: string | null;
+          id?: string;
+          location_id?: string | null;
+          role?: Database["public"]["Enums"]["app_role"];
+          user_id?: string;
+          valid_from?: string;
+          valid_to?: string | null;
         };
         Relationships: [];
       };
@@ -266,10 +539,18 @@ export type Database = {
           child_id: string;
           created_at: string;
           dose_number: number;
+          facility_id: string | null;
           id: string;
+          inventory_id: string | null;
+          location_path: string | null;
           next_due_date: string | null;
           notes: string | null;
+          override_reason: string | null;
+          source: Database["public"]["Enums"]["dose_source"];
           vaccine_id: string;
+          void_reason: string | null;
+          voided_at: string | null;
+          voided_by: string | null;
         };
         Insert: {
           administered_by: string;
@@ -279,10 +560,18 @@ export type Database = {
           child_id: string;
           created_at?: string;
           dose_number: number;
+          facility_id?: string | null;
           id?: string;
+          inventory_id?: string | null;
+          location_path?: string | null;
           next_due_date?: string | null;
           notes?: string | null;
+          override_reason?: string | null;
+          source?: Database["public"]["Enums"]["dose_source"];
           vaccine_id: string;
+          void_reason?: string | null;
+          voided_at?: string | null;
+          voided_by?: string | null;
         };
         Update: {
           administered_by?: string;
@@ -292,10 +581,18 @@ export type Database = {
           child_id?: string;
           created_at?: string;
           dose_number?: number;
+          facility_id?: string | null;
           id?: string;
+          inventory_id?: string | null;
+          location_path?: string | null;
           next_due_date?: string | null;
           notes?: string | null;
+          override_reason?: string | null;
+          source?: Database["public"]["Enums"]["dose_source"];
           vaccine_id?: string;
+          void_reason?: string | null;
+          voided_at?: string | null;
+          voided_by?: string | null;
         };
         Relationships: [];
       };
@@ -323,27 +620,42 @@ export type Database = {
       vaccines: {
         Row: {
           code: string;
+          code_system: string | null;
+          code_value: string | null;
           created_at: string;
+          grace_period_days: number | null;
           id: string;
           is_active: boolean;
+          max_age_days: number | null;
+          min_age_days: number | null;
           name_bn: string;
           name_en: string;
           total_doses: number;
         };
         Insert: {
           code: string;
+          code_system?: string | null;
+          code_value?: string | null;
           created_at?: string;
+          grace_period_days?: number | null;
           id?: string;
           is_active?: boolean;
+          max_age_days?: number | null;
+          min_age_days?: number | null;
           name_bn: string;
           name_en: string;
           total_doses: number;
         };
         Update: {
           code?: string;
+          code_system?: string | null;
+          code_value?: string | null;
           created_at?: string;
+          grace_period_days?: number | null;
           id?: string;
           is_active?: boolean;
+          max_age_days?: number | null;
+          min_age_days?: number | null;
           name_bn?: string;
           name_en?: string;
           total_doses?: number;
@@ -374,21 +686,61 @@ export type Database = {
         Row: {
           code: string | null;
           completed: number | null;
+          dropout_rate: number | null;
+          name_bn: string | null;
+          name_en: string | null;
           started: number | null;
+        };
+        Relationships: [];
+      };
+      v_job_health: {
+        Row: {
+          expected_interval: string | null;
+          failures_total: number | null;
+          is_stale: boolean | null;
+          job_name: string | null;
+          last_duration_ms: number | null;
+          last_error: string | null;
+          last_result: string | null;
+          last_started_at: string | null;
+          last_success_at: string | null;
+          runs_total: number | null;
         };
         Relationships: [];
       };
     };
     Functions: {
+      auth_aal: { Args: Record<PropertyKey, never>; Returns: string };
+      auth_app_role: {
+        Args: Record<PropertyKey, never>;
+        Returns: Database["public"]["Enums"]["app_role"];
+      };
+      auth_facilities: { Args: Record<PropertyKey, never>; Returns: string[] };
+      auth_has_role: {
+        Args: { p_roles: Database["public"]["Enums"]["app_role"][] };
+        Returns: boolean;
+      };
+      auth_is_elevated: { Args: Record<PropertyKey, never>; Returns: boolean };
       auth_role: {
         Args: Record<PropertyKey, never>;
         Returns: Database["public"]["Enums"]["user_role"];
       };
+      auth_scopes: { Args: Record<PropertyKey, never>; Returns: string[] };
+      consume_rate_limit: {
+        Args: { p_bucket: string; p_limit: number; p_window?: string };
+        Returns: boolean;
+      };
       custom_access_token_hook: { Args: { event: Json }; Returns: Json };
+      dose_due_date: {
+        Args: { p_child_id: string; p_dose_number: number; p_vaccine_id: string };
+        Returns: string;
+      };
       enqueue_reminders: { Args: Record<PropertyKey, never>; Returns: number };
       generate_schedule: { Args: { p_child_id: string }; Returns: undefined };
       luhn_check_digit: { Args: { p_digits: string }; Returns: number };
+      mfa_satisfied: { Args: Record<PropertyKey, never>; Returns: boolean };
       reminder_send_at: { Args: { p_day: string }; Returns: string };
+      schedule_grace_days: { Args: { p_vaccine_id: string }; Returns: number };
       setting_bool: { Args: { p_key: string }; Returns: boolean };
       setting_int: { Args: { p_key: string }; Returns: number };
       next_child_id: { Args: Record<PropertyKey, never>; Returns: string };
@@ -398,7 +750,39 @@ export type Database = {
       };
     };
     Enums: {
+      app_role:
+        | "guardian"
+        | "field_worker"
+        | "store_keeper"
+        | "supervisor"
+        | "programme_manager"
+        | "system_admin";
       child_gender: "male" | "female" | "other";
+      dose_source:
+        | "facility"
+        | "outreach"
+        | "card_transcribed"
+        | "other_facility"
+        | "campaign";
+      facility_type:
+        | "upazila_health_complex"
+        | "union_health_centre"
+        | "community_clinic"
+        | "city_corporation_centre"
+        | "ngo_clinic"
+        | "outreach_site"
+        | "hospital";
+      location_level:
+        | "country"
+        | "division"
+        | "district"
+        | "upazila"
+        | "city_corporation"
+        | "union"
+        | "urban_ward"
+        | "ward"
+        | "village"
+        | "mahalla";
       notification_channel: "sms" | "email";
       notification_status: "queued" | "sent" | "failed" | "dead";
       schedule_status: "pending" | "done" | "missed";
