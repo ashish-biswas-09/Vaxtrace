@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth";
 import { toBn } from "@/lib/format";
-import { RoleSelect } from "./_components/RoleSelect";
+import { UsersTable, type UserRow } from "./_components/UsersTable";
+import { InviteUser } from "./_components/InviteUser";
 
 export const dynamic = "force-dynamic";
 
@@ -11,52 +12,43 @@ export default async function UsersPage() {
   } = await supabase.auth.getUser();
 
   const [{ data: profiles }, { data: roles }] = await Promise.all([
-    supabase.from("profiles").select("id, full_name, contact").order("full_name"),
-    supabase.from("user_roles").select("user_id, role"),
+    supabase.from("profiles").select("id, full_name, contact, status").order("full_name"),
+    supabase.from("user_roles").select("user_id, role, staff_code"),
   ]);
 
-  const roleByUser = new Map((roles ?? []).map((r) => [r.user_id, r.role]));
+  const roleByUser = new Map((roles ?? []).map((r) => [r.user_id, r]));
+
+  const rows: UserRow[] = (profiles ?? []).map((p) => {
+    const r = roleByUser.get(p.id);
+    return {
+      id: p.id,
+      full_name: p.full_name,
+      contact: p.contact,
+      role: r?.role ?? "parent",
+      status: p.status,
+      staff_code: r?.staff_code ?? null,
+      is_self: p.id === me?.id,
+    };
+  });
+
+  const count = (role: string) => rows.filter((r) => r.role === role).length;
+  const inactive = rows.filter((r) => r.status !== "active").length;
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="text-2xl font-semibold">ব্যবহারকারী ব্যবস্থাপনা</h1>
-        <p className="text-sm text-[var(--color-muted)]">
-          মোট {toBn((profiles ?? []).length)} জন — ভূমিকা পরিবর্তন করতে তালিকা থেকে নির্বাচন করুন
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">ব্যবহারকারী ব্যবস্থাপনা</h1>
+          <p className="text-sm text-[var(--color-muted)]">
+            মোট {toBn(rows.length)} জন — {toBn(count("admin"))} অ্যাডমিন, {toBn(count("worker"))}{" "}
+            স্বাস্থ্যকর্মী, {toBn(count("parent"))} অভিভাবক
+            {inactive > 0 && ` · ${toBn(inactive)} জন সক্রিয় নয়`}। প্রতিটি ভূমিকার জন্য একটি
+            অপরিবর্তনীয় আইডি স্বয়ংক্রিয়ভাবে তৈরি হয়।
+          </p>
+        </div>
+        <InviteUser />
       </header>
-
-      <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
-        <table className="w-full text-sm">
-          <thead className="bg-[var(--color-border)]/40 text-left text-[var(--color-muted)]">
-            <tr>
-              <th className="px-4 py-3 font-medium">নাম</th>
-              <th className="px-4 py-3 font-medium">যোগাযোগ</th>
-              <th className="px-4 py-3 font-medium">ভূমিকা</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(profiles ?? []).map((p) => (
-              <tr key={p.id} className="border-t border-[var(--color-border)]">
-                <td className="px-4 py-3">
-                  {p.full_name}
-                  {p.id === me?.id && (
-                    <span className="ml-2 text-xs text-[var(--color-muted)]">(আপনি)</span>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-[var(--color-muted)]">{p.contact ?? "—"}</td>
-                <td className="px-4 py-3">
-                  <RoleSelect
-                    userId={p.id}
-                    currentRole={roleByUser.get(p.id) ?? "parent"}
-                    disabled={p.id === me?.id}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <UsersTable rows={rows} />
     </div>
   );
 }
