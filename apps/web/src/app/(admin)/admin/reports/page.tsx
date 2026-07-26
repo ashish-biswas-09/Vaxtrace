@@ -2,7 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { pctBn, toBn, dateBn } from "@/lib/format";
 import { StatusBadge } from "../_components/ui";
 import { CoverageBars, type CoverageRow } from "../_components/Chart";
-import { PrintButton } from "./_components/PrintButton";
+import { PrintButton } from "../_components/PrintButton";
 
 export const dynamic = "force-dynamic";
 

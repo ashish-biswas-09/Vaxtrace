@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 // From @/lib/roles, not @/lib/auth: this is a Client Component, and lib/auth reaches
 // next/headers through the Supabase server client.
 import { APP_ROLE_LABEL_BN, GRANTABLE_ROLES, type AppRole } from "@/lib/roles";
-import { SubmitButton } from "../../../_components/ui";
+import { ConfirmButton, SubmitButton } from "../../../_components/ui";
 import {
   grantAssignmentAction,
   revokeAssignmentAction,
@@ -140,9 +140,14 @@ export function RevokeAssignmentButton({
     <form action={revoke} className="inline">
       <input type="hidden" name="assignment_id" value={assignmentId} />
       <input type="hidden" name="user_id" value={userId} />
-      <SubmitButton variant="ghost" pendingLabel="…">
-        প্রত্যাহার
-      </SubmitButton>
+      {/* UX-05: revoking a posting removes somebody's access to every child in that area, and
+          it did so on one click with no warning. */}
+      <ConfirmButton
+        label="প্রত্যাহার"
+        title="দায়িত্ব প্রত্যাহার করবেন?"
+        body="এই এলাকার সব শিশু ও রেকর্ডে এই ব্যবহারকারীর প্রবেশাধিকার সঙ্গে সঙ্গে বন্ধ হবে। দায়িত্বটি আবার বরাদ্দ করা যাবে, তবে প্রত্যাহারের ঘটনাটি অডিট লগে স্থায়ীভাবে থাকবে।"
+        confirmLabel="প্রত্যাহার করুন"
+      />
       {state?.error && (
         <span role="alert" className="ml-2 text-xs text-[var(--color-danger)]">
           {state.error}

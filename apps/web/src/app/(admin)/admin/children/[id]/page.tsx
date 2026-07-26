@@ -13,6 +13,7 @@ import { StatCard, StatusBadge } from "../../_components/ui";
 import { buildHistory, summarise, type DoseStatus } from "./history";
 import { ChildStatusForm } from "./_components/ChildStatusForm";
 import { DoseNote } from "./_components/DoseNote";
+import { VoidDose } from "./_components/VoidDose";
 
 export const dynamic = "force-dynamic";
 
@@ -257,12 +258,22 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
                     </td>
                     <td className="max-w-xs px-4 py-3">
                       {r.record ? (
-                        <DoseNote
-                          recordId={r.record.id}
-                          childId={child.id}
-                          notes={r.record.notes}
-                          adverseEvent={r.record.adverse_event}
-                        />
+                        <>
+                          <DoseNote
+                            recordId={r.record.id}
+                            childId={child.id}
+                            notes={r.record.notes}
+                            adverseEvent={r.record.adverse_event}
+                          />
+                          {/* The correction path, on the row it corrects. Voided records are
+                              filtered out of this query, so anything shown here is live. */}
+                          <details className="mt-1">
+                            <summary className="cursor-pointer list-none text-[11px] text-[var(--color-muted)] marker:content-['']">
+                              ভুল রেকর্ড?
+                            </summary>
+                            <VoidDose recordId={r.record.id} childId={child.id} />
+                          </details>
+                        </>
                       ) : (
                         <span className="text-xs text-[var(--color-muted)]">—</span>
                       )}

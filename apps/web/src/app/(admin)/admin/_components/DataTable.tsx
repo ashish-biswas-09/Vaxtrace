@@ -26,6 +26,12 @@ export function filterRows<T>(rows: T[], searchText: (row: T) => string, q: stri
 // Shared admin list table: a search box + optional filter chips over already-fetched rows.
 // ponytail: client-side filter (no server pagination) — right for the demo dataset; swap to
 // Supabase .range() only if a list actually grows past a few hundred rows.
+//
+// UX-04, the data-density mismatch: the same rows serve a manager on a 1440px display and a
+// worker on a five-inch phone, and a media query on a table does not solve that — a table with
+// eight columns squeezed into 360px is unreadable however it wraps. So below `md` the rows
+// render as cards instead: same data, different component, chosen once here rather than by
+// each of the fifteen callers. A caller with a better card for its own data passes `card`.
 export function DataTable<T>({
   rows,
   columns,
@@ -35,6 +41,7 @@ export function DataTable<T>({
   filters,
   empty,
   pageSize = 25,
+  card,
 }: {
   rows: T[];
   columns: Column<T>[];
@@ -44,6 +51,7 @@ export function DataTable<T>({
   filters?: Filter<T>[];
   empty: string;
   pageSize?: number;
+  card?: (row: T) => React.ReactNode;
 }) {
   const [q, setQ] = useState("");
   const [active, setActive] = useState(-1);
@@ -101,9 +109,47 @@ export function DataTable<T>({
         </div>
       )}
 
+      {/* The card presentation. `md:hidden` / `hidden md:block` rather than a JS breakpoint,
+          so the server-rendered HTML is correct at both sizes and neither presentation flashes
+          on hydration. */}
+      <div className="flex flex-col gap-2 md:hidden">
+        {paged.map((row) => (
+          <div
+            key={rowKey(row)}
+            className="rounded-xl border border-[var(--color-border)] p-4 text-sm"
+          >
+            {card ? (
+              card(row)
+            ) : (
+              <dl className="flex flex-col gap-1.5">
+                {columns.map((c, i) => (
+                  <div key={c.header} className="flex items-baseline justify-between gap-3">
+                    {/* The first column is the row's identity — a name, an ID — so it reads as
+                        the card's title rather than as one more label:value pair. */}
+                    {i === 0 ? (
+                      <dd className="text-base font-medium">{c.cell(row)}</dd>
+                    ) : (
+                      <>
+                        <dt className="shrink-0 text-xs text-[var(--color-muted)]">{c.header}</dt>
+                        <dd className="text-right">{c.cell(row)}</dd>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </dl>
+            )}
+          </div>
+        ))}
+        {shown.length === 0 && (
+          <p className="rounded-xl border border-dashed border-[var(--color-border)] px-4 py-8 text-center text-sm text-[var(--color-muted)]">
+            {q || active >= 0 ? "এই অনুসন্ধানে কিছু পাওয়া যায়নি।" : empty}
+          </p>
+        )}
+      </div>
+
       {/* overflow-x-auto, not overflow-hidden: a wide table has to scroll inside its own box
           rather than clipping columns or forcing the whole page sideways on a tablet. */}
-      <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
+      <div className="hidden overflow-x-auto rounded-xl border border-[var(--color-border)] md:block">
         <table className="w-full min-w-[40rem] text-sm">
           <thead className="bg-[var(--color-border)]/40 text-left text-[var(--color-muted)]">
             <tr>

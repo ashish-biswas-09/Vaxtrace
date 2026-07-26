@@ -32,7 +32,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       {/* Below `lg` the sidebar is removed from the flow entirely and the same nav renders
           inside the header as a disclosure. A fixed w-56 rail on a tablet ate a third of the
           viewport and pushed every table off-screen. */}
-      <aside className="hidden w-56 shrink-0 flex-col gap-6 border-r border-[var(--color-border)] p-4 lg:flex print:hidden">
+      {/* sticky + its own scroll: with twenty-three grouped destinations the rail is taller
+          than a laptop viewport, and a nav that scrolls the page away from the table it is
+          navigating is worse than no nav. */}
+      <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col gap-6 overflow-y-auto border-r border-[var(--color-border)] p-4 lg:flex print:hidden">
         <div>
           <p className="text-lg font-semibold">VaxTrace</p>
           <p className="text-xs text-[var(--color-muted)]">অ্যাডমিন প্যানেল</p>

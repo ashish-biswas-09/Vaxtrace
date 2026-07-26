@@ -46,6 +46,66 @@ export async function saveDoseNoteAction(
 }
 
 // ---------------------------------------------------------------------------
+// Voiding a dose (FR-31 / BUG-05 follow-through)
+// ---------------------------------------------------------------------------
+export type VoidState = { error?: string; ok?: string } | undefined;
+
+const voidSchema = z.object({
+  record_id: z.string().uuid(),
+  child_id: z.string().uuid(),
+  void_reason: z.string().trim().min(3, "বাতিলের কারণ লিখুন").max(300),
+});
+
+// A clinical record is never deleted. A wrong one is voided: the row stays, carries who voided
+// it and why, stops counting in coverage and dropout, and frees its slot so the correction can
+// be recorded. The schema has supported this since 20260726100000 — until now nothing offered
+// it, so the only way to correct a mis-entered dose was to leave it wrong.
+//
+// Two things happen in the database as a consequence, and neither is duplicated here: the void
+// guard rejects the write unless the caller is a supervisor or above, and the stock trigger
+// writes a compensating ledger entry so the batch balance follows the correction.
+export async function voidDoseAction(
+  _prev: VoidState,
+  formData: FormData,
+): Promise<VoidState> {
+  const parsed = voidSchema.safeParse({
+    record_id: formData.get("record_id"),
+    child_id: formData.get("child_id"),
+    void_reason: formData.get("void_reason"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "তথ্য সঠিক নয়" };
+
+  const supabase = await requireRole("admin");
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "সেশন পাওয়া যায়নি।" };
+
+  const { error } = await supabase
+    .from("vaccination_records")
+    .update({
+      voided_at: new Date().toISOString(),
+      voided_by: user.id,
+      void_reason: parsed.data.void_reason,
+    })
+    .eq("id", parsed.data.record_id)
+    .is("voided_at", null);
+
+  if (error) {
+    return {
+      error:
+        error.message.includes("supervis") || error.message.includes("row-level security")
+          ? "ডোজ বাতিল করা সুপারভাইজার বা তার ঊর্ধ্বতনের কাজ।"
+          : "ডোজ বাতিল করা যায়নি।",
+    };
+  }
+
+  revalidatePath(`/admin/children/${parsed.data.child_id}`);
+  revalidatePath("/admin/reports");
+  return { ok: "ডোজটি বাতিল হিসেবে চিহ্নিত হয়েছে।" };
+}
+
+// ---------------------------------------------------------------------------
 // Child lifecycle (BS-06 / FR-18 / FR-36)
 // ---------------------------------------------------------------------------
 const statusSchema = z.object({
