@@ -8,6 +8,9 @@ import { NOTIF_CHANNEL, NOTIF_STATUS, notifStatus } from "../status";
 export type NotifRow = {
   id: string;
   recipient_name: string;
+  recipient_to: string | null;
+  kind: string;
+  dose_count: number;
   channel: string;
   status: string;
   attempts: number;
@@ -16,8 +19,40 @@ export type NotifRow = {
   last_error: string | null;
 };
 
+const KIND_BN: Record<string, { label: string; tone: "muted" | "danger" }> = {
+  due_soon: { label: "আসন্ন", tone: "muted" },
+  overdue: { label: "বিলম্বিত", tone: "danger" },
+};
+
 const columns: Column<NotifRow>[] = [
-  { header: "প্রাপক", cell: (n) => n.recipient_name },
+  {
+    header: "প্রাপক",
+    cell: (n) => (
+      <>
+        {n.recipient_name}
+        {/* The address actually used, frozen at enqueue time. BUG-06 was invisible precisely
+            because this was never shown: nobody could see that an "email" row was addressed
+            to a phone number. */}
+        <div className="font-mono text-xs text-[var(--color-muted)]">{n.recipient_to ?? "—"}</div>
+      </>
+    ),
+  },
+  {
+    header: "ধরন",
+    cell: (n) => {
+      const k = KIND_BN[n.kind] ?? { label: n.kind, tone: "muted" as const };
+      return (
+        <>
+          <StatusBadge tone={k.tone}>{k.label}</StatusBadge>
+          {n.dose_count > 1 && (
+            <div className="mt-1 text-xs text-[var(--color-muted)]">
+              {toBn(n.dose_count)} ডোজ একসাথে
+            </div>
+          )}
+        </>
+      );
+    },
+  },
   {
     header: "চ্যানেল",
     cell: (n) => <StatusBadge tone="muted">{NOTIF_CHANNEL[n.channel] ?? n.channel}</StatusBadge>,

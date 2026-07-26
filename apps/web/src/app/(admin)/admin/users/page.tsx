@@ -11,12 +11,25 @@ export default async function UsersPage() {
     data: { user: me },
   } = await supabase.auth.getUser();
 
-  const [{ data: profiles }, { data: roles }] = await Promise.all([
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [{ data: profiles }, { data: roles }, { data: assignments }] = await Promise.all([
     supabase.from("profiles").select("id, full_name, contact, status").order("full_name"),
     supabase.from("user_roles").select("user_id, role, staff_code"),
+    // Live postings only. `valid_to is null or >= today` is the same predicate auth_scopes()
+    // applies, so the count on screen is the number of scopes actually granting access.
+    supabase
+      .from("user_assignments")
+      .select("user_id, valid_from, valid_to")
+      .lte("valid_from", today)
+      .or(`valid_to.is.null,valid_to.gte.${today}`),
   ]);
 
   const roleByUser = new Map((roles ?? []).map((r) => [r.user_id, r]));
+  const assignmentCount = new Map<string, number>();
+  for (const a of assignments ?? []) {
+    assignmentCount.set(a.user_id, (assignmentCount.get(a.user_id) ?? 0) + 1);
+  }
 
   const rows: UserRow[] = (profiles ?? []).map((p) => {
     const r = roleByUser.get(p.id);
@@ -28,8 +41,11 @@ export default async function UsersPage() {
       status: p.status,
       staff_code: r?.staff_code ?? null,
       is_self: p.id === me?.id,
+      assignment_count: assignmentCount.get(p.id) ?? 0,
     };
   });
+
+  const unassigned = rows.filter((r) => r.role !== "parent" && r.assignment_count === 0).length;
 
   const count = (role: string) => rows.filter((r) => r.role === role).length;
   const inactive = rows.filter((r) => r.status !== "active").length;
@@ -48,6 +64,20 @@ export default async function UsersPage() {
         </div>
         <InviteUser />
       </header>
+
+      {unassigned > 0 && (
+        // Not a warning for its own sake: without a posting every scoped policy returns an
+        // empty set, so the account signs in successfully and then appears to have lost all
+        // its data. Naming it here is cheaper than debugging it later.
+        <p
+          role="status"
+          className="rounded-md border border-[var(--color-warning)] px-4 py-3 text-sm text-[var(--color-warning)]"
+        >
+          {toBn(unassigned)} জন কর্মীর কোনো দায়িত্ব বরাদ্দ নেই। দায়িত্ব ছাড়া তাঁরা কোনো শিশুর
+          তথ্য দেখতে পাবেন না — নাম-এ ক্লিক করে এলাকা বরাদ্দ করুন।
+        </p>
+      )}
+
       <UsersTable rows={rows} />
     </div>
   );

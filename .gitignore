@@ -5,7 +5,13 @@ dist/
 build/
 .next/
 out/
-coverage/
+# Anchored, not bare `coverage/`: an unanchored pattern matches a directory of that name at
+# ANY depth, and it silently swallowed the /admin/coverage route — the screen would have built
+# locally and 404'd on Vercel with nothing in the diff to explain it. Vitest writes its report
+# to the package root, so that is the only place the rule needs to look.
+/coverage/
+/apps/*/coverage/
+/packages/*/coverage/
 *.tsbuildinfo
 .env
 .env.local

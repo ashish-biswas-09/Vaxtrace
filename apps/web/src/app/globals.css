@@ -19,10 +19,65 @@ body {
   outline-offset: 2px;
 }
 
-/* Reports print-to-PDF: force a light, ink-friendly page (admin is dark on screen). */
+/* ---------------------------------------------------------------------------
+   Print — UX-09.
+   The defaulter route list, the session tally and the immunization card are printed in
+   every real programme: the route list goes in a pocket, the tally gets signed, the card
+   goes home with the family. A list that does not print is a list that does not get used,
+   so these are styled rather than left to whatever the browser guesses.
+   --------------------------------------------------------------------------- */
 @media print {
+  /* Admin is dark on screen; on paper that is a cartridge. */
   * {
     background: #fff !important;
     color: #000 !important;
+    box-shadow: none !important;
   }
+
+  @page {
+    margin: 12mm;
+    size: A4;
+  }
+
+  /* Borders survive the colour override above — a table with no rules is unreadable once
+     the alternating background is gone. */
+  table,
+  th,
+  td {
+    border-color: #999 !important;
+  }
+
+  th,
+  td {
+    padding: 4px 6px !important;
+  }
+
+  /* A row split across a page break loses the child it names. */
+  tr,
+  li,
+  .print-keep {
+    break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group; /* repeat the header on every page */
+  }
+
+  /* The card presentation is a small-screen affordance; on paper the table is right. */
+  .md\:hidden {
+    display: none !important;
+  }
+  .hidden.md\:block {
+    display: block !important;
+  }
+
+  /* Something has to say what this sheet is once it is off the screen: which area, which
+     period, who printed it. `.print-only` blocks carry that. */
+  .print-only {
+    display: block !important;
+  }
+}
+
+.print-only {
+  display: none;
 }

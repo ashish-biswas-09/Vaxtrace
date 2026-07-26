@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ageBn, dateBn, pctBn, toBn } from "@/lib/format";
+import { CHILD_STATUS, hasUsablePhone, type ChildStatus } from "@/lib/guardians";
 import { StatusBadge } from "../../_components/ui";
 import { DataTable, type Column } from "../../_components/DataTable";
 
@@ -15,6 +16,7 @@ export type ChildRow = {
   gender: string;
   guardian_name: string | null;
   guardian_contact: string | null;
+  status: string;
   created_at: string;
   coverage: number | null;
 };
@@ -44,7 +46,21 @@ const columns: Column<ChildRow>[] = [
   { header: "অভিভাবক", cell: (k) => k.guardian_name ?? "—" },
   {
     header: "যোগাযোগ",
-    cell: (k) => <span className="text-[var(--color-muted)]">{k.guardian_contact ?? "—"}</span>,
+    cell: (k) =>
+      hasUsablePhone(k.guardian_contact) ? (
+        <span className="text-[var(--color-muted)]">{k.guardian_contact}</span>
+      ) : (
+        // A missing number is not a blank cell: it is the reason this family will never
+        // receive a reminder, and it is fixable.
+        <StatusBadge tone="warning">নম্বর নেই</StatusBadge>
+      ),
+  },
+  {
+    header: "অবস্থা",
+    cell: (k) => {
+      const s = CHILD_STATUS[k.status as ChildStatus];
+      return s ? <StatusBadge tone={s.tone}>{s.label}</StatusBadge> : <span>—</span>;
+    },
   },
   {
     header: "টিকা কভারেজ",
@@ -79,6 +95,9 @@ export function ChildrenTable({ rows }: { rows: ChildRow[] }) {
       filters={[
         { label: "কভারেজ < ৫০%", predicate: (k) => k.coverage != null && k.coverage < 0.5 },
         { label: "সূচি শুরু হয়নি", predicate: (k) => k.coverage == null },
+        { label: "সক্রিয়", predicate: (k) => k.status === "active" },
+        // The families the reminder system cannot reach at all — a worklist, not a statistic.
+        { label: "নম্বর নেই", predicate: (k) => !hasUsablePhone(k.guardian_contact) },
       ]}
       empty="কোনো শিশু নিবন্ধিত নেই।"
     />

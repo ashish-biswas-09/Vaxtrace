@@ -14,22 +14,29 @@ export default async function NotificationsPage() {
     supabase.from("notifications").select("status"),
     supabase
       .from("notifications")
-      .select("id, recipient_id, channel, status, attempts, scheduled_for, sent_at, last_error")
+      .select(
+        "id, guardian_id, channel, kind, status, attempts, dose_count, recipient_to, scheduled_for, sent_at, last_error",
+      )
       .order("scheduled_for", { ascending: false })
       .limit(500),
   ]);
 
   const count = (s: string) => (all ?? []).filter((n) => n.status === s).length;
 
-  const recipientIds = [...new Set((log ?? []).map((n) => n.recipient_id))];
-  const { data: people } = recipientIds.length
-    ? await supabase.from("profiles").select("id, full_name").in("id", recipientIds)
-    : { data: [] };
+  // The recipient is a guardian, not a profile: a guardian with no account is exactly the
+  // case the reminder system has to serve (BS-02), and it has no row in `profiles`.
+  const guardianIds = [...new Set((log ?? []).map((n) => n.guardian_id).filter(Boolean))] as string[];
+  const { data: people } = guardianIds.length
+    ? await supabase.from("guardians").select("id, full_name").in("id", guardianIds)
+    : { data: [] as { id: string; full_name: string }[] };
   const nameById = new Map((people ?? []).map((p) => [p.id, p.full_name]));
 
   const rows: NotifRow[] = (log ?? []).map((n) => ({
     id: n.id,
-    recipient_name: nameById.get(n.recipient_id) ?? "—",
+    recipient_name: (n.guardian_id ? nameById.get(n.guardian_id) : null) ?? "—",
+    recipient_to: n.recipient_to,
+    kind: n.kind,
+    dose_count: n.dose_count,
     channel: n.channel,
     status: n.status,
     attempts: n.attempts,
