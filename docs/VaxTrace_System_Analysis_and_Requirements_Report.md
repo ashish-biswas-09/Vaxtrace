@@ -1,8 +1,8 @@
 # VaxTrace — Comprehensive System Analysis, Requirements & Architecture Research Report
 
 **Document ID:** VXT-SAR-001
-**Version:** 1.1
-**Date:** 2026-07-25 (review) · 2026-07-26 (delivery round 1)
+**Version:** 1.2
+**Date:** 2026-07-25 (review) · 2026-07-26 (delivery rounds 1–3)
 **Classification:** Internal — Academic (Final-Year Capstone) / Engineering
 **Prepared by:** Architecture Review Board — CTO · Principal Architect · Solution Architect · Security Architect · DevOps/Cloud Architect · Database Architect · UI Architecture Lead · Technical PM · Senior Staff Engineer
 **Supersedes:** nothing. **Complements:** `VaxTrace_SRS_Final.docx`, `VaxTrace_Engineering_Handbook.md`, `docs/admin-uiux-audit.md`, `TODO.md`
@@ -11,8 +11,9 @@
 |---|---|---|
 | 1.0 | 2026-07-25 | Initial review: §1–§20, 76 FRs, 20 NFRs, 16 gaps, 13 blind spots, 12 verified defects |
 | 1.1 | 2026-07-26 | **§21 Delivery Log** added. Round 1 (authorization + geography) built and recorded; statuses, §18 checklist and §1.2 scores updated against shipped evidence; `BUG-12` severity corrected on re-verification |
+| 1.2 | 2026-07-26 | Round 3 recorded (§21.4): sessions, the stock ledger, the cold chain, coverage-by-area, zero-dose, defaulter tracing and AEFI, plus the eight new Manager/Shared screens and the shared component kit. §16.1 inventory, §16.4 cross-cutting findings, §18 checklist and §1.2 scores updated against shipped evidence |
 
-> **Reading §1–§20 after v1.1.** The review text is deliberately left in its original wording and tense — it is dated evidence, not a living description. Where a finding has since been closed, the closure is recorded next to it and in §21, never by rewriting the finding. §1.1's verdict in particular ("the system cannot say where anything happened") was true on 2026-07-25 and is no longer true; that is the point of keeping it.
+> **Reading §1–§20 after v1.2.** The review text is deliberately left in its original wording and tense — it is dated evidence, not a living description. Where a finding has since been closed, the closure is recorded next to it and in §21, never by rewriting the finding. §1.1's verdict in particular ("the system cannot say where anything happened") was true on 2026-07-25 and is no longer true; that is the point of keeping it. As of v1.2 the same applies to §1.1's five unanswerable questions: all five now have a screen that answers them, and §21.3 records how.
 
 ---
 
@@ -87,17 +88,17 @@ None of these are answerable, and none become answerable by adding screens. They
 
 Two columns: the score at review (2026-07-25) and after the first delivery round (2026-07-26, §21). Dimensions that have not been worked on are unchanged, deliberately — a score that moves without work behind it is not a score.
 
-| Dimension | At review | Now | One-line justification |
-|---|:--:|:--:|---|
-| Code & migration craftsmanship | 88 | 88 | Reasoned migrations, DB-enforced invariants, RLS-first, honest `ponytail:` seams |
-| Security (within its stated scope) | 78 | **90** | Scope-aware RLS with a negative test, MFA on the privileged surfaces, rate limiting, break-glass logged and reviewed. Still no consent, no tamper-evident audit chain |
-| Domain correctness (immunization) | 45 | **68** | `min_interval_days` now drives due dates, schedules re-derive on catalog change and after each dose, clinically invalid doses are rejected, void exists. Still no child lifecycle |
-| Data model completeness | 40 | **62** | Geography, facilities, catchments, denominator and assignments all landed. Still no session, no stock ledger, no guardians entity, no dedup/merge |
-| Workflow completeness | 42 | 42 | Untouched this round: no defaulter tracing, no dose recording in worker UI, no AEFI workflow, no supervisory escalation |
-| Reporting & analytics validity | 38 | **50** | `v_dropout` is one pass and emits the WHO indicator; `v_coverage` is labelled *registry* coverage and excludes voided doses and campaign rows. Population coverage by area still to build |
-| UI/UX system maturity | 55 | **60** | Five new admin surfaces (geography, facilities, denominator, assignments, break-glass) plus account security. Parent is still a stub; no shared component kit; no offline |
-| Production/DevOps readiness | 50 | **57** | In-product job health closes the biggest operational blind spot. Still no staging split, no E2E, no load test, no DR drill, no alerting |
-| **Overall (weighted)** | **≈ 54/100** | **≈ 68/100** | *No longer the wrong scope — now an incomplete implementation of the right one, which is a far better problem to have.* |
+| Dimension | At review | After R1–R2 | Now (R3) | One-line justification |
+|---|:--:|:--:|:--:|---|
+| Code & migration craftsmanship | 88 | 88 | 88 | Reasoned migrations, DB-enforced invariants, RLS-first, honest `ponytail:` seams |
+| Security (within its stated scope) | 78 | 90 | **91** | Scope-aware RLS with a negative test, MFA on the privileged surfaces, rate limiting, break-glass logged and reviewed. The ledger and the temperature log are append-only by policy *and* trigger. Still no consent, no tamper-evident audit chain |
+| Domain correctness (immunization) | 45 | 68 | **86** | Sessions, FEFO, wastage by WHO reason, the cold chain with per-device ranges, WHO causality on AEFI, and a dose that debits its own batch. Remaining gap is the worker-side dose flow, not the model |
+| Data model completeness | 40 | 62 | **88** | `sessions`, `stock_transactions`, `requisitions`, `cold_chain_*`, `tracing_tasks`, `aefi_cases` all landed. Outstanding: partitioning, consent, offline sync state |
+| Workflow completeness | 42 | 42 | **72** | The defaulter loop closes end to end (identify → assign → visit → outcome → child lifecycle), AEFI is a case with a classification, requisitions run request → decide → issue → receive. Dose recording in the *worker* UI is still the hole |
+| Reporting & analytics validity | 38 | 50 | **84** | Population coverage against the denominator, zero-dose in both its indicator and its actionable form, dropout by area, a monthly time dimension, and the WHO wastage rate. Every rate carries its N and renders `—` rather than `০%` when undefined |
+| UI/UX system maturity | 55 | 60 | **76** | Eight new Manager/Shared screens, a shared kit (`PageHeader`, `EmptyState`, `FormMessage`, `ConfirmButton`), card presentation below `md` for every table at once, grouped navigation, print styles for the three artefacts that get printed. Parent is still a stub; no offline |
+| Production/DevOps readiness | 50 | 57 | **62** | Nightly stock reconciliation reports drift as a failure rather than swallowing it; the tracing board has a job. Still no staging split, no E2E, no load test, no DR drill, no alerting |
+| **Overall (weighted)** | **≈ 54/100** | **≈ 68/100** | **≈ 81/100** | *The Manager role is now feature-complete against §16.2. What remains is the worker's field flow, the parent module, and operations.* |
 
 ### 1.3 The five decisions that change the grade
 
@@ -165,6 +166,8 @@ erDiagram
 ```
 
 Read that diagram again and notice what is **not** in it: no place, no facility, no session, no stock movement, no population, no guardian who lacks an account. Those five absences generate most of §6 and §7.
+
+> **As of v1.2 all six are present.** The diagram is left as it was on 2026-07-25 because it is dated evidence of the starting position, not a description of the current schema; Appendix B.1 carries the target model and §21 records how it was reached.
 
 ### 2.3 Architectural posture — assessed
 
@@ -1438,14 +1441,20 @@ The prior [`admin-uiux-audit.md`](admin-uiux-audit.md) already did rigorous work
 
 ### 16.1 Screen inventory — current vs required
 
-| Role | Designed (Figma) | Implemented | Required by this report | Net new |
-|---|:--:|:--:|:--:|:--:|
-| Auth | 5 | 5 | 6 (+ scope selector for multi-assignment users) | 1 |
-| Guardian/Parent | 6 | 0 (stub) | 8 | **8** |
-| Worker | 6 | 2 | 12 | **10** |
-| Manager/Admin | 8–9 | 9 | 16 | **7** |
-| Shared | 4 | partial | 5 | 1 |
-| **Total** | **29** | **16** | **47** | **+31** |
+| Role | Designed (Figma) | Implemented at review | Implemented now | Required by this report | Still missing |
+|---|:--:|:--:|:--:|:--:|:--:|
+| Auth | 5 | 5 | 7 | 6 (+ scope selector for multi-assignment users) | 0 |
+| Guardian/Parent | 6 | 0 (stub) | 1 (claim) | 8 | **7** |
+| Worker | 6 | 2 | 2 | 12 | **10** |
+| Manager/Admin | 8–9 | 9 | **23** | 16 | 0 |
+| Shared | 4 | partial | 5 | 5 | 0 |
+| **Total** | **29** | **16** | **38** | **47** | **17** |
+
+The Manager column overshoots its target because the report's count of sixteen collapsed
+several screens that turned out to want separating in the building — stock position and the
+stock ledger, the ledger and requisitions, geography and facilities and the denominator. The
+capability list in §16.2 is what was delivered against; the screen count is a consequence of
+it, not a target in its own right.
 
 ### 16.2 Required new screens
 
@@ -1453,9 +1462,16 @@ The prior [`admin-uiux-audit.md`](admin-uiux-audit.md) already did rigorous work
 
 **Worker (12)** — Console with today's session · **Record dose** (`GAP-01`) · Child search · Child detail · Register child (exists) · **My catchment child list (offline-capable)** · **Defaulter route / tracing list** · Follow-up outcome capture · Session tally · Stock at my facility · Wastage entry · **Sync status & queue**.
 
-**Manager (16)** — the 9 existing, plus: Coverage by area (with denominator) · Zero-dose list · Defaulter assignment board · Session & campaign planner · Stock ledger and requisitions · Cold-chain / temperature log · Data-quality dashboard · AEFI case list.
+**Manager (16)** — ☑ *all delivered, rounds 1–3.* The 9 existing, plus: Coverage by area (with
+denominator) `/admin/coverage` · Zero-dose list `/admin/zero-dose` · Defaulter assignment board
+`/admin/tracing` · Session & campaign planner `/admin/sessions` · Stock ledger `/admin/stock` and
+requisitions `/admin/requisitions` · Cold-chain / temperature log `/admin/cold-chain` ·
+Data-quality dashboard `/admin/data-quality` · AEFI case list `/admin/aefi`. Round 1 additionally
+delivered geography, facilities, the denominator, role × scope assignment and break-glass review.
 
-**Shared (5)** — Error/empty/loading states (exists) · Help · **Job health** (`NFR-19`) · Duplicate review queue · Break-glass access review.
+**Shared (5)** — ☑ *all delivered.* Error/empty/loading states (exists, now via a shared
+`EmptyState`) · Help `/admin/help` · **Job health** (`NFR-19`, on `/admin/settings`) · Duplicate
+review queue `/admin/duplicates` · Break-glass access review `/admin/break-glass`.
 
 ### 16.3 The screen that changes the defense
 
@@ -1463,20 +1479,22 @@ The prior [`admin-uiux-audit.md`](admin-uiux-audit.md) already did rigorous work
 
 That single screen demonstrates geography, denominators, scoped access, aggregation and drill-down simultaneously. If only one new screen gets built, build that one.
 
+> **Built, round 3 — [`/admin/coverage`](<../apps/web/src/app/(admin)/admin/coverage/page.tsx>).** It has the tree as a breadcrumb rather than a left pane (a pane costs a third of the viewport to show what a trail shows in one line), the two coverage columns side by side with their numerators and denominators beside them, drill-down from division to ward, and a twelve-month trend below. The whole screen is a function of the URL — the filters are a plain `<form method="get">` — so a filtered view is a shareable link, the back button steps through filter changes, and the table renders with JavaScript disabled.
+
 ### 16.4 Cross-cutting UX findings
 
 | ID | Finding | Fix |
 |---|---|---|
 | UX-01 | **No offline affordance.** A worker cannot tell whether their entry is saved or queued. | Persistent sync-status chip: *Synced · N queued · Offline*. Never a silent failure. |
-| UX-02 | **No shared component kit** (carried over from the prior audit, still open) | `AdminTable`, `Toolbar`, `StatusPill` from a single registry, `ConfirmDialog`, `EmptyState`, `Skeleton`, `Toast` — build once, all 47 screens become configuration |
+| UX-02 | ~~**No shared component kit**~~ **closed (R3)** | `DataTable`, `StatusBadge`, `StatCard`, `SubmitButton`, `PageHeader`, `EmptyState`, `FormMessage`, `ConfirmButton`, `PrintButton` in `_components/`. `Toolbar` and `Skeleton` were deliberately *not* built: search and filters already live inside `DataTable`, and Next's `loading.tsx` is the platform's own skeleton |
 | UX-03 | **Terminology drift across roles** (prior audit) worsens with 6 roles | One glossary, one status registry, one copy source; enforce by lint on string literals (`NFR-14`) |
-| UX-04 | **Data-density mismatch.** The same table component serves a manager on a 1440px display and a worker on a 5-inch phone in sunlight. | Two presentations of the same data: dense table (desktop) and card list (mobile). Not a media query on a table — a different component. |
-| UX-05 | **No confirmation on irreversible acts** (prior audit; now includes void, merge, wastage) | `ConfirmDialog` + typed confirmation for merges + audit + toast |
+| UX-04 | ~~**Data-density mismatch**~~ **closed (R3)** | Both presentations live inside `DataTable`: a card list below `md`, the dense table at and above it, chosen by CSS so neither flashes on hydration. Built once in the shared component rather than in each of the fifteen callers, so every existing table gained it without being touched. A caller with a better card for its own data passes `card` |
+| UX-05 | ~~**No confirmation on irreversible acts**~~ **closed (R3)** | `ConfirmButton`, built on the native `<dialog>` element — which brings the focus trap, the Escape handler and the top-layer stacking that a hand-rolled overlay gets wrong. Applied to: dose void, merge (with a typed confirmation), wastage, stock adjustment, requisition rejection and issue, and assignment revoke. Receipts and other additive acts deliberately go straight through — a confirmation on everything is a confirmation on nothing |
 | UX-06 | **Bengali screen-reader and numeral handling unverified** | One NVDA/TalkBack pass in Bangla; `lang="bn"`; Bengali numerals everywhere via `format.ts` |
-| UX-07 | **Empty vs zero ambiguity** (prior audit, solved on the Children screen) | Apply the same rule to every coverage figure: `—` for no denominator, `০%` for a real zero |
+| UX-07 | ~~**Empty vs zero ambiguity**~~ **closed (R3)** | The rule now holds on every coverage, wastage, tally and target figure: `—` where the denominator does not exist, `০%` where it does and the answer is zero. `coverageTone(null)` and `coverageTone(0)` return different tones, and a unit test asserts they stay different |
 | UX-08 | **No progressive disclosure in the dose flow.** A worker needs three taps, not a form. | Child → doses due today shown as large tappable cards → confirm. Optimise for one-handed use standing at a session table. |
-| UX-09 | **No print styles for the artefacts that matter** — the immunization card, the session tally, the defaulter route list are all printed in real programmes | Print stylesheet for those three; a defaulter list that prints is a defaulter list that gets used |
-| UX-10 | **Figma is behind the code** for Admin, and has nothing for the new screens | Reverse-sync: bring the implemented Admin screens back into Figma, then design the 31 new ones against the same tokens |
+| UX-09 | ~~**No print styles**~~ **closed (R3)** | A print stylesheet in `globals.css`: A4 with margins, repeating table headers, no row split across a page break, the card presentation suppressed in favour of the table, and `.print-only` blocks that stamp each sheet with its area, period and filters — a printed page with no idea what it is a page *of* is not evidence. Applied to the coverage report, the zero-dose list, the tracing route list, the session tally and the stock ledger |
+| UX-10 | **Figma is behind the code** for Admin, and now further behind — ten more implemented screens it has never seen | Reverse-sync: bring the 23 implemented Admin screens back into Figma, then design the worker and parent surfaces against the same tokens. Deliberately still open: designing screens that already exist and work is the lowest-value ordering of that work, and the Figma file is a defense artefact rather than a source of truth |
 
 ### 16.5 Accessibility baseline (non-negotiable)
 
@@ -1488,13 +1506,18 @@ Text label inside every status pill, never colour alone · visible focus rings o
 
 ### 17.1 Phased plan
 
+The tick marks were added in v1.2 and record what §21 says was actually built. `☑` = complete,
+`◐` = partly built. P4's contents landed early, out of phase order, because the Manager screens
+they feed were the round-3 objective; the plan is left in its original order rather than
+retrofitted, so the deviation stays visible.
+
 | Phase | Window | Theme | Contents | Success test |
 |---|---|---|---|---|
-| **P0 — Defect sweep** | Week 1 | Credibility | `BUG-01`, `BUG-06`, `BUG-09` first; then 02–05, 07–12 | All twelve closed with a regression test each |
-| **P1 — Structural** | Weeks 1–3 | *The five decisions* | `locations` + `ltree`; `facilities` + `sessions`; `population_estimates`; `user_assignments` + scoped RLS; `stock_transactions` | pgTAP: a manager in upazila A cannot read a child in upazila B; coverage renders with a real denominator |
-| **P2 — Core loops** | Weeks 4–6 | Make the product work | Dose recording UI; child search; guardian-without-account + claim; defaulter tracing loop; notification routing/opt-out/batching; child lifecycle | A dose can be recorded, a defaulter traced and closed, a guardian claims a child — live |
+| **P0 — Defect sweep** ☑ | Week 1 | Credibility | `BUG-01`, `BUG-06`, `BUG-09` first; then 02–05, 07–12 | All twelve closed with a regression test each |
+| **P1 — Structural** ☑ | Weeks 1–3 | *The five decisions* | `locations` + `ltree`; `facilities` + `sessions`; `population_estimates`; `user_assignments` + scoped RLS; `stock_transactions` | pgTAP: a manager in upazila A cannot read a child in upazila B; coverage renders with a real denominator |
+| **P2 — Core loops** ◐ | Weeks 4–6 | Make the product work | Dose recording UI; child search; guardian-without-account + claim; defaulter tracing loop; notification routing/opt-out/batching; child lifecycle | A dose can be recorded, a defaulter traced and closed, a guardian claims a child — live |
 | **P3 — Field reality** | Weeks 7–8 | Offline & parent | Worker PWA (3 operations); parent module B1–B6; digital card with QR | Demo: Wi-Fi off, record a dose, Wi-Fi on, it syncs |
-| **P4 — Programme depth** | Weeks 9–11 | Depth for the defense | Coverage-by-area screen; zero-dose; wastage & FEFO; AEFI workflow; session tally; data-quality dashboard | Every §8.1 programme function has a screen |
+| **P4 — Programme depth** ☑ | Weeks 9–11 | Depth for the defense | Coverage-by-area screen; zero-dose; wastage & FEFO; AEFI workflow; session tally; data-quality dashboard | Every §8.1 programme function has a screen |
 | **P5 — Production hardening** | Weeks 12–13 | Ops | Staging env; E2E per role; MFA; rate limits; Sentry + alerts; PITR + restore drill; job health; load test at 1M rows | §18 checklist green |
 | **P6 — Interoperability** | Post-defense | Integration | FHIR `Immunization` export; GIS choropleth; requisition flow; campaign module | An external system reads a child record |
 | **P7 — Intelligence** | 12–24 mo | Analytics | Dropout-risk model to prioritise tracing; forecast accuracy tracking | Measured lift in tracing yield vs random order |
@@ -1516,15 +1539,16 @@ Score honestly. `☐` = not done, `◐` = partial, `☑` = done.
 - ☑ Domain invariants enforced in the database
 - ☐ Bounded contexts reflected in the folder structure (currently route-grouped, not context-grouped)
 - ◐ No unexplained doc/code drift → **REC-01**
-- ◐ Geography, facility, denominator entities present *(all three exist; `sessions` and the stock ledger outstanding)*
+- ☑ Geography, facility, denominator, session and stock-ledger entities present
 
 ### Data
 - ☑ Migrations as the single schema source, reviewed as code
 - ☑ Constraints and check constraints on every invariant expressible as one
 - ◐ Soft-delete strategy documented and applied *(three-tier rule applied to `children`, `vaccination_records` and `locations`; `guardians` outstanding)*
-- ☐ Duplicate detection and merge
-- ☐ Reporting read model with a time dimension
-- ☐ Reconciliation job for cached balances
+- ☑ Duplicate detection and merge *(`find_duplicate_children()` at registration, `/admin/duplicates` for review, `merge_children()` keeping both IDs resolvable)*
+- ☑ Reporting read model with a time dimension *(`mv_coverage_monthly`, refreshed CONCURRENTLY nightly, read through a scope-checking function rather than granted directly)*
+- ☑ Reconciliation job for cached balances *(`reconcile_stock()` nightly; a non-zero result is reported through `v_job_health` as a failure, not as routine housekeeping)*
+- ☑ Append-only ledgers for stock movements and temperature readings
 - ☐ Partitioning plan for `audit_log` and `vaccination_records`
 
 ### Security
@@ -1543,7 +1567,7 @@ Score honestly. `☐` = not done, `◐` = partial, `☑` = done.
 - ◐ Managed platform with documented SLOs (claimed, unmeasured)
 - ☐ Staging environment
 - ☐ PITR enabled **and a restore drill executed**
-- ☐ Scheduled-job health visible and alerting
+- ◐ Scheduled-job health visible and alerting *(seven jobs instrumented and visible; alerting still absent)*
 - ☐ Runbooks for: dispatcher backlog, cron stopped, bad migration, data breach
 - ☐ On-call/escalation defined (even if it is one person and a phone)
 
@@ -1555,7 +1579,7 @@ Score honestly. `☐` = not done, `◐` = partial, `☑` = done.
 - ☐ Uptime check on a health endpoint
 
 ### Quality
-- ◐ Unit tests (4 files, 53 tests) and pgTAP policy tests (4 files)
+- ◐ Unit tests (5 files, 67 tests) and pgTAP policy tests (5 files) — **the pgTAP suites remain unexecuted, see §21.5**
 - ☐ ≥70% coverage on domain logic
 - ☐ One E2E journey per role
 - ☐ Load test at representative volume (1M schedule rows)
@@ -1578,7 +1602,8 @@ Score honestly. `☐` = not done, `◐` = partial, `☑` = done.
 - ☐ User manual in Bangla for workers
 
 **Score at review (2026-07-25): 14 of 47 items complete or partial ⇒ ≈ 30% production ready.**
-**Score after the first delivery round (2026-07-26): 22 of 49 ⇒ ≈ 45%.** Two items were added to the list rather than quietly absorbed — break-glass review and in-product job health — because a checklist that only ever shrinks is measuring the wrong thing.
+**After the first delivery round (2026-07-26): 22 of 49 ⇒ ≈ 45%.** Two items were added to the list rather than quietly absorbed — break-glass review and in-product job health — because a checklist that only ever shrinks is measuring the wrong thing.
+**After round 3 (2026-07-26): 27 of 50 ⇒ ≈ 54%.** One further item was added rather than absorbed: append-only ledgers, which round 3 introduced and which nothing in the original list covered. The four items that moved from ☐ to ☑ — dedup and merge, the time dimension, the reconciliation job, the ledger immutability — are all *data* items. The bars that have not moved are reliability, observability and quality, and they are the ones a production deployment would actually be blocked on.
 
 That is normal for this stage and not a criticism; what matters is that the list exists and is honest. An examiner who sees a candid checklist trusts the rest of the document more than one who sees all green ticks.
 
@@ -1613,26 +1638,31 @@ L×I on a 1–5 scale; **Exposure = L × I**.
 
 ### 20.1 What to do, in order
 
-**Week 1 — earn the right to be believed.**
+**Week 1 — earn the right to be believed.** ☑ *delivered, round 1.*
 1. Fix `BUG-01` (role resolution), `BUG-06` (email sent to phone numbers), `BUG-09` (cartesian dropout view). Three small changes, three regression tests, disproportionate credibility.
-2. Build **dose recording** in the worker UI. The system's core verb cannot remain unimplemented.
-3. Reconcile the handbook (`REC-01`) and add ADR-011/012.
+2. Build **dose recording** in the worker UI. The system's core verb cannot remain unimplemented. — **still open. It is now the single highest-value item left**, and unlike in week 1 everything it depends on exists.
+3. Reconcile the handbook (`REC-01`) and add ADR-011/012. — still open.
 
-**Weeks 1–3 — the five decisions.** `locations` + `ltree` → scoped RLS with a negative pgTAP test → `facilities` + `sessions` → `population_estimates` + rewritten coverage → `stock_transactions`. Strictly in that order; each behind a passing test.
+**Weeks 1–3 — the five decisions.** ☑ *all five delivered, rounds 1 and 3.* `locations` + `ltree` → scoped RLS with a negative pgTAP test → `facilities` + `sessions` → `population_estimates` + rewritten coverage → `stock_transactions`. Delivered in that order, each behind a written test — with the caveat that the pgTAP suites are written and reviewed but **unexecuted** (§21.5).
 
-**Weeks 4–6 — close the loops.** Guardian-without-account + claim; child search; defaulter tracing end to end; notification routing, opt-out and batching; child lifecycle status.
+**Weeks 4–6 — close the loops.** ◐ *guardian claim, child lifecycle, notification rebuild and the defaulter loop delivered (rounds 2–3). Child search and the worker-side dose flow are open.*
 
-**Weeks 7–8 — field reality.** Worker PWA for three operations; the parent module; the QR immunization card.
+**Weeks 7–8 — field reality.** *Open.* Worker PWA for three operations; the parent module; the QR immunization card.
 
-**Weeks 9–13 — depth and hardening.** Coverage-by-area screen; zero-dose; wastage; AEFI; data quality; then the §18 checklist.
+**Weeks 9–13 — depth and hardening.** ◐ *depth delivered early in round 3 — coverage-by-area, zero-dose, wastage, AEFI, data quality all exist. The §18 hardening is the part that has not moved.*
+
+**What that leaves, stated plainly.** Three of the five original phases are done and the fourth is
+half done. The remaining work is not more architecture — it is one screen the worker needs, one
+module the parent has never had, and the operational bars in §18 that no amount of schema design
+will tick.
 
 ### 20.2 The five sentences to say in the defense
 
 1. *"VaxTrace enforces authorization in the database, not the application — every policy is a test and a merge gate."* (True today, and rare.)
 2. *"The system is organised around a geographic hierarchy, so a coverage number always belongs to a place and a population, never to a registry counting itself."* (True after week 3.)
 3. *"Roles are separated from scope, so the same six roles describe a national programme and a single ward without changing a line of policy."*
-4. *"Stock movements are immutable facts and balances are derived from them, which is what makes wastage measurable and a recall executable."*
-5. *"A worker can record a dose with no network, and it reconciles safely when the network returns."*
+4. *"Stock movements are immutable facts and balances are derived from them, which is what makes wastage measurable and a recall executable."* (True after round 3 — and the honest version adds that the balance is never written by the application, only by a trigger as a delta, which is why two concurrent issues cannot lose one of themselves.)
+5. *"A worker can record a dose with no network, and it reconciles safely when the network returns."* (**Not true yet.** Do not say this one until the worker PWA exists. Sentences 1–4 are all currently defensible; saying a fifth that is not is how an examiner learns to doubt the first four.)
 
 Each of those is a defensible engineering claim backed by a table, a policy, or a demo — not a feature list.
 
@@ -1729,26 +1759,151 @@ new rule is demonstrable rather than merely present.
 6. **Overdue reminders run weekly, not daily.** The cadence is the difference between a
    reminder and harassment.
 
-### 21.3 Carried forward
+### 21.3 Round 3 — service delivery, supply, and the manager's screens (2026-07-26)
 
-Unchanged in priority from §17.1, with the round-1 dependencies now removed:
+The round that finishes the **Manager** role. Rounds 1 and 2 built the things a coverage number
+has to stand on — place, facility, denominator, scope, guardian, lifecycle. This one builds the
+things the programme actually *does*: sessions, stock, the cold chain, defaulter tracing, AEFI —
+and then the eight screens §16.2 said were missing.
+
+Sequenced this way because every one of those screens divides by, filters on, or scopes through
+something the first two rounds established. Building the coverage-by-area screen before the
+denominator existed would have meant building it twice, and building the tracing board before
+`child_is_reachable()` existed would have meant sending a worker to a bereaved family's door.
+
+**Migrations**
+
+| File | Closes |
+|---|---|
+| [`20260726140000_sessions_stock_coldchain.sql`](../supabase/migrations/20260726140000_sessions_stock_coldchain.sql) | `BS-03`, `BUG-04`, decision **D2** (remainder) and **D5**; `FR-24`…`FR-29`, `FR-39`…`FR-47`, `FR-66`…`FR-68` |
+| [`20260726150000_coverage_by_area.sql`](../supabase/migrations/20260726150000_coverage_by_area.sql) | `BS-07` (reporting half), `BS-10`, decision **D3** (remainder); `FR-57`…`FR-61` |
+| [`20260726160000_tracing_and_aefi.sql`](../supabase/migrations/20260726160000_tracing_and_aefi.sql) | `BS-04`, `BS-12`; `FR-20`, `FR-22`, `FR-34`…`FR-38` |
+
+**Application**
+
+New Manager screens: coverage by area · zero-dose list · defaulter assignment board · session &
+campaign planner · stock ledger · requisitions · cold chain · AEFI case list. New Shared screens:
+duplicate review queue · help and glossary. Existing screens gained: a dose **void** control (the
+schema had supported voiding since round 1 and nothing offered it, so the only way to correct a
+mis-entered dose was to leave it wrong), a rebuilt dashboard whose act-now row is six linked
+counts instead of three, and the shared component kit described under `UX-02`.
+
+`lib/programme.ts` is the single translation of the eleven new enums, imported by both Server and
+Client Components — the correction for `UX-03`, which is what happens when three screens each
+translate the same value.
+
+**Verification**
+
+`pnpm typecheck` · `pnpm lint` · `pnpm build` all clean. `pnpm test` 67 passing (was 53). The new
+[`programme.test.tsx`](../apps/web/tests/programme.test.tsx) covers the duplicate grouper, the
+merge-winner rule and the empty-versus-zero contract; [`stock_ledger.test.sql`](../supabase/tests/stock_ledger.test.sql)
+adds 16 pgTAP assertions over the ledger, the session-coherence rule, the tracing loop's effect on
+the child, and the AEFI classification constraint.
+
+> **The test that earned its keep.** `normaliseName()` in the duplicate grouper used
+> `[^\p{L}\p{N}]` to strip punctuation. Bengali vowel signs — the ি in রহিমা, the া in খাতুন — are
+> Unicode *marks*, not letters, so every Bengali name was being reduced to its consonant skeleton
+> and রহিমা matched রহমা. The SQL side never had the bug, because `normalise_name()` uses the whole
+> Bengali block. The two would have disagreed silently, and a duplicate check that disagrees with
+> the one at registration is worse than no check at all. Found by the first assertion written
+> against it; fixed by adding `\p{M}`.
+
+**Decisions taken while building, worth defending**
+
+1. **`inventories.stock_quantity` stopped being a value anybody may author.** It is now a cache of
+   `sum(stock_transactions.quantity)`, written only by a trigger and only as `+ delta` — a
+   read-modify-write Postgres performs inside the row lock it already holds. That, not a lock in
+   the application, is the actual fix for `BUG-04`'s lost update. `reconcile_stock()` proves the
+   cache nightly and **reports a non-zero result as a failure**, because a balance that had
+   drifted from its ledger is a defect somebody has to look at, not a housekeeping statistic.
+2. **The ledger is append-only, and so is the temperature log.** Both by the absence of an UPDATE
+   or DELETE policy *and* by a trigger, so a table owner's stray statement fails too. A wrong
+   movement is corrected by an opposing adjustment, which keeps the history of the error.
+3. **The sign of a stock movement is derived from its type by a CHECK constraint.** An
+   `administered` row with a positive quantity is not a typo to be tolerated; it is a batch
+   balance that will never reconcile. The form takes a positive number of doses and the direction
+   comes from the transaction type, because a store keeper at a counter should not be reasoning
+   about signs.
+4. **`vaccination_records.session_id` is nullable and stays nullable.** A dose transcribed from a
+   family's home-based card was given at a session this system never knew about; forcing a
+   fabricated session row to exist for it would put a fictional service event into every tally.
+   What *is* enforced is coherence — an attributed dose must match its session's date and facility.
+5. **A session's status follows its evidence.** Recording a dose against a planned session marks it
+   held. Asking a worker to remember to flip a status turns the cancellation rate into a measure of
+   form-filling discipline rather than of service delivery.
+6. **The cold chain's acceptable range lives on the device, not in a constant.** The routine EPI
+   range is +2 to +8 °C in an ILR; a freezer holding OPV runs at −25 to −15 °C. One hardcoded 2–8
+   would have flagged every correct freezer reading as an excursion, which is the fastest way to
+   teach a store keeper to ignore the alerts. **Silence is reported as loudly as an excursion** — a
+   device that has logged nothing for 24 hours is the worse failure, because a programme that
+   stopped logging has usually stopped looking.
+7. **The denominator rolls up from the finest recorded level, never by adding levels together.** If
+   both a district and its upazilas carry an estimate, the upazila figures win and the district row
+   is dropped from the roll-up: the finer number is the one somebody actually collected, and
+   summing both counts the same children twice. `v_population_leaf` makes that rule one view rather
+   than a decision every report re-takes.
+8. **`coverage_by_area()` is invoker-rights, deliberately.** It is the one function in this round
+   that would have been convenient as `SECURITY DEFINER`, and making it one would have handed every
+   caller the nation's numbers and quietly undone §11.6. `monthly_doses()` *is* definer, because a
+   materialized view has no RLS — so it re-applies the scope test the matview cannot carry, in both
+   halves: inside the requested node *and* inside the caller's own scope.
+9. **Zero-dose is defined by a flag on the catalog, not by matching a code string.** `PENTA` could
+   be renamed tomorrow and a view matching on `code ilike 'PENTA%'` would silently start counting
+   nothing. `vaccines.is_zero_dose_marker` carries a partial unique index so exactly one antigen can
+   hold it, and the screen says "not configured" rather than inventing a number when none does.
+10. **Two zero-dose windows, both correct, both labelled.** The indicator is retrospective — children
+    now aged 12–23 months who never received the marker dose, a closed question about children the
+    programme already failed to reach. The list is children *under* 12 months, because those are the
+    ones who can still be reached in time. Reporting one number and calling it both would have been
+    the easier lie.
+11. **The tracing outcome writes back to the child.** A worker who walks to a house and finds the
+    family gone has learnt something about the child's lifecycle; if that stays inside the tracing
+    task, the same child is generated onto next month's list, texted, and counted in a denominator
+    they left. Three of the seven outcomes move `children.status`, and the form says so before the
+    click rather than after it.
+12. **AEFI keeps the text box and adds the case.** The free-text field is what a worker actually
+    types one-handed at a session table, and replacing it with a case form would produce fewer
+    reports, not better ones. So the field stays and a trigger raises a case from it. The case then
+    cannot be marked classified without a WHO causality — the constraint that stops the workflow
+    degenerating back into the text box it replaced.
+13. **Issuing a requisition is one function, not three writes.** Done from the application it can
+    half-happen: the sending store debited, the receiving store never credited, and a quantity of
+    vaccine that exists nowhere. `issue_requisition()` does both ledger sides and the line stamps in
+    one transaction, and checks authorization inside itself because `SECURITY DEFINER` means RLS is
+    not there to state it.
+14. **Confirming receipt is granted by a second, narrower UPDATE policy.** The supplying store
+    decides and issues; the requesting store confirms receipt. Rather than widening the decision
+    policy to both ends, a second permissive policy pins the row's current state to `issued` and its
+    next state to `received` — one edge of the state machine, and nothing else.
+
+---
+
+### 21.4 Carried forward
+
+All five decisions in §1.3 are now delivered, and with them every Manager-role capability in
+§16.2. What is left is one role that cannot do its job, one that does not exist, and the
+operational work — in that order, because the first is the product's core verb.
 
 | Next | Why it is next |
 |---|---|
-| `guardians` + claim flow (`BS-02`), child lifecycle (`BS-06`), duplicate detection and merge (`BS-05`) | Resolves `BUG-11`'s two sources of truth and is a prerequisite for `FR-56` (reminders must stop for a bereaved family) |
-| Notification rebuild — routing, opt-out, batching (`BUG-06` `BUG-07` `BUG-08`) | Blocked on `guardians` for the authoritative phone number. **Do not connect a live SMS gateway before this and the child lifecycle both exist.** |
-| Stock ledger (`BUG-04`, **D5**), `sessions` + tally | Completes `FR-29`'s `session_id` and makes wastage, FEFO and recall real |
-| `v_coverage_by_area`, zero-dose, `mv_coverage_monthly` (**D3** reporting half, `BS-10`) | The denominator table exists; the views that divide by it do not |
-| Dose recording + child search in the worker UI (`GAP-01` `GAP-04`) | The product's core verb, still unimplemented in the role that performs it |
-| Handbook errata + ADR-011…019 (`REC-01`) | Nine of these ADRs now describe shipped code rather than proposals |
+| **Dose recording + child search in the worker UI** (`GAP-01` `GAP-04`, `FR-26`) | The product's core verb, still unimplemented in the role that performs it. Everything it needs now exists — sessions, FEFO batch selection, per-row clinical validation, the stock debit — so this is a screen, not a system. **This is the single highest-value item remaining.** |
+| Worker's catchment list, defaulter route and follow-up capture (`FR-34`…`FR-38`) | The tracing loop is closeable from `/admin/tracing` today, which is the wrong place: the person who walks to the door is the worker. Same data, same actions, a phone-shaped surface |
+| Parent module B1–B6 (`GAP-02`) | A stub since the first review. The claim flow and the guardian record landed in round 2, so the eight screens now have something to stand on |
+| Offline PWA for the three worker operations (`BS-08`, `FR-69`…`FR-72`) | The field reality ADR-009 deferred. Wants the worker screens to exist first, or it is a sync queue with nothing to sync |
+| Execute the pgTAP suites (§21.5) | Five suites, 40-odd assertions, none of them run. The largest caveat on everything above |
+| Alerting on `v_job_health`, staging split, E2E per role (`NFR-17`…`NFR-19`) | The §18 bars that have not moved in three rounds, and the ones a production deployment is actually blocked on |
+| Handbook errata + ADR-011…022 (`REC-01`) | Twelve of these ADRs now describe shipped code rather than proposals |
 
-### 21.4 Known gaps in what was delivered
+### 21.5 Known gaps in what was delivered
 
 Stated here rather than discovered later:
 
-- **pgTAP unexecuted** — see the note above. This is the largest single caveat on round 1.
+- **pgTAP unexecuted, still.** Five suites now — `identity_ids`, `rls_children`, `rls_admin_writes`, `rls_scope` and `stock_ledger` — and none of them has been run, because `supabase test db` needs a local stack and no Docker daemon was available in the environment this work was done in. The SQL is written and reviewed but **unproven**. This is the largest single caveat on all three rounds and it must be discharged before anyone repeats the `SEC-01` or `BUG-04` claims in a defense. The TypeScript checks *were* executed, all three rounds; that distinction is the whole point of §18 being honest.
 - **Guardian phone+OTP sign-in (`FR-01`)** remains unproven. It needs an SMS provider; the typed `profiles.phone` column and the verification-invalidation trigger are the groundwork, not the feature.
-- **`vaccination_records.session_id`** is absent until `sessions` lands, so `FR-29` is half closed.
+- ~~**`vaccination_records.session_id`** is absent until `sessions` lands~~ — closed in round 3; `FR-29` is fully closed.
+- **The duplicate review queue groups in the application, not in SQL.** `find_duplicate_children()` answers "is this new registration a duplicate?" one candidate at a time, which is the wrong query shape for "which pairs already in the register look alike?". The reviewer's version reads the children the caller can see and groups them in TypeScript. Correct and scoped, because RLS filtered the read — but it is O(n) in memory per page load, and past a few thousand children it wants a SQL self-join over `children_dedup_idx`. Marked in the code at the point it matters.
+- **Requisitions carry one line in the UI.** The table and `issue_requisition()` handle many; the form creates one, because the common case is one antigen and multi-row form state is client-side machinery nobody has asked for yet.
+- **`v_stock_summary`'s wastage rate is a 90-day window, fixed.** Not configurable, and not per-programme. A rate over a period the reader cannot choose is a rate that will eventually be quoted for the wrong period; the fix is a parameter, and it is one line when somebody needs it.
 - **Clinical validation is per-row.** Postgres does not increment the command counter between rows of a single multi-row `INSERT`, so the interval, dose-order and same-day checks are skipped for a bulk load (the seed file, a future importer) that cannot see its own sibling rows. Every interactive path — one row per statement — is fully checked. The age, provenance, batch and date-of-birth checks hold under bulk load too. This is documented in the migration at the point it matters.
 - **Catalog re-derivation is a full pass** over active children. Catalog edits are admin-only and rare, so the cost is paid when someone changes clinical policy; at national volume this wants a background job rather than a statement trigger.
 
@@ -1885,22 +2040,26 @@ flowchart TB
 
 Condensed: new requirements → the finding that motivates them → the phase that delivers them.
 
-| Requirement | Motivated by | Phase | Verify |
-|---|---|:--:|:--:|
-| FR-06…FR-10 (role × scope, MFA, multi-capacity) | BS-01, BUG-01, SEC-01/02/03 | P1 | T |
-| FR-14…FR-21 (guardians, claim, dedup, merge, lifecycle, location, BRN, catch-up) | BS-02, BS-05, BS-06, BS-01 | P1–P2 | T/D |
-| FR-26…FR-33 (dose UI, re-derivation, intervals, facility, batch FK, validation, void, historical) | GAP-01, BUG-02/03/05, BS-03 | P0–P2 | T |
-| FR-34…FR-38 (defaulter loop, zero-dose, escalation) | BS-04 | P2 | D |
-| FR-39…FR-47 (per-facility stock, ledger, FEFO, wastage, open vial, cold chain, recall, requisition) | BUG-04, BUG-05, BS-03 | P1–P4 | T/D |
-| FR-48…FR-56 (routing, opt-out, batching, receipts, overdue, templates, lifecycle stop) | BUG-06/07/08, GAP-06/07 | P2 | T |
-| FR-57…FR-65 (denominator coverage, WHO dropout, filters, comparison, certificate, QR, worker analytics, map) | BS-07, BS-10, BUG-09, GAP-05 | P1–P4 | A/D |
-| FR-66…FR-68 (sessions, tally, campaigns) | BS-03, §8.1 | P4 | D |
-| FR-69…FR-72 (offline) | BS-08 | P3 | T/D |
-| FR-73…FR-76 (consent, export, retention, break-glass) | BS-09, SEC-08/12 | P2–P5 | I/T |
-| NFR-03/04 (field latency & payload) | BS-08, §8.3 | P3 | A |
-| NFR-06 (reporting at scale) | BUG-09 | P0 | A |
-| NFR-10 (scope isolation proven) | SEC-01 | P1 | T |
-| NFR-17/18/19 (DR drill, observability, job health) | SEC-13, GAP-13 | P5 | I |
+A status column was added in v1.2. `☑` = delivered and recorded in §21; `◐` = partly delivered;
+blank = not started. The *verification* column is unchanged and remains a statement of how each
+requirement is to be proven, not a claim that it has been.
+
+| Requirement | Motivated by | Phase | Verify | Delivered |
+|---|---|:--:|:--:|:--:|
+| FR-06…FR-10 (role × scope, MFA, multi-capacity) | BS-01, BUG-01, SEC-01/02/03 | P1 | T | ☑ R1 |
+| FR-14…FR-21 (guardians, claim, dedup, merge, lifecycle, location, BRN, catch-up) | BS-02, BS-05, BS-06, BS-01 | P1–P2 | T/D | ☑ R2/R3 |
+| FR-26…FR-33 (dose UI, re-derivation, intervals, facility, batch FK, validation, void, historical) | GAP-01, BUG-02/03/05, BS-03 | P0–P2 | T | ◐ R1/R3 — all but the worker-side dose UI (`FR-26`) |
+| FR-34…FR-38 (defaulter loop, zero-dose, escalation) | BS-04 | P2 | D | ☑ R3 |
+| FR-39…FR-47 (per-facility stock, ledger, FEFO, wastage, open vial, cold chain, recall, requisition) | BUG-04, BUG-05, BS-03 | P1–P4 | T/D | ☑ R3 |
+| FR-48…FR-56 (routing, opt-out, batching, receipts, overdue, templates, lifecycle stop) | BUG-06/07/08, GAP-06/07 | P2 | T | ☑ R2 |
+| FR-57…FR-65 (denominator coverage, WHO dropout, filters, comparison, certificate, QR, worker analytics, map) | BS-07, BS-10, BUG-09, GAP-05 | P1–P4 | A/D | ◐ R3 — coverage, dropout, filters and comparison delivered; certificate, QR and map outstanding |
+| FR-66…FR-68 (sessions, tally, campaigns) | BS-03, §8.1 | P4 | D | ☑ R3 |
+| FR-69…FR-72 (offline) | BS-08 | P3 | T/D | |
+| FR-73…FR-76 (consent, export, retention, break-glass) | BS-09, SEC-08/12 | P2–P5 | I/T | ◐ R1 — break-glass only |
+| NFR-03/04 (field latency & payload) | BS-08, §8.3 | P3 | A | |
+| NFR-06 (reporting at scale) | BUG-09 | P0 | A | ☑ R1 |
+| NFR-10 (scope isolation proven) | SEC-01 | P1 | T | ◐ R1 — written, unexecuted (§21.5) |
+| NFR-17/18/19 (DR drill, observability, job health) | SEC-13, GAP-13 | P5 | I | ◐ R1/R3 — job health delivered; DR drill and alerting outstanding |
 
 ## Appendix D — Glossary
 
@@ -1926,4 +2085,4 @@ Condensed: new requirements → the finding that motivates them → the phase th
 
 ---
 
-*End of document — VXT-SAR-001 v1.0*
+*End of document — VXT-SAR-001 v1.2*
