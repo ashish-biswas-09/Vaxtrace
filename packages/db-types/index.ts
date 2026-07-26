@@ -723,6 +723,7 @@ export type Database = {
           next_due_date: string | null;
           notes: string | null;
           override_reason: string | null;
+          session_id: string | null;
           source: Database["public"]["Enums"]["dose_source"];
           vaccine_id: string;
           void_reason: string | null;
@@ -744,6 +745,7 @@ export type Database = {
           next_due_date?: string | null;
           notes?: string | null;
           override_reason?: string | null;
+          session_id?: string | null;
           source?: Database["public"]["Enums"]["dose_source"];
           vaccine_id: string;
           void_reason?: string | null;
@@ -765,6 +767,7 @@ export type Database = {
           next_due_date?: string | null;
           notes?: string | null;
           override_reason?: string | null;
+          session_id?: string | null;
           source?: Database["public"]["Enums"]["dose_source"];
           vaccine_id?: string;
           void_reason?: string | null;
@@ -803,6 +806,7 @@ export type Database = {
           grace_period_days: number | null;
           id: string;
           is_active: boolean;
+          is_zero_dose_marker: boolean;
           max_age_days: number | null;
           min_age_days: number | null;
           name_bn: string;
@@ -817,6 +821,7 @@ export type Database = {
           grace_period_days?: number | null;
           id?: string;
           is_active?: boolean;
+          is_zero_dose_marker?: boolean;
           max_age_days?: number | null;
           min_age_days?: number | null;
           name_bn: string;
@@ -831,11 +836,329 @@ export type Database = {
           grace_period_days?: number | null;
           id?: string;
           is_active?: boolean;
+          is_zero_dose_marker?: boolean;
           max_age_days?: number | null;
           min_age_days?: number | null;
           name_bn?: string;
           name_en?: string;
           total_doses?: number;
+        };
+        Relationships: [];
+      };
+      sessions: {
+        Row: {
+          cancel_reason: string | null;
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          end_time: string | null;
+          facility_id: string;
+          id: string;
+          location_id: string;
+          location_path: string;
+          notes: string | null;
+          session_date: string;
+          start_time: string | null;
+          status: Database["public"]["Enums"]["session_status"];
+          target_children: number | null;
+          team_lead: string | null;
+          type: Database["public"]["Enums"]["session_type"];
+        };
+        Insert: {
+          cancel_reason?: string | null;
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          end_time?: string | null;
+          facility_id: string;
+          id?: string;
+          location_id: string;
+          location_path?: string;
+          notes?: string | null;
+          session_date: string;
+          start_time?: string | null;
+          status?: Database["public"]["Enums"]["session_status"];
+          target_children?: number | null;
+          team_lead?: string | null;
+          type?: Database["public"]["Enums"]["session_type"];
+        };
+        Update: {
+          cancel_reason?: string | null;
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          end_time?: string | null;
+          facility_id?: string;
+          id?: string;
+          location_id?: string;
+          location_path?: string;
+          notes?: string | null;
+          session_date?: string;
+          start_time?: string | null;
+          status?: Database["public"]["Enums"]["session_status"];
+          target_children?: number | null;
+          team_lead?: string | null;
+          type?: Database["public"]["Enums"]["session_type"];
+        };
+        Relationships: [];
+      };
+      stock_transactions: {
+        Row: {
+          counterparty_facility_id: string | null;
+          facility_id: string | null;
+          id: string;
+          inventory_id: string;
+          note: string | null;
+          occurred_at: string;
+          performed_by: string;
+          quantity: number;
+          reason: Database["public"]["Enums"]["wastage_reason"] | null;
+          reference_id: string | null;
+          txn_type: Database["public"]["Enums"]["stock_txn_type"];
+        };
+        Insert: {
+          counterparty_facility_id?: string | null;
+          facility_id?: string | null;
+          id?: string;
+          inventory_id: string;
+          note?: string | null;
+          occurred_at?: string;
+          performed_by: string;
+          quantity: number;
+          reason?: Database["public"]["Enums"]["wastage_reason"] | null;
+          reference_id?: string | null;
+          txn_type: Database["public"]["Enums"]["stock_txn_type"];
+        };
+        Update: never;
+        Relationships: [];
+      };
+      requisitions: {
+        Row: {
+          code: string;
+          decided_at: string | null;
+          decided_by: string | null;
+          decision_note: string | null;
+          from_facility_id: string;
+          id: string;
+          issued_at: string | null;
+          needed_by: string;
+          note: string | null;
+          received_at: string | null;
+          requested_at: string;
+          requested_by: string;
+          status: Database["public"]["Enums"]["requisition_status"];
+          to_facility_id: string;
+        };
+        Insert: {
+          code?: string;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_note?: string | null;
+          from_facility_id: string;
+          id?: string;
+          issued_at?: string | null;
+          needed_by: string;
+          note?: string | null;
+          received_at?: string | null;
+          requested_at?: string;
+          requested_by: string;
+          status?: Database["public"]["Enums"]["requisition_status"];
+          to_facility_id: string;
+        };
+        Update: {
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_note?: string | null;
+          issued_at?: string | null;
+          needed_by?: string;
+          note?: string | null;
+          received_at?: string | null;
+          status?: Database["public"]["Enums"]["requisition_status"];
+        };
+        Relationships: [];
+      };
+      requisition_lines: {
+        Row: {
+          inventory_id: string | null;
+          quantity_approved: number | null;
+          quantity_issued: number | null;
+          quantity_requested: number;
+          requisition_id: string;
+          vaccine_id: string;
+        };
+        Insert: {
+          inventory_id?: string | null;
+          quantity_approved?: number | null;
+          quantity_issued?: number | null;
+          quantity_requested: number;
+          requisition_id: string;
+          vaccine_id: string;
+        };
+        Update: {
+          inventory_id?: string | null;
+          quantity_approved?: number | null;
+          quantity_issued?: number | null;
+          quantity_requested?: number;
+        };
+        Relationships: [];
+      };
+      cold_chain_devices: {
+        Row: {
+          created_at: string;
+          facility_id: string;
+          id: string;
+          is_active: boolean;
+          kind: Database["public"]["Enums"]["cold_chain_device_kind"];
+          max_c: number;
+          min_c: number;
+          name: string;
+        };
+        Insert: {
+          created_at?: string;
+          facility_id: string;
+          id?: string;
+          is_active?: boolean;
+          kind: Database["public"]["Enums"]["cold_chain_device_kind"];
+          max_c?: number;
+          min_c?: number;
+          name: string;
+        };
+        Update: {
+          is_active?: boolean;
+          kind?: Database["public"]["Enums"]["cold_chain_device_kind"];
+          max_c?: number;
+          min_c?: number;
+          name?: string;
+        };
+        Relationships: [];
+      };
+      cold_chain_readings: {
+        Row: {
+          action_taken: string | null;
+          created_at: string;
+          device_id: string;
+          id: string;
+          reading_at: string;
+          recorded_by: string;
+          temperature_c: number;
+        };
+        Insert: {
+          action_taken?: string | null;
+          created_at?: string;
+          device_id: string;
+          id?: string;
+          reading_at?: string;
+          recorded_by: string;
+          temperature_c: number;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      tracing_tasks: {
+        Row: {
+          assigned_at: string | null;
+          assigned_to: string | null;
+          child_id: string;
+          closed_at: string | null;
+          closed_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          days_overdue_at_open: number;
+          doses_missed_at_open: number;
+          due_by: string | null;
+          id: string;
+          location_path: string;
+          outcome: Database["public"]["Enums"]["tracing_outcome"] | null;
+          outcome_note: string | null;
+          status: Database["public"]["Enums"]["tracing_status"];
+          visited_at: string | null;
+        };
+        Insert: {
+          assigned_at?: string | null;
+          assigned_to?: string | null;
+          child_id: string;
+          closed_at?: string | null;
+          closed_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          days_overdue_at_open?: number;
+          doses_missed_at_open?: number;
+          due_by?: string | null;
+          id?: string;
+          location_path?: string;
+          outcome?: Database["public"]["Enums"]["tracing_outcome"] | null;
+          outcome_note?: string | null;
+          status?: Database["public"]["Enums"]["tracing_status"];
+          visited_at?: string | null;
+        };
+        Update: {
+          assigned_at?: string | null;
+          assigned_to?: string | null;
+          closed_at?: string | null;
+          closed_by?: string | null;
+          due_by?: string | null;
+          outcome?: Database["public"]["Enums"]["tracing_outcome"] | null;
+          outcome_note?: string | null;
+          status?: Database["public"]["Enums"]["tracing_status"];
+          visited_at?: string | null;
+        };
+        Relationships: [];
+      };
+      aefi_cases: {
+        Row: {
+          causality: Database["public"]["Enums"]["aefi_causality"] | null;
+          child_id: string;
+          closed_at: string | null;
+          code: string;
+          facility_id: string | null;
+          id: string;
+          inventory_id: string | null;
+          investigated_at: string | null;
+          investigated_by: string | null;
+          investigation_note: string | null;
+          location_path: string;
+          onset_date: string;
+          outcome: Database["public"]["Enums"]["aefi_outcome"];
+          reported_at: string;
+          reported_by: string;
+          severity: Database["public"]["Enums"]["aefi_severity"];
+          status: Database["public"]["Enums"]["aefi_status"];
+          symptoms: string;
+          vaccination_record_id: string | null;
+          vaccine_id: string | null;
+        };
+        Insert: {
+          causality?: Database["public"]["Enums"]["aefi_causality"] | null;
+          child_id: string;
+          closed_at?: string | null;
+          code?: string;
+          facility_id?: string | null;
+          id?: string;
+          inventory_id?: string | null;
+          investigated_at?: string | null;
+          investigated_by?: string | null;
+          investigation_note?: string | null;
+          location_path?: string;
+          onset_date: string;
+          outcome?: Database["public"]["Enums"]["aefi_outcome"];
+          reported_at?: string;
+          reported_by: string;
+          severity?: Database["public"]["Enums"]["aefi_severity"];
+          status?: Database["public"]["Enums"]["aefi_status"];
+          symptoms: string;
+          vaccination_record_id?: string | null;
+          vaccine_id?: string | null;
+        };
+        Update: {
+          causality?: Database["public"]["Enums"]["aefi_causality"] | null;
+          closed_at?: string | null;
+          investigated_at?: string | null;
+          investigated_by?: string | null;
+          investigation_note?: string | null;
+          outcome?: Database["public"]["Enums"]["aefi_outcome"];
+          severity?: Database["public"]["Enums"]["aefi_severity"];
+          status?: Database["public"]["Enums"]["aefi_status"];
+          symptoms?: string;
         };
         Relationships: [];
       };
@@ -900,8 +1223,236 @@ export type Database = {
         };
         Relationships: [];
       };
+      v_population_leaf: {
+        Row: {
+          age_band: string | null;
+          estimate: number | null;
+          location_id: string | null;
+          location_path: string | null;
+          source: string | null;
+          year: number | null;
+        };
+        Relationships: [];
+      };
+      v_zero_dose: {
+        Row: {
+          address: string | null;
+          age_days: number | null;
+          child_code: string | null;
+          child_id: string | null;
+          date_of_birth: string | null;
+          facility_id: string | null;
+          full_name: string | null;
+          gender: Database["public"]["Enums"]["child_gender"] | null;
+          guardian_id: string | null;
+          guardian_name: string | null;
+          guardian_phone: string | null;
+          location_id: string | null;
+          location_path: string | null;
+          marker_due_date: string | null;
+        };
+        Relationships: [];
+      };
+      v_defaulters: {
+        Row: {
+          address: string | null;
+          antigens_bn: string | null;
+          child_code: string | null;
+          child_id: string | null;
+          date_of_birth: string | null;
+          days_overdue: number | null;
+          doses_missed: number | null;
+          earliest_due_date: string | null;
+          facility_id: string | null;
+          full_name: string | null;
+          guardian_id: string | null;
+          guardian_name: string | null;
+          guardian_phone: string | null;
+          has_open_task: boolean | null;
+          location_id: string | null;
+          location_path: string | null;
+        };
+        Relationships: [];
+      };
+      v_tracing_board: {
+        Row: {
+          address: string | null;
+          area_name_bn: string | null;
+          assigned_at: string | null;
+          assignee_name: string | null;
+          assigned_to: string | null;
+          child_code: string | null;
+          child_id: string | null;
+          child_status: Database["public"]["Enums"]["child_status"] | null;
+          closed_at: string | null;
+          created_at: string | null;
+          date_of_birth: string | null;
+          days_overdue_at_open: number | null;
+          doses_missed_at_open: number | null;
+          due_by: string | null;
+          full_name: string | null;
+          guardian_name: string | null;
+          guardian_phone: string | null;
+          id: string | null;
+          is_late: boolean | null;
+          location_path: string | null;
+          outcome: Database["public"]["Enums"]["tracing_outcome"] | null;
+          outcome_note: string | null;
+          status: Database["public"]["Enums"]["tracing_status"] | null;
+          visited_at: string | null;
+        };
+        Relationships: [];
+      };
+      v_aefi_cases: {
+        Row: {
+          area_name_bn: string | null;
+          batch_number: string | null;
+          causality: Database["public"]["Enums"]["aefi_causality"] | null;
+          child_code: string | null;
+          child_id: string | null;
+          child_name: string | null;
+          code: string | null;
+          date_of_birth: string | null;
+          facility_id: string | null;
+          facility_name_bn: string | null;
+          id: string | null;
+          inventory_id: string | null;
+          investigated_by: string | null;
+          investigated_by_name: string | null;
+          investigation_note: string | null;
+          investigation_overdue: boolean | null;
+          location_path: string | null;
+          onset_date: string | null;
+          outcome: Database["public"]["Enums"]["aefi_outcome"] | null;
+          reported_at: string | null;
+          reported_by: string | null;
+          reported_by_name: string | null;
+          severity: Database["public"]["Enums"]["aefi_severity"] | null;
+          status: Database["public"]["Enums"]["aefi_status"] | null;
+          symptoms: string | null;
+          vaccine_code: string | null;
+          vaccine_id: string | null;
+          vaccine_name_bn: string | null;
+        };
+        Relationships: [];
+      };
+      v_stock_ledger: {
+        Row: {
+          batch_balance: number | null;
+          batch_number: string | null;
+          counterparty_name_bn: string | null;
+          expiry_date: string | null;
+          facility_id: string | null;
+          facility_name_bn: string | null;
+          id: string | null;
+          inventory_id: string | null;
+          note: string | null;
+          occurred_at: string | null;
+          performed_by: string | null;
+          performed_by_name: string | null;
+          quantity: number | null;
+          reason: Database["public"]["Enums"]["wastage_reason"] | null;
+          reference_id: string | null;
+          txn_type: Database["public"]["Enums"]["stock_txn_type"] | null;
+          vaccine_code: string | null;
+          vaccine_id: string | null;
+          vaccine_name_bn: string | null;
+        };
+        Relationships: [];
+      };
+      v_stock_summary: {
+        Row: {
+          administered_90d: number | null;
+          expired_batches: number | null;
+          expiring_batches: number | null;
+          facility_id: string | null;
+          facility_name_bn: string | null;
+          next_expiry: string | null;
+          on_hand: number | null;
+          vaccine_code: string | null;
+          vaccine_id: string | null;
+          vaccine_name_bn: string | null;
+          wastage_rate_90d: number | null;
+          wasted_90d: number | null;
+        };
+        Relationships: [];
+      };
+      v_session_tally: {
+        Row: {
+          aefi_flagged: number | null;
+          children_served: number | null;
+          code: string | null;
+          doses_given: number | null;
+          doses_voided: number | null;
+          facility_id: string | null;
+          facility_name_bn: string | null;
+          location_id: string | null;
+          location_path: string | null;
+          session_date: string | null;
+          session_id: string | null;
+          status: Database["public"]["Enums"]["session_status"] | null;
+          target_children: number | null;
+          type: Database["public"]["Enums"]["session_type"] | null;
+        };
+        Relationships: [];
+      };
+      v_cold_chain: {
+        Row: {
+          device_id: string | null;
+          device_name: string | null;
+          excursions_7d: number | null;
+          facility_id: string | null;
+          facility_name_bn: string | null;
+          has_excursion: boolean | null;
+          is_active: boolean | null;
+          is_silent: boolean | null;
+          kind: Database["public"]["Enums"]["cold_chain_device_kind"] | null;
+          last_reading_at: string | null;
+          last_temperature_c: number | null;
+          max_c: number | null;
+          min_c: number | null;
+          readings_7d: number | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
+      coverage_by_area: {
+        Args: {
+          p_parent?: string | null;
+          p_vaccine_id?: string | null;
+          p_year?: number | null;
+          p_from?: string | null;
+          p_to?: string | null;
+        };
+        Returns: {
+          location_id: string;
+          location_path: string;
+          name_bn: string;
+          level: Database["public"]["Enums"]["location_level"];
+          registered: number;
+          target: number;
+          doses_given: number;
+          due_count: number;
+          done_count: number;
+          registry_coverage: number | null;
+          population_coverage: number | null;
+          dose1_children: number;
+          final_dose_children: number;
+          dropout_rate: number | null;
+          zero_dose: number;
+        }[];
+      };
+      monthly_doses: {
+        Args: { p_parent?: string | null; p_vaccine_id?: string | null; p_months?: number };
+        Returns: { month: string; doses: number; children: number }[];
+      };
+      fefo_batch: {
+        Args: { p_vaccine_id: string; p_facility_id?: string | null };
+        Returns: string | null;
+      };
+      issue_requisition: { Args: { p_requisition_id: string }; Returns: number };
+      refresh_tracing_board: { Args: { p_due_in_days?: number }; Returns: number };
       auth_aal: { Args: Record<PropertyKey, never>; Returns: string };
       auth_app_role: {
         Args: Record<PropertyKey, never>;
@@ -1021,6 +1572,54 @@ export type Database = {
       notification_channel: "sms" | "email";
       notification_status: "queued" | "sent" | "failed" | "dead";
       schedule_status: "pending" | "done" | "missed";
+      session_type: "fixed" | "outreach" | "campaign";
+      session_status: "planned" | "held" | "cancelled";
+      stock_txn_type:
+        | "receipt"
+        | "transfer_in"
+        | "transfer_out"
+        | "administered"
+        | "wastage"
+        | "adjustment";
+      wastage_reason: "open_vial" | "vvm" | "breakage" | "expiry" | "frozen" | "other";
+      requisition_status:
+        | "submitted"
+        | "approved"
+        | "rejected"
+        | "issued"
+        | "received"
+        | "cancelled";
+      cold_chain_device_kind:
+        | "ilr"
+        | "deep_freezer"
+        | "vaccine_carrier"
+        | "cold_box"
+        | "walk_in_cooler";
+      tracing_status: "open" | "assigned" | "visited" | "closed";
+      tracing_outcome:
+        | "vaccinated"
+        | "appointment_given"
+        | "refused"
+        | "moved_away"
+        | "deceased"
+        | "not_found"
+        | "unreachable";
+      aefi_severity: "minor" | "severe" | "serious";
+      aefi_status: "reported" | "under_investigation" | "classified" | "closed";
+      aefi_causality:
+        | "vaccine_product"
+        | "immunization_error"
+        | "immunization_anxiety"
+        | "coincidental"
+        | "unclassifiable"
+        | "indeterminate";
+      aefi_outcome:
+        | "recovered"
+        | "recovering"
+        | "recovered_with_sequelae"
+        | "not_recovered"
+        | "died"
+        | "unknown";
       user_role: "parent" | "worker" | "admin";
       user_status: "invited" | "active" | "inactive";
     };

@@ -313,3 +313,217 @@ insert into inventories (vaccine_id, batch_number, stock_quantity, expiry_date, 
   -- The same PENTA batch, issued down to the union centre. One batch, two stores, two
   -- balances — impossible to express before facility_id existed.
   ((select id from vaccines where code = 'PENTA'), 'PENTA-2026-C8',  60, current_date + interval '7 months',  'f0000000-0000-0000-0000-000000000002');
+
+-- ============================================================================
+-- ZERO-DOSE MARKER
+-- ============================================================================
+-- The migration that added this column tries to set it, but on a fresh `supabase db reset`
+-- the catalog does not exist yet when migrations run — so it finds nothing and the flag would
+-- stay unset, leaving every zero-dose figure unconfigured. Set here, where the catalog is.
+update vaccines set is_zero_dose_marker = true where code = 'PENTA';
+
+-- ============================================================================
+-- OPENING STOCK, REPLAYED THROUGH THE LEDGER
+-- ============================================================================
+-- The quantities above are what the stores hold. They are not, however, something anybody may
+-- *author*: `stock_quantity` is a cache of the sum of stock_transactions, maintained by
+-- trg_stock_apply as a delta (report D5, BUG-04). So the seed zeroes the authored numbers and
+-- lets receipts build them back, which means the demo database satisfies reconcile_stock()
+-- from its first minute instead of failing the first nightly check.
+create temporary table _opening as select id, stock_quantity as qty from inventories;
+update inventories set stock_quantity = 0;
+
+insert into stock_transactions (inventory_id, txn_type, quantity, performed_by, occurred_at, note)
+select o.id, 'receipt', o.qty, 'a0000000-0000-0000-0000-000000000001',
+       now() - interval '45 days', 'জেলা গুদাম থেকে প্রাপ্ত'
+  from _opening o
+ where o.qty > 0;
+
+drop table _opening;
+
+-- The dose -> batch link (BUG-05), applied to the seeded history so the ledger has real
+-- consumption in it. FEFO: each dose is attributed to the batch of its antigen that expires
+-- first, which is the batch that should in fact have been opened.
+update vaccination_records r
+   set inventory_id = fefo.id
+  from (
+    select distinct on (i.vaccine_id) i.vaccine_id, i.id
+      from inventories i
+     where i.facility_id = 'f0000000-0000-0000-0000-000000000001'
+     order by i.vaccine_id, i.expiry_date
+  ) fefo
+ where fefo.vaccine_id = r.vaccine_id
+   and r.inventory_id is null;
+
+-- Written explicitly rather than by the trigger, because trg_dose_stock fires on INSERT and
+-- these rows already exist. One row per dose, exactly as the trigger would have produced.
+insert into stock_transactions (inventory_id, txn_type, quantity, reference_id, performed_by, occurred_at)
+select r.inventory_id, 'administered', -1, r.id, r.administered_by, r.administered_date::timestamptz
+  from vaccination_records r
+ where r.inventory_id is not null
+   and r.voided_at is null;
+
+-- Wastage, so the rate is a real number rather than an empty column. Open-vial wastage is the
+-- largest category in every routine programme and is what drives vial-size policy.
+insert into stock_transactions (inventory_id, txn_type, quantity, reason, performed_by, occurred_at, note)
+select i.id, 'wastage', -8, 'open_vial', 'a0000000-0000-0000-0000-000000000002',
+       now() - interval '9 days', 'সেশন শেষে অবশিষ্ট ডোজ ফেলে দেওয়া হয়েছে'
+  from inventories i
+ where i.batch_number = 'OPV-2026-B2';
+
+insert into stock_transactions (inventory_id, txn_type, quantity, reason, performed_by, occurred_at, note)
+select i.id, 'wastage', -2, 'vvm', 'a0000000-0000-0000-0000-000000000002',
+       now() - interval '4 days', 'VVM পর্যায় ৩ — ব্যবহার করা হয়নি'
+  from inventories i
+ where i.batch_number = 'PENTA-2025-C7';
+
+-- ============================================================================
+-- SESSIONS — the service delivery events the doses belong to (FR-29)
+-- ============================================================================
+-- The held session is dated to the day the seeded history is busiest, so the tally on the
+-- planner is computed from real doses rather than being a number typed next to them.
+insert into sessions (id, facility_id, location_id, type, status, session_date,
+                      start_time, end_time, team_lead, target_children, created_by)
+values
+  ('e0000000-0000-0000-0000-000000000001',
+   'f0000000-0000-0000-0000-000000000002',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak'),
+   'fixed', 'planned',
+   coalesce((select r.administered_date from vaccination_records r
+              where r.voided_at is null
+              group by r.administered_date
+              order by count(*) desc, r.administered_date desc
+              limit 1),
+            current_date - 7),
+   '09:00', '13:00', 'a0000000-0000-0000-0000-000000000002', 25,
+   'a0000000-0000-0000-0000-000000000001'),
+  -- An outreach session next week: the facility is the outreach site, the place is ward 5.
+  -- Two different locations, which is exactly the distinction facility_catchments exists for.
+  ('e0000000-0000-0000-0000-000000000002',
+   'f0000000-0000-0000-0000-000000000003',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_5'),
+   'outreach', 'planned', current_date + 6, '10:00', '14:00',
+   'a0000000-0000-0000-0000-000000000002', 18, 'a0000000-0000-0000-0000-000000000001'),
+  -- And one that did not happen, with the reason recorded. Cancellation rate by reason is the
+  -- number that gets outreach transport funded.
+  ('e0000000-0000-0000-0000-000000000003',
+   'f0000000-0000-0000-0000-000000000003',
+   (select id from locations where path = 'bd.dhaka.gazipur.kaliakair.mouchak.ward_4'),
+   'outreach', 'planned', current_date - 12, '10:00', '14:00',
+   'a0000000-0000-0000-0000-000000000002', 20, 'a0000000-0000-0000-0000-000000000001');
+
+-- Cancelled in a second statement: the table constraint requires status and reason to move
+-- together, and writing them together in the INSERT above would have hidden that.
+update sessions
+   set status = 'cancelled',
+       cancel_reason = 'ভারী বৃষ্টিতে রাস্তা বন্ধ, দল পৌঁছাতে পারেনি'
+ where id = 'e0000000-0000-0000-0000-000000000003';
+
+-- Attach that day's doses to the session and let the status follow the evidence.
+update vaccination_records r
+   set session_id = 'e0000000-0000-0000-0000-000000000001'
+  from sessions s
+ where s.id = 'e0000000-0000-0000-0000-000000000001'
+   and r.administered_date = s.session_date
+   and r.voided_at is null;
+
+update sessions
+   set status = 'held'
+ where id = 'e0000000-0000-0000-0000-000000000001'
+   and exists (select 1 from vaccination_records r where r.session_id = sessions.id);
+
+-- ============================================================================
+-- COLD CHAIN — one healthy device, one that broke its range, one that went silent
+-- ============================================================================
+insert into cold_chain_devices (id, facility_id, name, kind, min_c, max_c) values
+  ('c1000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001',
+   'ILR-১', 'ilr', 2.0, 8.0),
+  ('c1000000-0000-0000-0000-000000000002', 'f0000000-0000-0000-0000-000000000001',
+   'ডিপ ফ্রিজার-১', 'deep_freezer', -25.0, -15.0),
+  -- Registered, never logged against. "Silent" is the failure mode a temperature log exists to
+  -- catch, and the one a screen that only lists readings can never show.
+  ('c1000000-0000-0000-0000-000000000003', 'f0000000-0000-0000-0000-000000000002',
+   'ILR-২', 'ilr', 2.0, 8.0);
+
+insert into cold_chain_readings (device_id, reading_at, temperature_c, recorded_by, action_taken)
+values
+  ('c1000000-0000-0000-0000-000000000001', now() - interval '2 hours',   4.5,
+   'a0000000-0000-0000-0000-000000000002', null),
+  ('c1000000-0000-0000-0000-000000000001', now() - interval '14 hours',  5.1,
+   'a0000000-0000-0000-0000-000000000002', null),
+  ('c1000000-0000-0000-0000-000000000001', now() - interval '2 days',    3.8,
+   'a0000000-0000-0000-0000-000000000002', null),
+  -- The excursion, with what was done about it. A recorded excursion and no action beside it
+  -- is the most common gap in a real temperature log.
+  ('c1000000-0000-0000-0000-000000000001', now() - interval '3 days',   11.2,
+   'a0000000-0000-0000-0000-000000000002',
+   'টিকা পাশের কেন্দ্রে সরানো হয়েছে, টেকনিশিয়ানকে জানানো হয়েছে'),
+  -- The freezer is correct at -19 degrees. Under a hardcoded 2-8 rule every one of these would
+  -- have been flagged, which is how a store keeper learns to ignore the alerts.
+  ('c1000000-0000-0000-0000-000000000002', now() - interval '3 hours', -19.4,
+   'a0000000-0000-0000-0000-000000000002', null),
+  ('c1000000-0000-0000-0000-000000000002', now() - interval '1 day',   -18.7,
+   'a0000000-0000-0000-0000-000000000002', null);
+
+-- ============================================================================
+-- REQUISITIONS — one awaiting a decision, one already approved
+-- ============================================================================
+insert into requisitions (id, code, from_facility_id, to_facility_id, status, needed_by,
+                          note, requested_by)
+values
+  ('c2000000-0000-0000-0000-000000000001', 'REQ-900001',
+   'f0000000-0000-0000-0000-000000000002', 'f0000000-0000-0000-0000-000000000001',
+   'submitted', current_date + 5, 'আগামী সপ্তাহের আউটরিচ সেশনের জন্য',
+   'a0000000-0000-0000-0000-000000000002'),
+  ('c2000000-0000-0000-0000-000000000002', 'REQ-900002',
+   'f0000000-0000-0000-0000-000000000002', 'f0000000-0000-0000-0000-000000000001',
+   'approved', current_date + 2, 'নিয়মিত মাসিক চাহিদা',
+   'a0000000-0000-0000-0000-000000000002');
+
+insert into requisition_lines (requisition_id, vaccine_id, quantity_requested, quantity_approved) values
+  ('c2000000-0000-0000-0000-000000000001', (select id from vaccines where code = 'PENTA'), 120, null),
+  ('c2000000-0000-0000-0000-000000000002', (select id from vaccines where code = 'BCG'),    80,  60);
+
+update requisitions
+   set decided_by = 'a0000000-0000-0000-0000-000000000001',
+       decided_at = now() - interval '1 day',
+       decision_note = 'মজুদ অনুযায়ী ৬০ ডোজ অনুমোদিত'
+ where id = 'c2000000-0000-0000-0000-000000000002';
+
+-- ============================================================================
+-- AEFI — one reported event, which the dose trigger turns into a case
+-- ============================================================================
+-- Written as a note on a dose, exactly as a worker would type it at the session table. The
+-- trigger raises the case; nothing here inserts into aefi_cases directly, so the demo proves
+-- the path as well as the result (report BS-12).
+update vaccination_records
+   set adverse_event = 'ইনজেকশনের স্থানে ফোলা ও ৩৮.৫° জ্বর, ২৪ ঘণ্টায় নিজে থেকেই কমে গেছে'
+ where id = (
+   select r.id
+     from vaccination_records r
+     join vaccines v on v.id = r.vaccine_id
+    where v.code = 'PENTA'
+      and r.voided_at is null
+    order by r.administered_date desc
+    limit 1
+ );
+
+-- ============================================================================
+-- TRACING — raise the board, then show the loop half-run
+-- ============================================================================
+-- Called rather than hand-written, so the demo board is exactly what the nightly job would
+-- produce and nothing here can drift from the rule that defines a defaulter.
+select public.generate_tracing_tasks(7);
+
+-- One task assigned and going out, so the board shows more than a single undifferentiated
+-- pile of open work.
+update tracing_tasks
+   set status = 'assigned',
+       assigned_to = 'a0000000-0000-0000-0000-000000000002',
+       due_by = current_date + 3
+ where id = (
+   select id from tracing_tasks
+    where status = 'open'
+    order by days_overdue_at_open desc
+    limit 1
+ );
