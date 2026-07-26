@@ -22,6 +22,9 @@ export default async function AdminDashboardPage() {
     { data: aefi },
     dueRes,
     missedRes,
+    { data: defaulters },
+    zeroDoseRes,
+    { data: coldChain },
   ] = await Promise.all([
       supabase
         .from("v_coverage")
@@ -39,13 +42,14 @@ export default async function AdminDashboardPage() {
         .select("id, action, at, actor_id")
         .order("at", { ascending: false })
         .limit(8),
-      // Adverse events following immunisation. Nothing else on the admin surface would ever
-      // raise one, and it is the single most time-critical thing in the dataset.
+      // Adverse events following immunisation. Now read as cases rather than as the free-text
+      // column they used to be, so the panel can say whether anybody has looked at them —
+      // which is the actual question, and the one a note on a dose record could never answer.
       supabase
-        .from("vaccination_records")
-        .select("id, child_id, vaccine_id, dose_number, administered_date, adverse_event")
-        .not("adverse_event", "is", null)
-        .order("administered_date", { ascending: false })
+        .from("v_aefi_cases")
+        .select("id, code, child_id, child_name, child_code, vaccine_name_bn, onset_date, symptoms, severity, status, investigation_overdue")
+        .in("status", ["reported", "under_investigation"])
+        .order("onset_date", { ascending: false })
         .limit(5),
       // Coverage and dropout are lagging indicators — they describe what already went wrong.
       // Doses due and doses missed are the leading ones, and the only numbers on this screen
@@ -56,6 +60,11 @@ export default async function AdminDashboardPage() {
         .eq("status", "pending")
         .lte("due_date", today),
       supabase.from("schedules").select("*", { count: "exact", head: true }).eq("status", "missed"),
+      // The three signals the new screens own. Each is a count of things that need a person to
+      // do something today, which is the only kind of number this row carries.
+      supabase.from("v_defaulters").select("child_id, has_open_task"),
+      supabase.from("v_zero_dose").select("child_id", { count: "exact", head: true }),
+      supabase.from("v_cold_chain").select("device_id, has_excursion, is_silent, is_active"),
     ]);
 
   const rates = (cov ?? []).map((r) => r.coverage_rate).filter((r): r is number => r != null);
@@ -70,12 +79,9 @@ export default async function AdminDashboardPage() {
   const { data: vaccines } = await supabase.from("vaccines").select("id, name_bn");
   const vaccineById = new Map((vaccines ?? []).map((v) => [v.id, v.name_bn]));
 
-  // Names for the children named in AEFI rows, so the alert is actionable rather than a uuid.
-  const aefiChildIds = [...new Set((aefi ?? []).map((r) => r.child_id))];
-  const { data: aefiKids } = aefiChildIds.length
-    ? await supabase.from("children").select("id, full_name, child_id").in("id", aefiChildIds)
-    : { data: [] };
-  const kidById = new Map((aefiKids ?? []).map((k) => [k.id, k]));
+  // The child's name and code used to need a second query here. v_aefi_cases carries both, so
+  // the lookup is gone rather than kept "in case" — a round-trip that returns data the first
+  // query already had is the kind of thing that survives forever once written.
 
   // Actionable alerts: the actual batches needing attention (low/expiring), not just a count.
   const alerts = (stock ?? [])
@@ -94,6 +100,15 @@ export default async function AdminDashboardPage() {
 
   const dueCount = dueRes.count ?? 0;
   const missedCount = missedRes.count ?? 0;
+
+  // A defaulter with no open tracing task is a child nobody has been asked to visit. It is the
+  // gap between knowing and doing, and it is the number that says whether the tracing board is
+  // being used or merely exists.
+  const untracked = (defaulters ?? []).filter((d) => !d.has_open_task).length;
+  const zeroDoseCount = zeroDoseRes.count ?? 0;
+  const coldChainAlerts = (coldChain ?? []).filter(
+    (d) => d.is_active && (d.has_excursion || d.is_silent),
+  ).length;
 
   // First run: an admin looking at a dashboard of dashes needs to be told what to do, not
   // left to guess whether the system is broken or simply empty.
@@ -140,8 +155,9 @@ export default async function AdminDashboardPage() {
         <p className="text-xs text-[var(--color-muted)]">হালনাগাদ: {dateTimeBn(new Date().toISOString())}</p>
       </header>
 
-      {/* Act-now first, then explain. The two counts an admin can still do something about
-          lead; the lagging rates that describe the past follow. */}
+      {/* Act-now first, then explain. Every card here is a count of things that need a person
+          to do something today, and every one of them is a link into the list behind it — a
+          KPI whose next question ("show me which ones") has no answer is a dead end. */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard
           label="দেয় ডোজ"
@@ -149,6 +165,20 @@ export default async function AdminDashboardPage() {
           tone={dueCount > 0 ? "warning" : "success"}
           hint="আজ বা তার আগে নির্ধারিত, এখনো দেওয়া হয়নি"
           href="/admin/children"
+        />
+        <StatCard
+          label="ফলো-আপ বরাদ্দ হয়নি"
+          value={toBn(untracked)}
+          tone={untracked > 0 ? "danger" : "success"}
+          hint="টিকা বাকি, অথচ কেউ পরিদর্শনের দায়িত্ব নেয়নি"
+          href="/admin/tracing"
+        />
+        <StatCard
+          label="শূন্য-ডোজ শিশু"
+          value={toBn(zeroDoseCount)}
+          tone={zeroDoseCount > 0 ? "danger" : "success"}
+          hint="১২ মাসের কম বয়সী, একটিও ডোজ পায়নি"
+          href="/admin/zero-dose"
         />
         <StatCard
           label="বাদ পড়া ডোজ"
@@ -163,6 +193,13 @@ export default async function AdminDashboardPage() {
           tone={lowStockCount > 0 ? "warning" : "success"}
           hint="স্বল্প, মেয়াদোত্তীর্ণ বা মেয়াদ-ঘনিয়ে-আসা ব্যাচ"
           href="/admin/inventory"
+        />
+        <StatCard
+          label="কোল্ড চেইন সতর্কতা"
+          value={toBn(coldChainAlerts)}
+          tone={coldChainAlerts > 0 ? "danger" : "success"}
+          hint="সীমা ভেঙেছে বা ২৪ ঘণ্টা ধরে নীরব"
+          href="/admin/cold-chain"
         />
       </section>
 
@@ -192,32 +229,39 @@ export default async function AdminDashboardPage() {
 
       {(aefi ?? []).length > 0 && (
         <section className="rounded-xl border border-[var(--color-danger)] p-5">
-          <h2 className="mb-3 text-lg font-medium text-[var(--color-danger)]">
-            বিরূপ প্রতিক্রিয়া (AEFI)
-          </h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-medium text-[var(--color-danger)]">
+              খোলা AEFI কেস
+            </h2>
+            <Link href="/admin/aefi" className="text-xs text-[var(--color-primary)]">
+              সব কেস →
+            </Link>
+          </div>
           <ul className="flex flex-col gap-3">
-            {(aefi ?? []).map((r) => {
-              const kid = kidById.get(r.child_id);
-              return (
-                <li key={r.id} className="flex items-start justify-between gap-4 text-sm">
-                  <div className="min-w-0">
-                    <Link
-                      href={`/admin/children/${r.child_id}`}
-                      className="font-medium hover:underline"
-                    >
-                      {kid?.full_name ?? "—"}
-                    </Link>
-                    <span className="ml-2 font-mono text-xs text-[var(--color-muted)]">
-                      {kid ? toBn(kid.child_id) : ""}
-                    </span>
-                    <div className="text-xs text-[var(--color-danger)]">{r.adverse_event}</div>
-                  </div>
-                  <span className="shrink-0 text-xs text-[var(--color-muted)]">
-                    {vaccineById.get(r.vaccine_id) ?? ""} · {dateBn(r.administered_date)}
+            {(aefi ?? []).map((r) => (
+              <li key={r.id} className="flex items-start justify-between gap-4 text-sm">
+                <div className="min-w-0">
+                  <Link
+                    href={`/admin/children/${r.child_id}`}
+                    className="font-medium hover:underline"
+                  >
+                    {r.child_name ?? "—"}
+                  </Link>
+                  <span className="ml-2 font-mono text-xs text-[var(--color-muted)]">
+                    {r.child_code ? toBn(r.child_code) : ""}
                   </span>
-                </li>
-              );
-            })}
+                  <div className="text-xs text-[var(--color-danger)]">{r.symptoms}</div>
+                </div>
+                <span className="shrink-0 text-right text-xs text-[var(--color-muted)]">
+                  {r.vaccine_name_bn ?? ""} · {dateBn(r.onset_date)}
+                  {/* An open serious case older than 48 hours is the one line on this
+                      dashboard that means somebody has to be telephoned. */}
+                  {r.investigation_overdue && (
+                    <StatusBadge tone="danger">তদন্তে বিলম্ব</StatusBadge>
+                  )}
+                </span>
+              </li>
+            ))}
           </ul>
         </section>
       )}
