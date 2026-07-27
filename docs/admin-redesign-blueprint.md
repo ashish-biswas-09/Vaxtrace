@@ -500,14 +500,23 @@ Result: no flash, one theme across admin/auth/worker/account, and `color-scheme`
 
 ## 9. Roadmap
 
-| Phase | Scope | Est. | Priority |
-|---|---|---|---|
-| **0 · Foundation** | Token layer, theme hoist, `color-scheme`, focus, icons, Button/Field/Card/Toast/Callout/Skeleton, `StatusBadge` fill, `StatCard` delta, remove audit screen | 1.5d | 🔴 Blocker |
-| **1 · Shell** | 5-group sidebar + icons + counts + rail + drawer, topbar + breadcrumbs + ⌘K + date scope, skip link, `not-found.tsx`, per-route `metadata` | 1.5d | 🔴 |
-| **2 · Dashboard** | `_queries.ts`, alert rail, 4 KPIs + deltas, trends, 3 queues, `<Suspense>` zones | 1.5d | 🔴 |
-| **3 · Auth** | Split shell, merged landing, form quality across sign-in / sign-up / verify | 1d | 🔴 |
-| **4 · Adoption sweep** | Migrate 20 screens to `PageHeader`, 17 tables to `DataTable`, remaining `window.confirm` → `ConfirmButton`, `EmptyState` everywhere, `Field` in every form, sort + `aria-live` in `DataTable` | 2.5d | 🟡 |
-| **5 · Hardening** | `v_child_coverage`, notification counts, `revalidate`, PII masking, converge the two auth APIs, axe + keyboard + screen-reader pass | 1.5d | 🟡 |
+| Phase | Scope | Status |
+|---|---|---|
+| **0 · Foundation** | Token layer, theme hoist, `color-scheme`, focus, 43 icons, Button/Field/Card/Toast/Callout/Skeleton/ConfirmDialog, `StatusBadge` fill, `StatCard` delta, audit screen removed | ✅ `9f96389` |
+| **1 · Shell** | 5-group sidebar + icons + counts + CSS rail + `<dialog>` drawer, topbar + breadcrumbs + ⌘K + date scope, skip link, `not-found.tsx` | ✅ `9f96389` |
+| **2 · Dashboard** | `_queries.ts`, alert rail, 9 KPIs → 4 with deltas, trends with target line, 3 queues, `<Suspense>` zones | ✅ `9f96389` |
+| **3 · Auth** | Split brand shell, merged landing, tablist / autocomplete / reveal / caps-lock / 6-box OTP / bound errors | ✅ `9f96389` |
+| **4 · Adoption sweep** | Kit moved out of `(admin)`, 56 `text-black` hacks removed, last 4 `window.confirm` replaced, 30 route titles, 4 breadcrumb tails, children/catalog/inventory on `PageHeader` | 🟡 partial — `9328729` |
+| **5 · Hardening** | `v_child_coverage`, notification counts, `revalidate`, PII masking, converge the two auth APIs, axe + screen-reader pass | ⬜ not started |
+
+### Remaining work, in priority order
+
+1. **17 hand-rolled `<table>` blocks → `DataTable`** (S-05). The largest single item and the one with the most user-visible payoff: each migration gains search, filters, pagination and the mobile card fallback at once. `break-glass`, `cold-chain`, `coverage`, `data-quality`, `locations`, `population`, `reports` ×2, `stock`, `users/[id]`, `children/[id]`.
+2. **17 remaining screens → `PageHeader`** (S-04). Mechanical; children, catalog and inventory are done as the pattern.
+3. **`Field` in every form** (C-02). The primitive exists and sign-in / sign-up / verify use it; the ~15 admin forms still write bare `<label><input>`.
+4. **`DataTable` sort + `aria-live` + URL state** (C-05, C-10).
+5. **Per-route `loading.tsx`** (S-12).
+6. **Phase 5 in full** — including B-06, the two authorization APIs, which is a security question and not a styling one.
 
 **Cut order:** 5 → 4 → dashboard sparklines → auth brand panel. **Never cut Phase 0** — everything else depends on the token layer, and building Phase 2 on the current tokens means building it twice.
 
