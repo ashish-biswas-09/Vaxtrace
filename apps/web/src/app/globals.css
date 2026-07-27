@@ -1,50 +1,192 @@
 @import "tailwindcss";
 @import "@vaxtrace/ui-tokens/tokens.css";
 
+/* Tokens → Tailwind utilities, so `bg-surface` / `text-muted` / `rounded-lg` work alongside
+   the `bg-[var(--…)]` arbitrary-value syntax the existing screens are written in. Both
+   spellings resolve to the same custom property, so migration can be gradual. */
 @theme inline {
-  --color-background: var(--color-bg);
-  --color-foreground: var(--color-fg);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-bg: var(--accent-bg);
+
+  --color-danger-bg: var(--danger-bg);
+  --color-warning-bg: var(--warning-bg);
+  --color-success-bg: var(--success-bg);
+  --color-muted-bg: var(--muted-bg);
+
+  --color-background: var(--canvas);
+  --color-foreground: var(--text-primary);
+
   --font-sans: var(--font-sans);
+
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+}
+
+html {
+  background: var(--canvas);
 }
 
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--canvas);
+  color: var(--text-primary);
   font-family: var(--font-sans);
+  font-size: 0.875rem;
+  /* Bengali needs more leading than Latin: at 1.4 the matra collides with the descenders of
+     the line above on stacked conjuncts. */
+  line-height: 1.6;
 }
 
-/* Keyboard focus ring — audit D3/UX-12 flagged no focus-visible token in the system. */
-:focus-visible {
-  outline: 2px solid var(--color-primary);
+/* Keyboard focus. Deliberately not --accent: the ring has to stay visible when the focused
+   element is itself an accent-filled button or the active nav item, which share that colour.
+   `:where()` keeps specificity at zero so a component can still override it, and the element
+   list keeps the ring off non-interactive nodes that happen to receive focus. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
+  border-radius: inherit;
+}
+
+/* The table wrappers are overflow-x-auto, which clips a 2px offset ring at the container
+   edge. Scroll padding keeps a focused control clear of it. */
+.scroll-x {
+  overflow-x: auto;
+  scroll-padding: 0.25rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* First focusable element in the admin shell. Without it a keyboard user tabs through
+   twenty-three nav links before reaching the table they came for. */
+.skip-link:focus {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 60;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0.5rem 1rem;
+  clip-path: none;
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-radius: var(--r-md);
+}
+
+/* Sidebar rail. The collapsed state is an attribute on <html>, set before paint by the boot
+   script, so it is pure CSS — React holds none of it and there is no effect to flash. */
+.vt-sidebar {
+  width: 16rem;
+  transition: width var(--dur-base) var(--ease);
+}
+.vt-nav-divider,
+.vt-nav-dot,
+.vt-rail-expand {
+  display: none;
+}
+
+[data-sidebar="collapsed"] .vt-sidebar {
+  width: 4rem;
+}
+[data-sidebar="collapsed"] .vt-nav-label,
+[data-sidebar="collapsed"] .vt-nav-heading,
+[data-sidebar="collapsed"] .vt-nav-count,
+[data-sidebar="collapsed"] .vt-brand-text,
+[data-sidebar="collapsed"] .vt-identity,
+[data-sidebar="collapsed"] .vt-rail-collapse {
+  display: none;
+}
+[data-sidebar="collapsed"] .vt-nav-divider,
+[data-sidebar="collapsed"] .vt-nav-dot,
+[data-sidebar="collapsed"] .vt-rail-expand {
+  display: block;
+}
+[data-sidebar="collapsed"] .vt-nav-link,
+[data-sidebar="collapsed"] .vt-brand,
+[data-sidebar="collapsed"] .vt-rail-foot {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ---------------------------------------------------------------------------
    Print — UX-09.
    The defaulter route list, the session tally and the immunization card are printed in
    every real programme: the route list goes in a pocket, the tally gets signed, the card
-   goes home with the family. A list that does not print is a list that does not get used,
-   so these are styled rather than left to whatever the browser guesses.
+   goes home with the family. A list that does not print is a list that does not get used.
+
+   The previous rule was `* { background:#fff; color:#000 }` with !important, which also
+   stripped the colour off every status badge — a printed coverage report lost its whole
+   encoding. Retargeting the tokens gets ink-on-paper while keeping the semantic hues, which
+   are the AA-verified light values and legible on white.
    --------------------------------------------------------------------------- */
 @media print {
-  /* Admin is dark on screen; on paper that is a cartridge. */
+  :root,
+  [data-theme],
+  [data-theme="dark"] {
+    color-scheme: light;
+    --canvas: #ffffff;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+    --surface-sunken: #ffffff;
+    --border-subtle: #d0d5dd;
+    --border-default: #98a2b3;
+    --border-strong: #667085;
+    --text-primary: #000000;
+    --text-secondary: #1d2939;
+    --text-muted: #475467;
+    --accent: #0f766e;
+    --accent-fg: #ffffff;
+    --danger: #b42318;
+    --warning: #b54708;
+    --success: #027a48;
+    --shadow-1: none;
+    --shadow-2: none;
+  }
+
   * {
-    background: #fff !important;
-    color: #000 !important;
     box-shadow: none !important;
   }
 
   @page {
     margin: 12mm;
     size: A4;
-  }
-
-  /* Borders survive the colour override above — a table with no rules is unreadable once
-     the alternating background is gone. */
-  table,
-  th,
-  td {
-    border-color: #999 !important;
   }
 
   th,

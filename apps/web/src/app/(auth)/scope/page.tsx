@@ -65,7 +65,7 @@ export default async function ScopePage() {
     .filter((o) => o.id !== "");
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-6 p-8">
+    <div className="flex flex-col gap-6">
       <div className="text-center">
         <h1 className="text-2xl font-semibold">কোন এলাকায় কাজ করবেন?</h1>
         <p className="mx-auto mt-2 max-w-lg text-sm text-[var(--color-muted)]">
@@ -88,6 +88,6 @@ export default async function ScopePage() {
       >
         এড়িয়ে যান
       </Link>
-    </main>
+    </div>
   );
 }

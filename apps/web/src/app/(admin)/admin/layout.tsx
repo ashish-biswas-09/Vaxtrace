@@ -1,19 +1,62 @@
 import { requireRole, getUserRole } from "@/lib/auth";
-import { AdminNav, MobileNav } from "./_components/AdminNav";
-import { ThemeToggle } from "./_components/ThemeToggle";
-import { AccountMenu } from "./_components/AccountMenu";
+import { todayIso } from "@/lib/format";
+import { ToastProvider } from "@/components/ui/Toast";
+import { batchStatus } from "./inventory/status";
+import { Sidebar } from "./_components/Sidebar";
+import { Topbar } from "./_components/Topbar";
+import { BreadcrumbProvider } from "./_components/Breadcrumbs";
+import type { NavCounts } from "./_components/AdminNav";
+
+const ROLE_BN: Record<string, string> = {
+  admin: "অ্যাডমিন",
+  worker: "স্বাস্থ্যকর্মী",
+  parent: "অভিভাবক",
+};
 
 // Gates the whole /admin subtree on the JWT `user_role` claim (UX layer; RLS is the real
-// boundary). Admin is dark-first per the Figma; #admin-root is the token scope the ThemeToggle
-// retargets to light. data-theme re-scopes colors for this subtree only, so Auth stays light.
+// boundary).
+//
+// The theme no longer lives here. It is on <html>, set before paint by the root layout, so
+// auth, /account and the worker console follow the same choice instead of the admin subtree
+// being the only dark thing in the application.
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await requireRole("admin");
-  const [{ data: { user } }, role] = await Promise.all([
+  const today = todayIso();
+
+  // The seven figures the sidebar badges and the topbar bell show, in one wave. Fetched here
+  // rather than per-screen so the rail and the page behind it can never quote different
+  // numbers — which is exactly what happens when each screen counts for itself.
+  const [
+    {
+      data: { user },
+    },
+    role,
+    dueRes,
+    { data: defaulters },
+    zeroDoseRes,
+    { data: stock },
+    { data: coldChain },
+    openAefiRes,
+    { data: failed },
+  ] = await Promise.all([
     supabase.auth.getUser(),
     getUserRole(supabase),
+    supabase
+      .from("schedules")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pending")
+      .lte("due_date", today),
+    supabase.from("v_defaulters").select("child_id, has_open_task"),
+    supabase.from("v_zero_dose").select("child_id", { count: "exact", head: true }),
+    supabase.from("inventories").select("stock_quantity, expiry_date"),
+    supabase.from("v_cold_chain").select("device_id, has_excursion, is_silent, is_active"),
+    supabase
+      .from("v_aefi_cases")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["reported", "under_investigation"]),
+    supabase.from("notifications").select("id").in("status", ["failed", "dead"]).limit(500),
   ]);
-  // The admin's own immutable Admin ID, shown in the account menu so the identifier they
-  // quote in a report is one click away rather than something they have to look up.
+
   const { data: myRole } = user
     ? await supabase
         .from("user_roles")
@@ -23,48 +66,58 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         .maybeSingle()
     : { data: null };
 
-  return (
-    <div
-      id="admin-root"
-      data-theme="dark"
-      className="flex min-h-screen bg-[var(--color-bg)] text-[var(--color-fg)]"
-    >
-      {/* Below `lg` the sidebar is removed from the flow entirely and the same nav renders
-          inside the header as a disclosure. A fixed w-56 rail on a tablet ate a third of the
-          viewport and pushed every table off-screen. */}
-      {/* sticky + its own scroll: with twenty-three grouped destinations the rail is taller
-          than a laptop viewport, and a nav that scrolls the page away from the table it is
-          navigating is worse than no nav. */}
-      <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-fg)]/[0.025] lg:flex print:hidden">
-        <div className="border-b border-[var(--color-border)] p-4">
-          <p className="text-lg font-semibold">VaxTrace</p>
-          <p className="text-xs text-[var(--color-muted)]">অ্যাডমিন প্যানেল</p>
-        </div>
-        <div className="flex-1 p-3">
-          <AdminNav />
-        </div>
-      </aside>
+  const counts: NavCounts = {
+    due: dueRes.count ?? 0,
+    // A defaulter with no open tracing task is a child nobody has been asked to visit — the
+    // gap between knowing and doing.
+    untraced: (defaulters ?? []).filter((d) => !d.has_open_task).length,
+    zeroDose: zeroDoseRes.count ?? 0,
+    stockAlerts: (stock ?? []).filter(
+      (b) => batchStatus(b.stock_quantity, b.expiry_date).tone !== "success",
+    ).length,
+    coldChain: (coldChain ?? []).filter((d) => d.is_active && (d.has_excursion || d.is_silent))
+      .length,
+    openAefi: openAefiRes.count ?? 0,
+    failedNotifications: (failed ?? []).length,
+  };
 
-      {/* min-w-0 is load-bearing: without it a flex child refuses to shrink below its content
-          width, so the overflow-x-auto on wide tables never engages and the page itself
-          scrolls sideways instead. */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] px-4 py-3 sm:px-8 print:hidden">
-          <div className="flex items-center gap-3 lg:hidden">
-            <MobileNav />
-            <p className="font-semibold">VaxTrace</p>
-          </div>
-          <div className="ml-auto flex items-center gap-3">
-            <ThemeToggle />
-            <AccountMenu
-              email={user?.email ?? ""}
-              role={role}
-              staffCode={myRole?.staff_code ?? null}
+  return (
+    <BreadcrumbProvider>
+      <ToastProvider>
+        <a href="#main" className="sr-only skip-link">
+          মূল বিষয়বস্তুতে যান
+        </a>
+
+        <div className="flex min-h-screen bg-[var(--canvas)] text-[var(--text-primary)]">
+          <Sidebar
+            counts={counts}
+            identity={{
+              code: myRole?.staff_code ?? null,
+              role: role ? (ROLE_BN[role] ?? role) : "—",
+            }}
+          />
+
+          {/* min-w-0 is load-bearing: without it a flex child refuses to shrink below its
+              content width, so the overflow-x-auto on wide tables never engages and the page
+              itself scrolls sideways instead. */}
+          <div className="flex min-w-0 flex-1 flex-col">
+            <Topbar
+              counts={counts}
+              user={{
+                email: user?.email ?? "",
+                role,
+                staffCode: myRole?.staff_code ?? null,
+              }}
             />
+            <main
+              id="main"
+              className="mx-auto w-full min-w-0 max-w-[90rem] flex-1 p-4 sm:p-6 lg:p-8"
+            >
+              {children}
+            </main>
           </div>
-        </header>
-        <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
-      </div>
-    </div>
+        </div>
+      </ToastProvider>
+    </BreadcrumbProvider>
   );
 }

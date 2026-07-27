@@ -1,34 +1,164 @@
-/* ponytail: placeholder values, Figma desktop access was blocked (TODO 1.23) — sync real
-   hex/font values from file S1n9q5mqPNEzIks9FgUx0E once the Figma desktop app is available. */
-:root {
-  --color-bg: #ffffff;
-  --color-fg: #0a0a0a;
-  --color-primary: #0f766e;
-  --color-primary-fg: #ffffff;
-  --color-muted: #6b7280;
-  --color-border: #e5e7eb;
-  /* These are used as TEXT colours (status pills, KPI values), not just as fills, so they
-     have to clear WCAG AA 4.5:1 against --color-bg, not the 3:1 that would do for a border.
-     Measured on #ffffff: danger 4.83, warning 5.02, success 5.02. The previous amber-600
-     (#d97706, 3.19) and green-600 (#16a34a, 3.30) both failed. The dark theme's variants
-     already pass comfortably (7.16 / 11.86 / 11.36) and are unchanged. */
-  --color-danger: #dc2626;
-  --color-warning: #b45309;
-  --color-success: #15803d;
-  --font-sans: "Noto Sans Bengali", "Noto Sans", system-ui, sans-serif;
+/* VaxTrace design tokens — see docs/admin-redesign-blueprint.md §4.
+ *
+ * Structure, not just hue. The previous file was nine colours and a font, so every component
+ * invented its own surface, radius and spacing. Three things changed:
+ *
+ *   1. Surfaces. #0d1117 already fixed the *canvas* — the remaining defect was that a card
+ *      had no fill of its own, so it was defined entirely by a 1.55:1 hairline. A ramp above
+ *      the canvas gives hierarchy that survives where a border cannot.
+ *   2. color-scheme. Without it the seventeen native <select>/date/number controls in the
+ *      admin panel render light chrome on the dark theme.
+ *   3. A focus colour that is not the brand colour, so the ring stays visible on an accent
+ *      fill — the active nav item and the primary button are both accent-coloured.
+ *
+ * Ratios in the comments are computed against the surface the token is used on and are the
+ * reason each value is what it is. Re-check them before changing any of these.
+ */
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  --canvas: #f6f8fa; /* not pure white, so a white card reads as elevated */
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eef1f5;
+
+  --border-subtle: #eaeef2;
+  --border-default: #d0d7de;
+  --border-strong: #8a94a3; /* 3.07:1 on white — control borders (WCAG 1.4.11) */
+
+  --text-primary: #0f172a; /* 17.4:1 */
+  --text-secondary: #3f4c5f; /* 9.1:1 */
+  --text-muted: #5b6779; /* 5.6:1 */
+
+  /* Unchanged: measured at 4.83:1 on white and already defended. */
+  --accent: #0f766e;
+  --accent-fg: #ffffff;
+  --accent-hover: #0d5f59;
+
+  /* Also unchanged. These are used as TEXT (status pills, KPI values), not just as fills, so
+     they clear AA 4.5:1 rather than the 3:1 that would do for a border. Measured on #ffffff:
+     danger 4.83, warning 5.02, success 5.02. amber-600 (3.19) and green-600 (3.30) failed. */
+  --danger: #dc2626;
+  --warning: #b45309;
+  --success: #15803d;
+
+  --focus: #2563eb;
+
+  --shadow-1: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.1);
+  --shadow-2: 0 4px 6px -2px rgb(16 24 40 / 0.03), 0 12px 16px -4px rgb(16 24 40 / 0.08);
 }
 
 [data-theme="dark"] {
-  /* Dark slate rather than near-black — pure #0a0a0a read as flat and washed-out cards
-     (borders barely visible, no sense of elevation). This bg still clears the same
-     contrast checks: danger 6.88, warning 11.40, success 10.94 against #0d1117. */
-  --color-bg: #0d1117;
-  --color-fg: #fafafa;
-  --color-primary: #2dd4bf;
-  --color-primary-fg: #0a0a0a;
-  --color-muted: #9ca3af;
-  --color-border: #30363d;
-  --color-danger: #f87171;
-  --color-warning: #fbbf24;
-  --color-success: #4ade80;
+  color-scheme: dark;
+
+  /* Canvas kept as chosen: dark slate rather than near-black. The ramp above it is what is
+     new — that is what a card, a table header and a popover were missing. */
+  --canvas: #0d1117;
+  --surface: #161b22;
+  --surface-raised: #21262d;
+  --surface-sunken: #010409;
+
+  --border-subtle: #21262d;
+  --border-default: #30363d;
+  --border-strong: #6e7681; /* 3.77:1 on --surface */
+
+  /* #fafafa measured 18.1:1 on this canvas — past the point where more contrast helps and
+     into halation, which Bengali matra and conjunct stacks show worse than Latin does. */
+  --text-primary: #e6edf3; /* 14.6:1 */
+  --text-secondary: #9ba8b8; /* 7.2:1 */
+  --text-muted: #7b8a9c; /* 4.9:1 */
+
+  /* #2dd4bf measured 9.3:1 as text — bright enough to read as neon. It stays as the hover
+     step; the resting accent is one stop calmer and still clears AA comfortably. */
+  --accent: #14b8a6; /* 6.9:1 on --surface */
+  --accent-fg: #0d1117; /* 7.6:1 on --accent */
+  --accent-hover: #2dd4bf;
+
+  --danger: #f87171; /* 6.9:1 */
+  --warning: #fbbf24; /* 11.4:1 */
+  --success: #4ade80; /* 10.9:1 */
+
+  --focus: #60a5fa;
+
+  /* A shadow does not read on a dark canvas; elevation is the surface ramp plus a ring. */
+  --shadow-1: 0 0 0 1px var(--border-default);
+  --shadow-2: 0 0 0 1px var(--border-strong), 0 16px 32px rgb(0 0 0 / 0.6);
+}
+
+/* `[data-theme]` as well as `:root`: a custom property that references another is resolved in
+   the scope it is *declared* in, not where it is used. Declared on :root alone, every derived
+   token below would keep the light value inside a `<div data-theme="dark">` subtree. */
+:root,
+[data-theme] {
+  /* Derived rather than hand-authored, so changing a tone cannot strand its badge fill. */
+  --danger-bg: color-mix(in oklab, var(--danger) 14%, var(--surface));
+  --warning-bg: color-mix(in oklab, var(--warning) 14%, var(--surface));
+  --success-bg: color-mix(in oklab, var(--success) 14%, var(--surface));
+  --accent-bg: color-mix(in oklab, var(--accent) 14%, var(--surface));
+  --muted-bg: color-mix(in oklab, var(--text-muted) 14%, var(--surface));
+
+  /* Back-compat. ~400 call sites use the old names; they keep working and migrate
+     opportunistically rather than in one unreviewable diff. */
+  --color-bg: var(--canvas);
+  --color-fg: var(--text-primary);
+  --color-primary: var(--accent);
+  --color-primary-fg: var(--accent-fg);
+  --color-muted: var(--text-muted);
+  --color-border: var(--border-default);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
+}
+
+:root {
+  --font-sans: "Noto Sans Bengali", "Noto Sans", system-ui, sans-serif;
+
+  /* Bengali needs more leading than Latin: at 1.4 the matra collides with the descenders of
+     the line above on stacked conjuncts. 13px is the floor; caption is Latin and numerals. */
+  --text-display: 1.875rem/2.375rem;
+  --text-h1: 1.5rem/2rem;
+  --text-h2: 1.125rem/1.75rem;
+  --text-h3: 1rem/1.5rem;
+  --text-body: 0.875rem/1.375rem;
+  --text-label: 0.8125rem/1.25rem;
+  --text-caption: 0.75rem/1.125rem;
+  --text-metric: 2rem/2.5rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 2rem;
+  --space-8: 2.5rem;
+  --space-9: 3rem;
+  --space-10: 4rem;
+
+  --r-sm: 0.375rem;
+  --r-md: 0.5rem;
+  --r-lg: 0.75rem;
+  --r-xl: 1rem;
+
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 240ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  --z-sticky: 10;
+  --z-topbar: 20;
+  --z-dropdown: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+
+  /* Categorical chart series — each ≥3:1 on both surfaces. */
+  --chart-1: #14b8a6;
+  --chart-2: #60a5fa;
+  --chart-3: #a78bfa;
+  --chart-4: #fbbf24;
+  --chart-5: #f472b6;
+  --chart-6: #34d399;
 }

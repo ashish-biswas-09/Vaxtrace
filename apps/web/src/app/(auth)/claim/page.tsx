@@ -23,7 +23,7 @@ export default async function ClaimPage() {
   if (!user) redirect("/sign-in?role=parent&next=claim");
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-6 p-8">
+    <div className="flex flex-col gap-6">
       <div className="text-center">
         <h1 className="text-2xl font-semibold">শিশুকে অ্যাকাউন্টে যুক্ত করুন</h1>
         <p className="mx-auto mt-2 max-w-md text-sm text-[var(--color-muted)]">
@@ -37,6 +37,6 @@ export default async function ClaimPage() {
       <Link href="/parent" className="text-sm text-[var(--color-muted)] underline">
         পরে করব
       </Link>
-    </main>
+    </div>
   );
 }

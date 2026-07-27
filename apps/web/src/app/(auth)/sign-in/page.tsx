@@ -1,17 +1,14 @@
 import { SignInForm } from "./_components/SignInForm";
 
+export const metadata = { title: "লগইন" };
+
+// The heading and the shell both live elsewhere now — the form owns its own <h1> so it can sit
+// above the tablist, and the (auth) layout owns the brand panel and the centring.
 export default async function SignInPage({
   searchParams,
 }: {
   searchParams: Promise<{ role?: string }>;
 }) {
   const { role } = await searchParams;
-  const initialMode = role === "parent" ? "otp" : "password";
-
-  return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-8 p-8">
-      <h1 className="text-2xl font-semibold">লগইন করুন</h1>
-      <SignInForm initialMode={initialMode} />
-    </main>
-  );
+  return <SignInForm initialMode={role === "parent" ? "otp" : "password"} />;
 }

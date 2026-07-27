@@ -169,8 +169,9 @@ export default async function HelpPage() {
             দেখুন — কোনো রাতের কাজ বন্ধ থাকলে হিসাব পুরনো হতে পারে।
           </li>
           <li>
-            <Link href="/admin/audit" className="text-[var(--color-primary)]">
-              অডিট লগে
+            ড্যাশবোর্ডের{" "}
+            <Link href="/admin" className="text-[var(--color-primary)]">
+              সাম্প্রতিক কার্যক্রমে
             </Link>{" "}
             দেখুন কে কখন কী বদলেছে — জনসংখ্যার হিসাব বদলালে প্রকাশিত প্রতিটি কভারেজ সংখ্যা নড়ে।
           </li>

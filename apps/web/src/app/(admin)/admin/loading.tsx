@@ -1,15 +1,15 @@
-// Skeleton shown while any /admin server component streams (audit D1). A few pulsing bars —
-// enough to signal "loading" without matching each page's exact layout.
+import { SkeletonCards, SkeletonPage, Skeleton } from "@/components/ui/Skeleton";
+
+// Dashboard-shaped, because that is the route this file covers. Each other route now has its
+// own — one generic skeleton for nine layouts flashed the wrong shape on eight of them.
 export default function AdminLoading() {
   return (
-    <div className="flex animate-pulse flex-col gap-6" aria-busy="true" aria-label="লোড হচ্ছে">
-      <div className="h-8 w-48 rounded bg-[var(--color-border)]" />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-24 rounded-xl bg-[var(--color-border)]" />
-        ))}
+    <SkeletonPage>
+      <SkeletonCards count={4} />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
+        <Skeleton className="h-80 rounded-[var(--r-lg)]" />
+        <Skeleton className="h-80 rounded-[var(--r-lg)]" />
       </div>
-      <div className="h-64 rounded-xl bg-[var(--color-border)]" />
-    </div>
+    </SkeletonPage>
   );
 }

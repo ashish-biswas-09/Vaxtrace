@@ -3,24 +3,74 @@
 import Link from "next/link";
 import { useId, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { Button, type ButtonProps } from "@/components/ui/Button";
+import { InboxIcon, SearchIcon } from "@/components/icons";
+import { toBn } from "@/lib/format";
+import { Sparkline } from "./Sparkline";
 
-type Tone = "muted" | "success" | "warning" | "danger" | "primary";
+export type Tone = "muted" | "success" | "warning" | "danger" | "primary";
 
 const TONE_VAR: Record<Tone, string> = {
-  muted: "var(--color-muted)",
-  success: "var(--color-success)",
-  warning: "var(--color-warning)",
-  danger: "var(--color-danger)",
-  primary: "var(--color-primary)",
+  muted: "var(--text-muted)",
+  success: "var(--success)",
+  warning: "var(--warning)",
+  danger: "var(--danger)",
+  primary: "var(--accent)",
 };
 
+const TONE_BG: Record<Tone, string> = {
+  muted: "var(--muted-bg)",
+  success: "var(--success-bg)",
+  warning: "var(--warning-bg)",
+  danger: "var(--danger-bg)",
+  primary: "var(--accent-bg)",
+};
+
+// Tinted fill rather than the outline-only chip this used to be. A 1px border in the tone
+// colour, on a background the same colour as the page, read as a disabled control — and on
+// dark it inherited the same 1.55:1 problem every other hairline had.
 export function StatusBadge({ tone, children }: { tone: Tone; children: React.ReactNode }) {
   return (
     <span
-      className="inline-block rounded-full px-2 py-0.5 text-xs font-medium"
-      style={{ color: TONE_VAR[tone], border: `1px solid ${TONE_VAR[tone]}` }}
+      className="inline-block whitespace-nowrap rounded-[var(--r-sm)] px-2 py-0.5 text-xs font-medium"
+      style={{
+        color: TONE_VAR[tone],
+        background: TONE_BG[tone],
+        border: `1px solid color-mix(in oklab, ${TONE_VAR[tone]} 35%, transparent)`,
+      }}
     >
       {children}
+    </span>
+  );
+}
+
+// A period-over-period comparison. `goodDirection` is separate from `direction` because the
+// two disagree half the time on this dashboard: missed doses falling is good, coverage
+// falling is not, and colouring both by "went down" would be actively misleading.
+export type Delta = {
+  value: number;
+  percent?: number | null;
+  direction: "up" | "down" | "flat";
+  goodDirection: "up" | "down";
+  period?: string;
+};
+
+function DeltaChip({ delta }: { delta: Delta }) {
+  const { value, percent, direction, goodDirection, period } = delta;
+  const tone: Tone =
+    direction === "flat" ? "muted" : direction === goodDirection ? "success" : "danger";
+  const arrow = direction === "up" ? "▲" : direction === "down" ? "▼" : "●";
+  const label =
+    direction === "flat"
+      ? "অপরিবর্তিত"
+      : `${arrow} ${toBn(Math.abs(value))}${
+          percent != null ? ` (${toBn(Math.abs(Math.round(percent * 100)))}%)` : ""
+        }`;
+
+  return (
+    <span className="inline-flex items-baseline gap-1 text-xs" style={{ color: TONE_VAR[tone] }}>
+      <span className="tabular-nums">{label}</span>
+      {period && <span className="text-[var(--text-muted)]">{period}</span>}
     </span>
   );
 }
@@ -28,44 +78,64 @@ export function StatusBadge({ tone, children }: { tone: Tone; children: React.Re
 // A KPI answers "how are we doing"; the next question is always "show me which ones". When
 // `href` is given the whole card becomes that link, so the number is an entry point into the
 // list behind it rather than a dead end the reader has to navigate away from by hand.
+//
+// `delta` is the addition that matters: a KPI without a comparison is a dead number, and none
+// of the nine on the old dashboard carried one.
 export function StatCard({
   label,
   value,
   hint,
   tone = "primary",
   href,
+  delta,
+  sparkline,
 }: {
   label: string;
   value: React.ReactNode;
   hint?: string;
   tone?: Tone;
   href?: string;
+  delta?: Delta;
+  sparkline?: number[];
 }) {
   const body = (
     <>
-      <p className="text-sm text-[var(--color-muted)]">{label}</p>
-      <p className="mt-1 text-3xl font-semibold" style={{ color: TONE_VAR[tone] }}>
+      <p className="text-[0.8125rem] font-medium text-[var(--text-secondary)]">{label}</p>
+      <p
+        className="mt-1 text-[2rem] leading-10 font-semibold tabular-nums"
+        style={{ color: TONE_VAR[tone] }}
+      >
         {value}
       </p>
-      {hint && <p className="mt-1 text-xs text-[var(--color-muted)]">{hint}</p>}
+      {(delta || sparkline) && (
+        <div className="mt-1 flex min-h-6 items-center justify-between gap-2">
+          {delta ? <DeltaChip delta={delta} /> : <span />}
+          {sparkline && sparkline.length > 1 && (
+            <Sparkline points={sparkline} color={TONE_VAR[tone]} />
+          )}
+        </div>
+      )}
+      {hint && <p className="mt-1 text-xs text-[var(--text-muted)]">{hint}</p>}
     </>
   );
 
-  const base = "block rounded-xl border border-[var(--color-border)] p-4";
+  const base =
+    "block rounded-[var(--r-lg)] border border-[var(--border-default)] bg-[var(--surface)] p-5";
   if (!href) return <div className={base}>{body}</div>;
 
   return (
     <Link
       href={href}
-      className={`${base} transition-colors hover:border-[var(--color-primary)]`}
+      className={`${base} transition-colors duration-[var(--dur-fast)] hover:border-[var(--accent)]`}
     >
       {body}
-      <span className="mt-2 block text-xs text-[var(--color-primary)]">বিস্তারিত →</span>
+      <span className="mt-2 block text-xs text-[var(--accent)]">বিস্তারিত →</span>
     </Link>
   );
 }
 
-// Submit button that reflects the enclosing <form>'s pending state.
+// Submit button that reflects the enclosing <form>'s pending state. Now a thin wrapper over
+// the shared Button, so a form action and a plain action are visually identical.
 //
 // `name`/`value` are passed through so one form can carry two decisions (approve / reject)
 // without a hidden field. A hidden field would always be submitted and would win the
@@ -73,51 +143,50 @@ export function StatCard({
 // name/value is only sent when that button is the one that submitted.
 export function SubmitButton({
   children,
-  pendingLabel,
   variant = "primary",
+  size,
   name,
   value,
 }: {
   children: React.ReactNode;
+  /** @deprecated the label no longer swaps while pending — the spinner carries that, and
+   *  swapping it reflowed the button mid-click. Accepted so callers need not change. */
   pendingLabel?: string;
-  variant?: "primary" | "danger" | "ghost";
+  variant?: ButtonProps["variant"];
+  size?: ButtonProps["size"];
   name?: string;
   value?: string;
 }) {
   const { pending } = useFormStatus();
-  const base = "rounded-md px-4 py-2 text-sm font-medium disabled:opacity-60";
-  const styles =
-    variant === "danger"
-      ? "bg-[var(--color-danger)] text-white"
-      : variant === "ghost"
-        ? "border border-[var(--color-border)]"
-        : "bg-[var(--color-primary)] text-[var(--color-primary-fg)]";
   return (
-    <button type="submit" name={name} value={value} disabled={pending} className={`${base} ${styles}`}>
-      {pending ? (pendingLabel ?? children) : children}
-    </button>
+    <Button type="submit" name={name} value={value} variant={variant} size={size} loading={pending}>
+      {children}
+    </Button>
   );
 }
 
 // One page header, so every admin screen has the same title/description/actions geometry and
-// the same `print:hidden` on its action row. Audit UX-02: the previous nine screens each
-// hand-rolled this and three of them drifted.
+// the same `print:hidden` on its action row. `meta` carries the line a screen needs to date
+// itself — a dashboard that gets screenshotted into a report has to say when it was taken.
 export function PageHeader({
   title,
   description,
   actions,
+  meta,
 }: {
   title: string;
   description?: React.ReactNode;
   actions?: React.ReactNode;
+  meta?: React.ReactNode;
 }) {
   return (
     <header className="flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">
-        <h1 className="text-2xl font-semibold">{title}</h1>
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">{title}</h1>
         {description && (
-          <p className="mt-1 max-w-3xl text-sm text-[var(--color-muted)]">{description}</p>
+          <p className="mt-1 max-w-3xl text-sm text-[var(--text-secondary)]">{description}</p>
         )}
+        {meta && <p className="mt-1 text-xs text-[var(--text-muted)]">{meta}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2 print:hidden">{actions}</div>}
     </header>
@@ -125,28 +194,37 @@ export function PageHeader({
 }
 
 // An empty list is a question ("what now?"), not a full stop. This states what is missing and
-// offers the one action that fixes it — the rule the Children screen already followed and the
-// other eight did not.
+// offers the one action that fixes it.
+//
+// `variant` separates the two states that were rendering identically: "nothing exists yet"
+// wants a create button, "your filter matched nothing" wants the filter cleared.
 export function EmptyState({
   title,
   hint,
   action,
+  variant = "empty",
+  icon,
 }: {
   title: string;
   hint?: string;
   action?: { href: string; label: string };
+  variant?: "empty" | "no-results";
+  icon?: React.ReactNode;
 }) {
+  const Fallback = variant === "no-results" ? SearchIcon : InboxIcon;
   return (
-    <div className="rounded-xl border border-dashed border-[var(--color-border)] px-6 py-10 text-center">
-      <p className="font-medium">{title}</p>
-      {hint && <p className="mx-auto mt-1 max-w-md text-sm text-[var(--color-muted)]">{hint}</p>}
+    <div className="flex flex-col items-center gap-3 rounded-[var(--r-lg)] border border-dashed border-[var(--border-default)] px-6 py-10 text-center">
+      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--surface-raised)] text-[var(--text-muted)]">
+        {icon ?? <Fallback size={22} />}
+      </span>
+      <div>
+        <p className="font-medium text-[var(--text-primary)]">{title}</p>
+        {hint && <p className="mx-auto mt-1 max-w-md text-sm text-[var(--text-muted)]">{hint}</p>}
+      </div>
       {action && (
-        <Link
-          href={action.href}
-          className="mt-4 inline-block rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-primary-fg)]"
-        >
+        <Button href={action.href} size="sm">
           {action.label}
-        </Link>
+        </Button>
       )}
     </div>
   );
@@ -157,12 +235,13 @@ export function EmptyState({
 // submitted twice.
 export function FormMessage({ error, ok }: { error?: string; ok?: string }) {
   if (!error && !ok) return null;
-  const tone = error ? "var(--color-danger)" : "var(--color-success)";
+  const tone = error ? "var(--danger)" : "var(--success)";
+  const bg = error ? "var(--danger-bg)" : "var(--success-bg)";
   return (
     <p
       role="status"
-      className="rounded-md border px-3 py-2 text-sm"
-      style={{ color: tone, borderColor: tone }}
+      className="rounded-[var(--r-md)] border px-3 py-2 text-sm"
+      style={{ color: tone, borderColor: tone, background: bg }}
     >
       {error ?? ok}
     </p>
@@ -203,29 +282,24 @@ export function ConfirmButton({
   const inputId = useId();
   const ready = !typedConfirmation || typed.trim() === typedConfirmation;
 
-  const trigger =
-    variant === "danger"
-      ? "border-[var(--color-danger)] text-[var(--color-danger)]"
-      : "border-[var(--color-border)]";
-
   return (
     <>
-      <button
-        type="button"
+      <Button
+        variant={variant === "danger" ? "danger" : "secondary"}
+        size="sm"
         onClick={() => ref.current?.showModal()}
-        className={`rounded-md border px-3 py-1.5 text-sm font-medium ${trigger}`}
       >
         {label}
-      </button>
+      </Button>
 
       <dialog
         ref={ref}
-        // The backdrop is styled through the browser's ::backdrop; `open:flex` is what makes
-        // the box centre itself without a wrapper div.
-        className="m-auto w-[min(28rem,92vw)] rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-5 text-[var(--color-fg)] backdrop:bg-black/50"
+        // The backdrop is styled through the browser's ::backdrop; `m-auto` is what makes the
+        // box centre itself without a wrapper div.
+        className="m-auto w-[min(28rem,92vw)] rounded-[var(--r-xl)] border border-[var(--border-default)] bg-[var(--surface)] p-5 text-[var(--text-primary)] shadow-[var(--shadow-2)] backdrop:bg-black/60"
       >
-        <h2 className="text-lg font-medium">{title}</h2>
-        <div className="mt-2 text-sm text-[var(--color-muted)]">{body}</div>
+        <h2 className="text-base font-semibold">{title}</h2>
+        <div className="mt-2 text-sm text-[var(--text-secondary)]">{body}</div>
 
         {typedConfirmation && (
           <div className="mt-4">
@@ -237,22 +311,21 @@ export function ConfirmButton({
               value={typed}
               onChange={(e) => setTyped(e.target.value)}
               autoComplete="off"
-              className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
+              className="mt-1 h-10 w-full rounded-[var(--r-md)] border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm"
             />
           </div>
         )}
 
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={() => {
               setTyped("");
               ref.current?.close();
             }}
-            className="rounded-md border border-[var(--color-border)] px-4 py-2 text-sm"
           >
             বাতিল
-          </button>
+          </Button>
           <ConfirmSubmit disabled={!ready} variant={variant} name={name} value={value}>
             {confirmLabel ?? label}
           </ConfirmSubmit>
@@ -276,19 +349,16 @@ function ConfirmSubmit({
   value?: string;
 }) {
   const { pending } = useFormStatus();
-  const styles =
-    variant === "danger"
-      ? "bg-[var(--color-danger)] text-white"
-      : "bg-[var(--color-primary)] text-[var(--color-primary-fg)]";
   return (
-    <button
+    <Button
       type="submit"
       name={name}
       value={value}
-      disabled={disabled || pending}
-      className={`rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 ${styles}`}
+      variant={variant === "danger" ? "danger" : "primary"}
+      disabled={disabled}
+      loading={pending}
     >
-      {pending ? "…" : children}
-    </button>
+      {children}
+    </Button>
   );
 }
