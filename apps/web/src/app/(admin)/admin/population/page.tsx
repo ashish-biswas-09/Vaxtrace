@@ -2,7 +2,8 @@ import { mfaGate, requireAppRole } from "@/lib/auth";
 import { dateBn, pctBn, toBn } from "@/lib/format";
 import { LEVEL_LABEL_BN, nlevel, pathTrail, type LocationNode } from "@/lib/locations";
 import { StatCard } from "../_components/ui";
-import { AGE_BANDS, PopulationForm } from "./_components/PopulationForm";
+import { AGE_BANDS } from "./_components/age-bands";
+import { PopulationForm } from "./_components/PopulationForm";
 
 export const dynamic = "force-dynamic";
 

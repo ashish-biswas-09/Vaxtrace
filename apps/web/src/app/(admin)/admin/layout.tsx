@@ -35,12 +35,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       {/* sticky + its own scroll: with twenty-three grouped destinations the rail is taller
           than a laptop viewport, and a nav that scrolls the page away from the table it is
           navigating is worse than no nav. */}
-      <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col gap-6 overflow-y-auto border-r border-[var(--color-border)] p-4 lg:flex print:hidden">
-        <div>
+      <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-fg)]/[0.025] lg:flex print:hidden">
+        <div className="border-b border-[var(--color-border)] p-4">
           <p className="text-lg font-semibold">VaxTrace</p>
           <p className="text-xs text-[var(--color-muted)]">অ্যাডমিন প্যানেল</p>
         </div>
-        <AdminNav />
+        <div className="flex-1 p-3">
+          <AdminNav />
+        </div>
       </aside>
 
       {/* min-w-0 is load-bearing: without it a flex child refuses to shrink below its content
