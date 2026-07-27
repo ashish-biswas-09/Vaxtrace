@@ -3,6 +3,7 @@ import { requireRole, requireUser } from "@/lib/auth";
 import { todayIso } from "@/lib/format";
 import { LEVEL_LABEL_BN, nlevel, type LocationNode } from "@/lib/locations";
 import { RegisterChildForm } from "../../../../(worker)/worker/_components/RegisterChildForm";
+export const metadata = { title: "নতুন শিশু নিবন্ধন" };
 
 export const dynamic = "force-dynamic";
 

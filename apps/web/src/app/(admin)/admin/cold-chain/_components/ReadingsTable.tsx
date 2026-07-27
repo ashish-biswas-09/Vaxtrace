@@ -1,8 +1,8 @@
 "use client";
 
 import { dateTimeBn } from "@/lib/format";
-import { DataTable, type Column } from "../../_components/DataTable";
-import { StatusBadge } from "../../_components/ui";
+import { DataTable, type Column } from "@/components/ui/DataTable";
+import { StatusBadge } from "@/components/ui/kit";
 
 export type ReadingRow = {
   id: string;

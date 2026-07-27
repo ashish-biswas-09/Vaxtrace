@@ -10,8 +10,8 @@ import {
   AEFI_SEVERITY_BN,
   AEFI_STATUS_BN,
 } from "@/lib/programme";
-import { DataTable, type Column } from "../../_components/DataTable";
-import { FormMessage, StatusBadge, SubmitButton } from "../../_components/ui";
+import { DataTable, type Column } from "@/components/ui/DataTable";
+import { FormMessage, StatusBadge, SubmitButton } from "@/components/ui/kit";
 import { classifyCaseAction, type AefiState } from "../_actions";
 
 type Severity = Database["public"]["Enums"]["aefi_severity"];
@@ -170,7 +170,7 @@ function ClassifyPanel({ row, onClose }: { row: AefiRow; onClose: () => void }) 
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
             {(Object.keys(AEFI_STATUS_BN) as Status[]).map((s) => (
-              <option key={s} value={s} className="text-black">
+              <option key={s} value={s}>
                 {AEFI_STATUS_BN[s].label}
               </option>
             ))}
@@ -185,7 +185,7 @@ function ClassifyPanel({ row, onClose }: { row: AefiRow; onClose: () => void }) 
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
             {(Object.keys(AEFI_SEVERITY_BN) as Severity[]).map((s) => (
-              <option key={s} value={s} className="text-black">
+              <option key={s} value={s}>
                 {AEFI_SEVERITY_BN[s].label}
               </option>
             ))}
@@ -200,7 +200,7 @@ function ClassifyPanel({ row, onClose }: { row: AefiRow; onClose: () => void }) 
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
             {(Object.keys(AEFI_OUTCOME_BN) as Outcome[]).map((o) => (
-              <option key={o} value={o} className="text-black">
+              <option key={o} value={o}>
                 {AEFI_OUTCOME_BN[o]}
               </option>
             ))}
@@ -217,11 +217,11 @@ function ClassifyPanel({ row, onClose }: { row: AefiRow; onClose: () => void }) 
           required={needsCausality}
           className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
         >
-          <option value="" className="text-black">
+          <option value="">
             এখনো নির্ধারিত হয়নি
           </option>
           {(Object.keys(AEFI_CAUSALITY_BN) as Causality[]).map((c) => (
-            <option key={c} value={c} className="text-black">
+            <option key={c} value={c}>
               {AEFI_CAUSALITY_BN[c]}
             </option>
           ))}

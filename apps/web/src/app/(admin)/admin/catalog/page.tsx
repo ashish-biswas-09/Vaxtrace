@@ -1,7 +1,11 @@
-import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { toBn } from "@/lib/format";
+import { Button } from "@/components/ui/Button";
+import { PageHeader } from "@/components/ui/kit";
+import { PlusIcon } from "@/components/icons";
 import { CatalogTable, type VaccineRow } from "./_components/CatalogTable";
+
+export const metadata = { title: "টিকা তালিকা" };
 
 export const dynamic = "force-dynamic";
 
@@ -27,21 +31,17 @@ export default async function CatalogPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">টিকা তালিকা</h1>
-          <p className="text-sm text-[var(--color-muted)]">
-            মোট {toBn(rows.length)} টি টিকা
-            {incomplete > 0 && ` — ${toBn(incomplete)} টির ডোজ সূচি অসম্পূর্ণ`}
-          </p>
-        </div>
-        <Link
-          href="/admin/catalog/new"
-          className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-primary-fg)]"
-        >
-          নতুন টিকা
-        </Link>
-      </header>
+      <PageHeader
+        title="টিকা তালিকা"
+        description={`মোট ${toBn(rows.length)} টি টিকা${
+          incomplete > 0 ? ` — ${toBn(incomplete)} টির ডোজ সূচি অসম্পূর্ণ` : ""
+        }`}
+        actions={
+          <Button href="/admin/catalog/new" icon={<PlusIcon size={16} />}>
+            নতুন টিকা
+          </Button>
+        }
+      />
 
       <CatalogTable rows={rows} />
     </div>

@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import { APP_ROLE_LABEL_BN, mfaGate, requireAppRole, type AppRole } from "@/lib/auth";
 import { dateBn, toBn } from "@/lib/format";
 import { pathTrail, toIndentedOptions, type LocationNode } from "@/lib/locations";
-import { StatusBadge } from "../../_components/ui";
+import { StatusBadge } from "@/components/ui/kit";
 import { GrantAssignmentForm, RevokeAssignmentButton } from "./_components/AssignmentForms";
+import { SetBreadcrumb } from "../../_components/Breadcrumbs";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +70,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="flex flex-col gap-6">
+      <SetBreadcrumb label={profile.full_name} />
       <div>
         <Link href="/admin/users" className="text-sm text-[var(--color-primary)]">
           ← ব্যবহারকারী তালিকায় ফিরুন

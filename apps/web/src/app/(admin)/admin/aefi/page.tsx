@@ -1,7 +1,8 @@
 import { mfaGate, requireAppRole } from "@/lib/auth";
 import { toBn } from "@/lib/format";
-import { EmptyState, PageHeader, StatCard } from "../_components/ui";
+import { EmptyState, PageHeader, StatCard } from "@/components/ui/kit";
 import { AefiTable, type AefiRow } from "./_components/AefiTable";
+export const metadata = { title: "টিকা-পরবর্তী ঘটনা" };
 
 export const dynamic = "force-dynamic";
 

@@ -95,13 +95,13 @@ export function RegisterChildForm({
           <label className="text-xs text-[var(--color-muted)]">
             লিঙ্গ
             <select name="gender" defaultValue="male" className={field}>
-              <option value="male" className="text-black">
+              <option value="male">
                 ছেলে
               </option>
-              <option value="female" className="text-black">
+              <option value="female">
                 মেয়ে
               </option>
-              <option value="other" className="text-black">
+              <option value="other">
                 অন্যান্য
               </option>
             </select>
@@ -116,11 +116,11 @@ export function RegisterChildForm({
             defaultValue={defaultAreaId ?? ""}
             className={field}
           >
-            <option value="" disabled className="text-black">
+            <option value="" disabled>
               নির্বাচন করুন
             </option>
             {areas.map((a) => (
-              <option key={a.id} value={a.id} className="text-black">
+              <option key={a.id} value={a.id}>
                 {" ".repeat(a.depth * 2)}
                 {a.label}
               </option>
@@ -171,11 +171,11 @@ export function RegisterChildForm({
           <label className="text-xs text-[var(--color-muted)]">
             অভিভাবক নির্বাচন
             <select name="guardian_id" defaultValue="" className={field}>
-              <option value="" disabled className="text-black">
+              <option value="" disabled>
                 নির্বাচন করুন
               </option>
               {guardians.map((g) => (
-                <option key={g.id} value={g.id} className="text-black">
+                <option key={g.id} value={g.id}>
                   {g.full_name}
                   {hasUsablePhone(g.phone) ? ` — ${g.phone}` : " — নম্বর নেই"}
                 </option>
@@ -209,7 +209,7 @@ export function RegisterChildForm({
               সম্পর্ক
               <select name="guardian_relationship" defaultValue="mother" className={field}>
                 {RELATIONSHIPS.map((r) => (
-                  <option key={r} value={r} className="text-black">
+                  <option key={r} value={r}>
                     {RELATIONSHIP_LABEL_BN[r]}
                   </option>
                 ))}

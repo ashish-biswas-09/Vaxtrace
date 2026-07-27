@@ -1,10 +1,11 @@
 import { requireRole } from "@/lib/auth";
 import { dateTimeBn, toBn } from "@/lib/format";
-import { StatusBadge } from "../_components/ui";
+import { StatusBadge } from "@/components/ui/kit";
 import {
   ReminderSettingsForm,
   type ReminderSettings,
 } from "./_components/ReminderSettingsForm";
+export const metadata = { title: "সেটিংস" };
 
 export const dynamic = "force-dynamic";
 

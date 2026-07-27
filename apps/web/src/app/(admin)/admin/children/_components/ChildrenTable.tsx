@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { ageBn, dateBn, pctBn, toBn } from "@/lib/format";
 import { CHILD_STATUS, hasUsablePhone, type ChildStatus } from "@/lib/guardians";
-import { StatusBadge } from "../../_components/ui";
-import { DataTable, type Column } from "../../_components/DataTable";
+import { StatusBadge } from "@/components/ui/kit";
+import { DataTable, type Column } from "@/components/ui/DataTable";
 
 const GENDER_BN: Record<string, string> = { male: "ছেলে", female: "মেয়ে", other: "অন্যান্য" };
 

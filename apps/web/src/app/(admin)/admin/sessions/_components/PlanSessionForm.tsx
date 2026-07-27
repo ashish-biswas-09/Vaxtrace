@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import type { Database } from "@vaxtrace/db-types";
 import { SESSION_TYPE_BN } from "@/lib/programme";
-import { FormMessage, SubmitButton } from "../../_components/ui";
+import { FormMessage, SubmitButton } from "@/components/ui/kit";
 import { planSessionAction, type SessionState } from "../_actions";
 
 type SessionType = Database["public"]["Enums"]["session_type"];
@@ -46,7 +46,7 @@ export function PlanSessionForm({
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
             {(Object.keys(SESSION_TYPE_BN) as SessionType[]).map((t) => (
-              <option key={t} value={t} className="text-black">
+              <option key={t} value={t}>
                 {SESSION_TYPE_BN[t]}
               </option>
             ))}
@@ -62,11 +62,11 @@ export function PlanSessionForm({
             onChange={(e) => onFacility(e.target.value)}
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
-            <option value="" className="text-black">
+            <option value="">
               নির্বাচন করুন…
             </option>
             {facilities.map((f) => (
-              <option key={f.id} value={f.id} className="text-black">
+              <option key={f.id} value={f.id}>
                 {f.label}
               </option>
             ))}
@@ -82,11 +82,11 @@ export function PlanSessionForm({
             onChange={(e) => setLocation(e.target.value)}
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
-            <option value="" className="text-black">
+            <option value="">
               নির্বাচন করুন…
             </option>
             {locations.map((l) => (
-              <option key={l.id} value={l.id} className="text-black">
+              <option key={l.id} value={l.id}>
                 {" ".repeat(l.depth * 2)}
                 {l.label}
               </option>
@@ -140,11 +140,11 @@ export function PlanSessionForm({
             name="team_lead"
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
-            <option value="" className="text-black">
+            <option value="">
               পরে নির্ধারণ করা হবে
             </option>
             {staff.map((s) => (
-              <option key={s.id} value={s.id} className="text-black">
+              <option key={s.id} value={s.id}>
                 {s.name}
               </option>
             ))}

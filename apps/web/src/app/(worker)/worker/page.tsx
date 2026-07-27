@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { ageBn, dateBn, toBn, todayIso } from "@/lib/format";
-import { StatCard } from "../../(admin)/admin/_components/ui";
+import { StatCard } from "@/components/ui/kit";
 
 export const dynamic = "force-dynamic";
 

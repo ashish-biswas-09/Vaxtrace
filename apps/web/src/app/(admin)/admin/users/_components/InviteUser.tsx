@@ -65,7 +65,7 @@ export function InviteUser() {
                 ভূমিকা
                 <select name="role" defaultValue="worker" className={field}>
                   {ROLES.map((r) => (
-                    <option key={r.value} value={r.value} className="text-black">
+                    <option key={r.value} value={r.value}>
                       {r.label}
                     </option>
                   ))}

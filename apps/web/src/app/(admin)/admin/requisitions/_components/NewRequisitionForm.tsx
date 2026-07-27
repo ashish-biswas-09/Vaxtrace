@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { FormMessage, SubmitButton } from "../../_components/ui";
+import { FormMessage, SubmitButton } from "@/components/ui/kit";
 import { createRequisitionAction, type RequisitionState } from "../_actions";
 
 export function NewRequisitionForm({
@@ -32,11 +32,11 @@ export function NewRequisitionForm({
             required
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
-            <option value="" className="text-black">
+            <option value="">
               নির্বাচন করুন…
             </option>
             {facilities.map((f) => (
-              <option key={f.id} value={f.id} className="text-black">
+              <option key={f.id} value={f.id}>
                 {f.label}
               </option>
             ))}
@@ -50,11 +50,11 @@ export function NewRequisitionForm({
             required
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
-            <option value="" className="text-black">
+            <option value="">
               নির্বাচন করুন…
             </option>
             {stores.map((f) => (
-              <option key={f.id} value={f.id} className="text-black">
+              <option key={f.id} value={f.id}>
                 {f.label}
               </option>
             ))}
@@ -70,11 +70,11 @@ export function NewRequisitionForm({
             required
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
-            <option value="" className="text-black">
+            <option value="">
               নির্বাচন করুন…
             </option>
             {vaccines.map((v) => (
-              <option key={v.id} value={v.id} className="text-black">
+              <option key={v.id} value={v.id}>
                 {v.label}
               </option>
             ))}

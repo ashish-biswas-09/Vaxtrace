@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { FACILITY_TYPE_LABEL_BN } from "@/lib/locations";
-import { SubmitButton } from "../../_components/ui";
+import { SubmitButton } from "@/components/ui/kit";
 import {
   addCatchmentAction,
   createFacilityAction,

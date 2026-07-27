@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { ConfirmButton, FormMessage } from "../../../_components/ui";
+import { ConfirmButton, FormMessage } from "@/components/ui/kit";
 import { voidDoseAction, type VoidState } from "../_actions";
 
 // The correction path for a dose recorded against the wrong child, the wrong antigen or the

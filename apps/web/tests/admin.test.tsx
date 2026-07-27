@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
 import { batchStatus } from "@/app/(admin)/admin/inventory/status";
 import { childCoverage } from "@/app/(admin)/admin/children/coverage";
-import { filterRows } from "@/app/(admin)/admin/_components/DataTable";
+import { filterRows } from "@/components/ui/DataTable";
 import { auditLabel } from "@/app/(admin)/admin/_audit";
 
 import { buildHistory, doseStatus, summarise } from "@/app/(admin)/admin/children/[id]/history";

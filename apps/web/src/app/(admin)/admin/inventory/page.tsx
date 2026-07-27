@@ -1,8 +1,12 @@
-import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { toBn } from "@/lib/format";
+import { Button } from "@/components/ui/Button";
+import { PageHeader } from "@/components/ui/kit";
+import { PlusIcon } from "@/components/icons";
 import { batchStatus } from "./status";
 import { InventoryTable, type BatchRow } from "./_components/InventoryTable";
+
+export const metadata = { title: "টিকা মজুদ" };
 
 export const dynamic = "force-dynamic";
 
@@ -34,20 +38,15 @@ export default async function InventoryPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">টিকা মজুদ</h1>
-          <p className="text-sm text-[var(--color-muted)]">
-            মোট {toBn(rows.length)} টি ব্যাচ — মেয়াদ অনুসারে সাজানো
-          </p>
-        </div>
-        <Link
-          href="/admin/inventory/new"
-          className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-primary-fg)]"
-        >
-          নতুন ব্যাচ
-        </Link>
-      </header>
+      <PageHeader
+        title="টিকা মজুদ"
+        description={`মোট ${toBn(rows.length)} টি ব্যাচ — মেয়াদ অনুসারে সাজানো`}
+        actions={
+          <Button href="/admin/inventory/new" icon={<PlusIcon size={16} />}>
+            নতুন ব্যাচ
+          </Button>
+        }
+      />
       <InventoryTable rows={rows} />
     </div>
   );

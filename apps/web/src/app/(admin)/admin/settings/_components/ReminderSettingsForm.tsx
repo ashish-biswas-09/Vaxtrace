@@ -52,7 +52,7 @@ export function ReminderSettingsForm({ settings }: { settings: ReminderSettings 
       <Row label="রিমাইন্ডার লিড টাইম" desc="দেয় তারিখের কত দিন আগে সারিতে যাবে">
         <select name="reminder_lead_days" defaultValue={settings.reminder_lead_days} className={select}>
           {[0, 1, 2, 3, 5, 7, 10, 14, 30].map((d) => (
-            <option key={d} value={d} className="text-black">
+            <option key={d} value={d}>
               {toBn(d)} দিন
             </option>
           ))}
@@ -62,7 +62,7 @@ export function ReminderSettingsForm({ settings }: { settings: ReminderSettings 
       <Row label="দৈনিক পাঠানোর সময়" desc="সারিবদ্ধ রিমাইন্ডার কখন পাঠানো হবে">
         <select name="daily_run_hour" defaultValue={settings.daily_run_hour} className={select}>
           {HOURS.map((h) => (
-            <option key={h} value={h} className="text-black">
+            <option key={h} value={h}>
               {hourLabel(h)}
             </option>
           ))}
@@ -72,7 +72,7 @@ export function ReminderSettingsForm({ settings }: { settings: ReminderSettings 
       <Row label="নীরব সময় শুরু" desc="এই সময়ের মধ্যে পড়লে পাঠানো পিছিয়ে যাবে">
         <select name="quiet_hours_start" defaultValue={settings.quiet_hours_start} className={select}>
           {HOURS.map((h) => (
-            <option key={h} value={h} className="text-black">
+            <option key={h} value={h}>
               {hourLabel(h)}
             </option>
           ))}
@@ -82,7 +82,7 @@ export function ReminderSettingsForm({ settings }: { settings: ReminderSettings 
       <Row label="নীরব সময় শেষ" desc="এই সময়ে নীরবতা উঠে যায়">
         <select name="quiet_hours_end" defaultValue={settings.quiet_hours_end} className={select}>
           {HOURS.map((h) => (
-            <option key={h} value={h} className="text-black">
+            <option key={h} value={h}>
               {hourLabel(h)}
             </option>
           ))}

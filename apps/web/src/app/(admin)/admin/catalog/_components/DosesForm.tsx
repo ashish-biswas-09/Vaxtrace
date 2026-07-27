@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { upsertVaccineDosesAction, type CatalogState } from "../_actions";
-import { SubmitButton } from "../../_components/ui";
+import { SubmitButton } from "@/components/ui/kit";
 import { toBn } from "@/lib/format";
 
 const field = "w-full rounded-md border border-[var(--color-border)] bg-transparent px-2 py-1.5 text-sm";

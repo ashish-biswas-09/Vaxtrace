@@ -1,5 +1,5 @@
 import { CheckCircleIcon } from "@/components/icons";
-import { ThemeToggle } from "../(admin)/admin/_components/ThemeToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 // The auth group had no layout at all: each screen was an <h1> and a 384px form centred on a
 // blank page, with no branding, no theme and nothing that read as a government health system.

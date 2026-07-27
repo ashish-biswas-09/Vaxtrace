@@ -2,8 +2,8 @@
 
 import { toBn } from "@/lib/format";
 import { hasUsablePhone } from "@/lib/guardians";
-import { StatusBadge } from "../../_components/ui";
-import { DataTable, type Column, type Filter } from "../../_components/DataTable";
+import { StatusBadge } from "@/components/ui/kit";
+import { DataTable, type Column, type Filter } from "@/components/ui/DataTable";
 
 export type GuardianRow = {
   id: string;

@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { adjustStockAction, editBatchAction, type ActionState } from "../../_actions";
-import { SubmitButton } from "../../../_components/ui";
+import { SubmitButton } from "@/components/ui/kit";
 
 const field = "rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm";
 

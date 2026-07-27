@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { VaccineForm } from "../_components/VaccineForm";
+export const metadata = { title: "নতুন টিকা" };
 
 export default async function NewVaccinePage() {
   await requireRole("admin");

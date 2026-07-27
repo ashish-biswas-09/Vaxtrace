@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { DataTable, type Column, type Filter } from "../../_components/DataTable";
+import { DataTable, type Column, type Filter } from "@/components/ui/DataTable";
 import { RoleSelect } from "./RoleSelect";
 import { StatusSelect } from "./StatusSelect";
 import { USER_STATUS } from "../_status";

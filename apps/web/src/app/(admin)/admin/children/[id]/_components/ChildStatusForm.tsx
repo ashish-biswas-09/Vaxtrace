@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { CHILD_STATUS, CHILD_STATUSES, type ChildStatus } from "@/lib/guardians";
-import { SubmitButton } from "../../../_components/ui";
+import { SubmitButton } from "@/components/ui/kit";
 import { setChildStatusAction, type ChildStatusState } from "../_actions";
 
 export function ChildStatusForm({
@@ -35,7 +35,7 @@ export function ChildStatusForm({
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
             {CHILD_STATUSES.map((s) => (
-              <option key={s} value={s} className="text-black">
+              <option key={s} value={s}>
                 {CHILD_STATUS[s].label}
               </option>
             ))}

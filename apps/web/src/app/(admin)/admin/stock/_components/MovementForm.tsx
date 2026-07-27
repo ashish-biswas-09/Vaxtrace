@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import type { Database } from "@vaxtrace/db-types";
 import { MANUAL_TXN_TYPES, STOCK_TXN_BN, WASTAGE_REASON_BN } from "@/lib/programme";
-import { ConfirmButton, FormMessage, SubmitButton } from "../../_components/ui";
+import { ConfirmButton, FormMessage, SubmitButton } from "@/components/ui/kit";
 import { recordMovementAction, type StockState } from "../_actions";
 
 type TxnType = Database["public"]["Enums"]["stock_txn_type"];
@@ -44,11 +44,11 @@ export function MovementForm({
             onChange={(e) => setBatchId(e.target.value)}
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
-            <option value="" className="text-black">
+            <option value="">
               নির্বাচন করুন…
             </option>
             {batches.map((b) => (
-              <option key={b.id} value={b.id} className="text-black">
+              <option key={b.id} value={b.id}>
                 {b.label}
               </option>
             ))}
@@ -64,7 +64,7 @@ export function MovementForm({
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
             {MANUAL_TXN_TYPES.map((t) => (
-              <option key={t} value={t} className="text-black">
+              <option key={t} value={t}>
                 {STOCK_TXN_BN[t].label}
               </option>
             ))}
@@ -100,7 +100,7 @@ export function MovementForm({
               className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
             >
               {(Object.keys(WASTAGE_REASON_BN) as Reason[]).map((r) => (
-                <option key={r} value={r} className="text-black">
+                <option key={r} value={r}>
                   {WASTAGE_REASON_BN[r]}
                 </option>
               ))}
@@ -116,10 +116,10 @@ export function MovementForm({
               defaultValue="in"
               className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
             >
-              <option value="in" className="text-black">
+              <option value="in">
                 মজুদ বাড়াতে (গণনায় বেশি পাওয়া গেছে)
               </option>
-              <option value="out" className="text-black">
+              <option value="out">
                 মজুদ কমাতে (গণনায় কম পাওয়া গেছে)
               </option>
             </select>

@@ -1,8 +1,9 @@
 import { requireRole } from "@/lib/auth";
 import { pctBn, toBn, dateBn } from "@/lib/format";
-import { StatusBadge } from "../_components/ui";
+import { StatusBadge } from "@/components/ui/kit";
 import { CoverageBars, type CoverageRow } from "../_components/Chart";
 import { PrintButton } from "../_components/PrintButton";
+export const metadata = { title: "রিপোর্ট" };
 
 export const dynamic = "force-dynamic";
 

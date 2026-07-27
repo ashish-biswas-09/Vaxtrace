@@ -1,9 +1,10 @@
 import { mfaGate, requireAppRole } from "@/lib/auth";
 import { dateBn, toBn } from "@/lib/format";
-import { EmptyState, PageHeader, StatCard } from "../_components/ui";
+import { EmptyState, PageHeader, StatCard } from "@/components/ui/kit";
 import { PrintButton } from "../_components/PrintButton";
 import { RefreshBoardButton } from "./_components/RefreshBoardButton";
 import { TracingBoard, type TaskRow } from "./_components/TracingBoard";
+export const metadata = { title: "ফলো-আপ বোর্ড" };
 
 export const dynamic = "force-dynamic";
 

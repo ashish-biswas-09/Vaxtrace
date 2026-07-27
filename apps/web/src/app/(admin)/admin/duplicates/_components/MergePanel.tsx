@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { dateBn, toBn } from "@/lib/format";
-import { ConfirmButton, FormMessage, StatusBadge } from "../../_components/ui";
+import { ConfirmButton, FormMessage, StatusBadge } from "@/components/ui/kit";
 import { mergeChildrenAction, type MergeState } from "../_actions";
 import type { DupGroup } from "../duplicates";
 
@@ -102,7 +102,7 @@ export function MergePanel({
             className="mt-1 w-full max-w-md rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
             {losers.map((c) => (
-              <option key={c.id} value={c.id} className="text-black">
+              <option key={c.id} value={c.id}>
                 {c.full_name} · {c.child_id}
               </option>
             ))}

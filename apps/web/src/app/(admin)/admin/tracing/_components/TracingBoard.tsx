@@ -9,8 +9,8 @@ import {
   TRACING_OUTCOME_BN,
   TRACING_STATUS_BN,
 } from "@/lib/programme";
-import { DataTable, type Column } from "../../_components/DataTable";
-import { FormMessage, StatusBadge, SubmitButton } from "../../_components/ui";
+import { DataTable, type Column } from "@/components/ui/DataTable";
+import { FormMessage, StatusBadge, SubmitButton } from "@/components/ui/kit";
 import {
   assignTaskAction,
   closeTaskAction,
@@ -205,11 +205,11 @@ function AssignForm({
           required
           className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
         >
-          <option value="" className="text-black">
+          <option value="">
             নির্বাচন করুন…
           </option>
           {assignees.map((a) => (
-            <option key={a.id} value={a.id} className="text-black">
+            <option key={a.id} value={a.id}>
               {a.name}
             </option>
           ))}
@@ -257,11 +257,11 @@ function CloseForm({ taskId }: { taskId: string }) {
           onChange={(e) => setOutcome(e.target.value as Outcome)}
           className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
         >
-          <option value="" className="text-black">
+          <option value="">
             নির্বাচন করুন…
           </option>
           {(Object.keys(TRACING_OUTCOME_BN) as Outcome[]).map((o) => (
-            <option key={o} value={o} className="text-black">
+            <option key={o} value={o}>
               {TRACING_OUTCOME_BN[o]}
             </option>
           ))}

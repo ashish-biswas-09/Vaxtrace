@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useActionState, useEffect, useRef, useState } from "react";
+import { ConfirmButton } from "@/components/ui/kit";
 import {
   changeEmailAction,
   changePasswordAction,
@@ -85,10 +86,10 @@ export function ProfileForm({
         <label className="text-xs text-[var(--color-muted)]">
           ভাষা
           <select name="locale" defaultValue={locale} className={field}>
-            <option value="bn" className="text-black">
+            <option value="bn">
               বাংলা
             </option>
-            <option value="en" className="text-black">
+            <option value="en">
               English
             </option>
           </select>
@@ -227,18 +228,16 @@ export function AvatarForm({
         </form>
 
         {avatarUrl && (
-          <form
-            action={deleteAvatarAction}
-            onSubmit={(e) => {
-              if (!window.confirm("প্রোফাইল ছবি মুছে ফেলবেন?")) e.preventDefault();
-            }}
-          >
-            <button
-              type="submit"
-              className="rounded-md border border-[var(--color-danger)] px-3 py-1.5 text-xs text-[var(--color-danger)]"
-            >
-              ছবি মুছুন
-            </button>
+          <form action={deleteAvatarAction}>
+            {/* The last window.confirm in the application. The themed dialog also brings the
+                focus trap and the Escape handler the browser dialog gave for free and a
+                hand-rolled overlay would not have. */}
+            <ConfirmButton
+              label="ছবি মুছুন"
+              title="প্রোফাইল ছবি মুছে ফেলবেন?"
+              body="ছবিটি স্থায়ীভাবে মুছে যাবে। আপনি চাইলে পরে নতুন ছবি আপলোড করতে পারবেন।"
+              confirmLabel="মুছে ফেলুন"
+            />
           </form>
         )}
 

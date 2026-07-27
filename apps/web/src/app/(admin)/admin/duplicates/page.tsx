@@ -1,8 +1,9 @@
 import { mfaGate, requireAppRole } from "@/lib/auth";
 import { toBn } from "@/lib/format";
-import { EmptyState, PageHeader, StatCard } from "../_components/ui";
+import { EmptyState, PageHeader, StatCard } from "@/components/ui/kit";
 import { findDuplicateGroups, suggestWinner, type DupChild } from "./duplicates";
 import { MergePanel } from "./_components/MergePanel";
+export const metadata = { title: "সম্ভাব্য ডুপ্লিকেট" };
 
 export const dynamic = "force-dynamic";
 

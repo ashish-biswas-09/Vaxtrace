@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { LEVEL_LABEL_BN, type LocationLevel } from "@/lib/locations";
-import { SubmitButton } from "../../_components/ui";
+import { SubmitButton } from "@/components/ui/kit";
 import { createLocationAction, type GeoState } from "../_actions";
 
 type Option = { id: string; label: string; depth: number; level: LocationLevel };

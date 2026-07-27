@@ -1,6 +1,7 @@
 import { requireAppRole } from "@/lib/auth";
 import { toBn } from "@/lib/format";
-import { StatCard, StatusBadge } from "../_components/ui";
+import { StatCard, StatusBadge } from "@/components/ui/kit";
+export const metadata = { title: "তথ্যের মান" };
 
 export const dynamic = "force-dynamic";
 

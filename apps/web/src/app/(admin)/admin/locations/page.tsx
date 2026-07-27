@@ -1,8 +1,9 @@
 import { getAppRole, mfaGate, requireAppRole } from "@/lib/auth";
 import { toBn } from "@/lib/format";
 import { LEVEL_LABEL_BN, nlevel, type LocationNode } from "@/lib/locations";
-import { StatusBadge } from "../_components/ui";
+import { StatusBadge } from "@/components/ui/kit";
 import { CreateLocationForm } from "./_components/LocationForms";
+export const metadata = { title: "প্রশাসনিক এলাকা" };
 
 export const dynamic = "force-dynamic";
 

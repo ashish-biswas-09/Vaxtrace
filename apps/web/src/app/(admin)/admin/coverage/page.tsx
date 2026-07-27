@@ -3,10 +3,11 @@ import { mfaGate, requireAppRole } from "@/lib/auth";
 import { dateBn, pctBn, toBn } from "@/lib/format";
 import { LEVEL_LABEL_BN, pathTrail, type LocationNode } from "@/lib/locations";
 import { coverageTone, dropoutTone } from "@/lib/programme";
-import { PageHeader, StatCard, StatusBadge } from "../_components/ui";
+import { PageHeader, StatCard, StatusBadge } from "@/components/ui/kit";
 import { PrintButton } from "../_components/PrintButton";
 import { CoverageFilters } from "./_components/CoverageFilters";
 import { TrendBars } from "./_components/TrendBars";
+export const metadata = { title: "এলাকাভিত্তিক কভারেজ" };
 
 export const dynamic = "force-dynamic";
 

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useActionState, useState } from "react";
-import { SubmitButton } from "../../../../(admin)/admin/_components/ui";
+import { SubmitButton } from "@/components/ui/kit";
 import {
   disableMfaAction,
   startEnrollAction,

@@ -1,9 +1,10 @@
 import { mfaGate, requireAppRole } from "@/lib/auth";
 import { dateBn, pctBn, toBn } from "@/lib/format";
 import { LEVEL_LABEL_BN, nlevel, pathTrail, type LocationNode } from "@/lib/locations";
-import { StatCard } from "../_components/ui";
+import { StatCard } from "@/components/ui/kit";
 import { AGE_BANDS } from "./_components/age-bands";
 import { PopulationForm } from "./_components/PopulationForm";
+export const metadata = { title: "জনসংখ্যার হিসাব" };
 
 export const dynamic = "force-dynamic";
 

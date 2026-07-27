@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { toBn } from "@/lib/format";
 import { UsersTable, type UserRow } from "./_components/UsersTable";
 import { InviteUser } from "./_components/InviteUser";
+export const metadata = { title: "ব্যবহারকারী" };
 
 export const dynamic = "force-dynamic";
 

@@ -1,8 +1,11 @@
-import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { toBn, todayIso } from "@/lib/format";
 import { childCoverage } from "./coverage";
 import { ChildrenTable, type ChildRow } from "./_components/ChildrenTable";
+import { Button } from "@/components/ui/Button";
+import { PlusIcon } from "@/components/icons";
+import { PageHeader } from "@/components/ui/kit";
+export const metadata = { title: "শিশু" };
 
 export const dynamic = "force-dynamic";
 
@@ -46,20 +49,15 @@ export default async function ChildrenPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">শিশু</h1>
-          <p className="text-sm text-[var(--color-muted)]">
-            মোট {toBn(rows.length)} জন নিবন্ধিত শিশু — নিবন্ধনের সময় অনুসারে সাজানো
-          </p>
-        </div>
-        <Link
-          href="/admin/children/new"
-          className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-primary-fg)]"
-        >
-          + নতুন শিশু
-        </Link>
-      </header>
+      <PageHeader
+        title="শিশু"
+        description={`মোট ${toBn(rows.length)} জন নিবন্ধিত শিশু — নিবন্ধনের সময় অনুসারে সাজানো`}
+        actions={
+          <Button href="/admin/children/new" icon={<PlusIcon size={16} />}>
+            নতুন শিশু
+          </Button>
+        }
+      />
       <ChildrenTable rows={rows} />
     </div>
   );

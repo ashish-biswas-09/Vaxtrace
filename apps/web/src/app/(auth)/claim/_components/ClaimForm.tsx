@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { SubmitButton } from "../../../(admin)/admin/_components/ui";
+import { SubmitButton } from "@/components/ui/kit";
 import { claimChildAction, type ClaimState } from "../_actions";
 
 export function ClaimForm() {

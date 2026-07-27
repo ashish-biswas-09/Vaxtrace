@@ -1,10 +1,11 @@
 import { mfaGate, requireAppRole } from "@/lib/auth";
 import { toBn, todayIso } from "@/lib/format";
 import { LEVEL_LABEL_BN, nlevel, type LocationNode } from "@/lib/locations";
-import { PageHeader, StatCard } from "../_components/ui";
+import { PageHeader, StatCard } from "@/components/ui/kit";
 import { PrintButton } from "../_components/PrintButton";
 import { PlanSessionForm } from "./_components/PlanSessionForm";
 import { SessionsTable, type SessionRow } from "./_components/SessionsTable";
+export const metadata = { title: "টিকাদান সেশন" };
 
 export const dynamic = "force-dynamic";
 

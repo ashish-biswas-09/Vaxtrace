@@ -1,15 +1,11 @@
 "use server";
 
-import { createClient } from "@/server/supabase/server";
-import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { fromBn } from "@/lib/format";
 
-export async function signOutAction() {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  redirect("/sign-in");
-}
+// signOutAction moved to @/server/session — the account menu that calls it is shared by the
+// admin shell, the worker console and /account. Not re-exported from here: a "use server"
+// module may only export async functions, and nothing imports it from this path any more.
 
 export type ChildHit = { id: string; child_id: string; full_name: string };
 

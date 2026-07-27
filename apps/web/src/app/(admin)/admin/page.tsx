@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { ChildrenIcon, DownloadIcon, PlusIcon, RefreshIcon } from "@/components/icons";
 import { buildWindow, getChildrenCount } from "./_queries";
 import { rangeDays } from "./_components/DateScope";
-import { EmptyState, PageHeader } from "./_components/ui";
+import { EmptyState, PageHeader } from "@/components/ui/kit";
 import {
   ActivityFeed,
   AlertRail,

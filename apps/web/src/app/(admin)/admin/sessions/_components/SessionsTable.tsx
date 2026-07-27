@@ -4,8 +4,8 @@ import { useActionState, useState } from "react";
 import type { Database } from "@vaxtrace/db-types";
 import { dateBn, pctBn, toBn } from "@/lib/format";
 import { SESSION_STATUS_BN, SESSION_TYPE_BN } from "@/lib/programme";
-import { DataTable, type Column } from "../../_components/DataTable";
-import { FormMessage, StatusBadge, SubmitButton } from "../../_components/ui";
+import { DataTable, type Column } from "@/components/ui/DataTable";
+import { FormMessage, StatusBadge, SubmitButton } from "@/components/ui/kit";
 import { cancelSessionAction, type SessionState } from "../_actions";
 
 export type SessionRow = {

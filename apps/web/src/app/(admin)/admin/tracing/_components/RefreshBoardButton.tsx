@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { toBn } from "@/lib/format";
-import { SubmitButton } from "../../_components/ui";
+import { SubmitButton } from "@/components/ui/kit";
 import { refreshBoardAction, type TracingState } from "../_actions";
 
 // Raising the board is additive and idempotent — generate_tracing_tasks() skips any child who

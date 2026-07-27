@@ -1,8 +1,9 @@
 import { requireRole } from "@/lib/auth";
 import { dateBn, toBn } from "@/lib/format";
 import { RELATIONSHIP_LABEL_BN, hasUsablePhone, type GuardianRelationship } from "@/lib/guardians";
-import { StatCard } from "../_components/ui";
+import { StatCard } from "@/components/ui/kit";
 import { GuardiansTable, type GuardianRow } from "./_components/GuardiansTable";
+export const metadata = { title: "অভিভাবক" };
 
 export const dynamic = "force-dynamic";
 

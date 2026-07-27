@@ -2,9 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { toBn, dateBn } from "@/lib/format";
-import { StatusBadge } from "../../_components/ui";
+import { StatusBadge } from "@/components/ui/kit";
 import { batchStatus } from "../status";
 import { BatchEditForm, StockAdjustForm } from "./_components/BatchForms";
+import { SetBreadcrumb } from "../../_components/Breadcrumbs";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,7 @@ export default async function BatchDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="flex max-w-3xl flex-col gap-6">
+      <SetBreadcrumb label={vaccine?.name_bn ?? batch.batch_number} />
       <div>
         <Link href="/admin/inventory" className="text-sm text-[var(--color-muted)] hover:underline">
           ← টিকা মজুদ

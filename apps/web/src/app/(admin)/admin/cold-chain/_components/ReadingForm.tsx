@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { FormMessage, SubmitButton } from "../../_components/ui";
+import { FormMessage, SubmitButton } from "@/components/ui/kit";
 import { addReadingAction, type ColdChainState } from "../_actions";
 
 export function ReadingForm({
@@ -31,7 +31,7 @@ export function ReadingForm({
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
             {devices.map((d) => (
-              <option key={d.id} value={d.id} className="text-black">
+              <option key={d.id} value={d.id}>
                 {d.label}
               </option>
             ))}

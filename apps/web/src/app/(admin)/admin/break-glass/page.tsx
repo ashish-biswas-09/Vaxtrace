@@ -1,7 +1,8 @@
 import { mfaGate, requireAppRole } from "@/lib/auth";
 import { dateTimeBn, toBn } from "@/lib/format";
-import { StatCard, StatusBadge } from "../_components/ui";
+import { StatCard, StatusBadge } from "@/components/ui/kit";
 import { ReviewButton } from "./_components/ReviewButton";
+export const metadata = { title: "জরুরি প্রবেশাধিকার" };
 
 export const dynamic = "force-dynamic";
 

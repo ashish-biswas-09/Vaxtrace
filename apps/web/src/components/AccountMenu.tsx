@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { signOutAction } from "../_actions";
+import { signOutAction } from "@/server/session";
 
 const ROLE_BN: Record<string, string> = {
   admin: "অ্যাডমিন",

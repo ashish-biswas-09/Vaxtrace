@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireRole, getUserRole } from "@/lib/auth";
-import { AccountMenu } from "../../(admin)/admin/_components/AccountMenu";
+import { AccountMenu } from "@/components/AccountMenu";
 
 // Worker shell. Deliberately lighter than the admin one: a worker uses this on a phone or a
 // tablet at a clinic, so navigation is a horizontal bar rather than a fixed sidebar.

@@ -1,8 +1,9 @@
 import { mfaGate, requireAppRole } from "@/lib/auth";
 import { toBn, todayIso } from "@/lib/format";
-import { PageHeader, StatCard } from "../_components/ui";
+import { PageHeader, StatCard } from "@/components/ui/kit";
 import { NewRequisitionForm } from "./_components/NewRequisitionForm";
 import { RequisitionList, type RequisitionRow } from "./_components/RequisitionList";
+export const metadata = { title: "চাহিদাপত্র" };
 
 export const dynamic = "force-dynamic";
 

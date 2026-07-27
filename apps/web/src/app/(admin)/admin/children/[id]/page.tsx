@@ -9,11 +9,12 @@ import {
   type ChildStatus,
   type GuardianRelationship,
 } from "@/lib/guardians";
-import { StatCard, StatusBadge } from "../../_components/ui";
+import { StatCard, StatusBadge } from "@/components/ui/kit";
 import { buildHistory, summarise, type DoseStatus } from "./history";
 import { ChildStatusForm } from "./_components/ChildStatusForm";
 import { DoseNote } from "./_components/DoseNote";
 import { VoidDose } from "./_components/VoidDose";
+import { SetBreadcrumb } from "../../_components/Breadcrumbs";
 
 export const dynamic = "force-dynamic";
 
@@ -97,6 +98,7 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="flex flex-col gap-8">
+      <SetBreadcrumb label={child.full_name} />
       <div>
         <Link href="/admin/children" className="text-sm text-[var(--color-primary)]">
           ← শিশু তালিকা

@@ -3,8 +3,8 @@
 import type { Database } from "@vaxtrace/db-types";
 import { dateBn, dateTimeBn, toBn } from "@/lib/format";
 import { STOCK_TXN_BN, WASTAGE_REASON_BN } from "@/lib/programme";
-import { DataTable, type Column } from "../../_components/DataTable";
-import { StatusBadge } from "../../_components/ui";
+import { DataTable, type Column } from "@/components/ui/DataTable";
+import { StatusBadge } from "@/components/ui/kit";
 
 export type LedgerRow = {
   id: string;

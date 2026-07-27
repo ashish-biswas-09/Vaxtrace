@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { SubmitButton } from "../../../(admin)/admin/_components/ui";
+import { SubmitButton } from "@/components/ui/kit";
 import { setWorkingAreaAction, type ScopeState } from "../_actions";
 
 type Option = {

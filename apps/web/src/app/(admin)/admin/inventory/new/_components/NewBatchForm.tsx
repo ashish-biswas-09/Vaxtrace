@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { createBatchAction, type ActionState } from "../../_actions";
-import { SubmitButton } from "../../../_components/ui";
+import { SubmitButton } from "@/components/ui/kit";
 
 const field = "rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm";
 
@@ -23,11 +23,11 @@ export function NewBatchForm({ vaccines }: { vaccines: { id: string; name_bn: st
       <label className="flex flex-col gap-1 text-sm">
         টিকা
         <select name="vaccine_id" required defaultValue="" className={field}>
-          <option value="" disabled className="text-black">
+          <option value="" disabled>
             নির্বাচন করুন
           </option>
           {vaccines.map((v) => (
-            <option key={v.id} value={v.id} className="text-black">
+            <option key={v.id} value={v.id}>
               {v.name_bn}
             </option>
           ))}

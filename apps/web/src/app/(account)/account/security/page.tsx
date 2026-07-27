@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { APP_ROLE_LABEL_BN, getClaims, requireUser } from "@/lib/auth";
 import { dateTimeBn } from "@/lib/format";
-import { StatusBadge } from "../../../(admin)/admin/_components/ui";
+import { StatusBadge } from "@/components/ui/kit";
 import { MfaDisablePanel, MfaEnrollPanel } from "./_components/MfaPanel";
 
 export const dynamic = "force-dynamic";

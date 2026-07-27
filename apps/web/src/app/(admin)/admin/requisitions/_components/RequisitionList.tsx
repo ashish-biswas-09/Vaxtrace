@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import type { Database } from "@vaxtrace/db-types";
 import { dateBn, toBn } from "@/lib/format";
 import { REQUISITION_STATUS_BN } from "@/lib/programme";
-import { ConfirmButton, EmptyState, FormMessage, StatusBadge, SubmitButton } from "../../_components/ui";
+import { ConfirmButton, EmptyState, FormMessage, StatusBadge, SubmitButton } from "@/components/ui/kit";
 import {
   confirmReceiptAction,
   decideRequisitionAction,

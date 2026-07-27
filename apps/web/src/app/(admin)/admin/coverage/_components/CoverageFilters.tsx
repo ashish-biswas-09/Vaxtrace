@@ -36,11 +36,11 @@ export function CoverageFilters({
           defaultValue={current.vaccine}
           className="mt-1 block w-56 rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
         >
-          <option value="all" className="text-black">
+          <option value="all">
             সব টিকা (জনসংখ্যা-ভিত্তিক হিসাব ছাড়া)
           </option>
           {vaccines.map((v) => (
-            <option key={v.id} value={v.id} className="text-black">
+            <option key={v.id} value={v.id}>
               {v.label}
             </option>
           ))}
@@ -55,7 +55,7 @@ export function CoverageFilters({
           className="mt-1 block w-28 rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
         >
           {years.map((y) => (
-            <option key={y} value={y} className="text-black">
+            <option key={y} value={y}>
               {y}
             </option>
           ))}

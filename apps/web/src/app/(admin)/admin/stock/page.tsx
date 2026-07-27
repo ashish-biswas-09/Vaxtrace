@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { mfaGate, requireAppRole } from "@/lib/auth";
 import { dateBn, dateTimeBn, pctBn, toBn, todayIso } from "@/lib/format";
-import { PageHeader, StatCard, StatusBadge } from "../_components/ui";
+import { PageHeader, StatCard, StatusBadge } from "@/components/ui/kit";
 import { PrintButton } from "../_components/PrintButton";
 import { MovementForm } from "./_components/MovementForm";
 import { LedgerTable, type LedgerRow } from "./_components/LedgerTable";
+export const metadata = { title: "স্টক লেজার" };
 
 export const dynamic = "force-dynamic";
 

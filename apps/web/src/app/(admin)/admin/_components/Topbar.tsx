@@ -2,12 +2,12 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { BellIcon } from "@/components/icons";
 import { toBn } from "@/lib/format";
-import { AccountMenu } from "./AccountMenu";
+import { AccountMenu } from "@/components/AccountMenu";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { CommandPalette } from "./CommandPalette";
 import { DateScope } from "./DateScope";
 import { MobileDrawer } from "./MobileDrawer";
-import { ThemeToggle } from "./ThemeToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import type { NavCounts } from "./AdminNav";
 
 // The header used to hold a theme toggle and an avatar and nothing else — no title, no way

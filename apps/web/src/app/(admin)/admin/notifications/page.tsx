@@ -1,9 +1,10 @@
 import { requireRole } from "@/lib/auth";
 import { toBn } from "@/lib/format";
-import { StatCard } from "../_components/ui";
+import { StatCard } from "@/components/ui/kit";
 import { NOTIF_STATUS } from "./status";
 import { NotificationsTable, type NotifRow } from "./_components/NotificationsTable";
 import { RunRemindersButton } from "./_components/RunRemindersButton";
+export const metadata = { title: "বিজ্ঞপ্তি ও জব" };
 
 export const dynamic = "force-dynamic";
 

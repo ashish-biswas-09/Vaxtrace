@@ -2,9 +2,10 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { ageBn, dateBn, toBn } from "@/lib/format";
 import { pathTrail, type LocationNode } from "@/lib/locations";
-import { EmptyState, PageHeader, StatCard } from "../_components/ui";
+import { EmptyState, PageHeader, StatCard } from "@/components/ui/kit";
 import { PrintButton } from "../_components/PrintButton";
 import { ZeroDoseTable, type ZeroDoseRow } from "./_components/ZeroDoseTable";
+export const metadata = { title: "শূন্য-ডোজ শিশু" };
 
 export const dynamic = "force-dynamic";
 

@@ -1,10 +1,11 @@
 import { mfaGate, requireAppRole } from "@/lib/auth";
 import { dateTimeBn, toBn } from "@/lib/format";
 import { DEVICE_KIND_BN } from "@/lib/programme";
-import { EmptyState, PageHeader, StatCard, StatusBadge } from "../_components/ui";
+import { EmptyState, PageHeader, StatCard, StatusBadge } from "@/components/ui/kit";
 import { AddDeviceForm } from "./_components/AddDeviceForm";
 import { ReadingForm } from "./_components/ReadingForm";
 import { ReadingsTable, type ReadingRow } from "./_components/ReadingsTable";
+export const metadata = { title: "কোল্ড চেইন" };
 
 export const dynamic = "force-dynamic";
 

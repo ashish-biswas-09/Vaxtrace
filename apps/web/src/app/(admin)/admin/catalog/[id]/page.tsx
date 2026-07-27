@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { VaccineForm } from "../_components/VaccineForm";
 import { DosesForm } from "../_components/DosesForm";
+import { SetBreadcrumb } from "../../_components/Breadcrumbs";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ export default async function EditVaccinePage({ params }: { params: Promise<{ id
 
   return (
     <div className="flex max-w-2xl flex-col gap-6">
+      <SetBreadcrumb label={vaccine.name_bn} />
       <div>
         <Link href="/admin/catalog" className="text-sm text-[var(--color-muted)] hover:underline">
           ← টিকা তালিকা

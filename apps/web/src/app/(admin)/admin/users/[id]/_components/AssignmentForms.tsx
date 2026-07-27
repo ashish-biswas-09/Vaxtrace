@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 // From @/lib/roles, not @/lib/auth: this is a Client Component, and lib/auth reaches
 // next/headers through the Supabase server client.
 import { APP_ROLE_LABEL_BN, GRANTABLE_ROLES, type AppRole } from "@/lib/roles";
-import { ConfirmButton, SubmitButton } from "../../../_components/ui";
+import { ConfirmButton, SubmitButton } from "@/components/ui/kit";
 import {
   grantAssignmentAction,
   revokeAssignmentAction,

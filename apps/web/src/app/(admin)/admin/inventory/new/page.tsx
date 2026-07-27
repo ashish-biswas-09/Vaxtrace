@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { NewBatchForm } from "./_components/NewBatchForm";
+export const metadata = { title: "নতুন ব্যাচ" };
 
 export const dynamic = "force-dynamic";
 

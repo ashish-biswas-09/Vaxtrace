@@ -7,12 +7,13 @@ import {
   pathTrail,
   type LocationNode,
 } from "@/lib/locations";
-import { StatusBadge } from "../_components/ui";
+import { StatusBadge } from "@/components/ui/kit";
 import {
   CatchmentEditor,
   CreateFacilityForm,
   RemoveCatchmentButton,
 } from "./_components/FacilityForms";
+export const metadata = { title: "সেবা কেন্দ্র" };
 
 export const dynamic = "force-dynamic";
 

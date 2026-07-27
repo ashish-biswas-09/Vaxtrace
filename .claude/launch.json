@@ -2,11 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "vaxtrace-web",
+      "name": "web",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@vaxtrace/web", "dev"],
-      "port": 3000,
-      "autoPort": true
+      "port": 3000
     }
   ]
 }

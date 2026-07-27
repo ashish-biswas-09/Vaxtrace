@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import type { Database } from "@vaxtrace/db-types";
 import { DEVICE_KIND_BN } from "@/lib/programme";
-import { FormMessage, SubmitButton } from "../../_components/ui";
+import { FormMessage, SubmitButton } from "@/components/ui/kit";
 import { addDeviceAction, type ColdChainState } from "../_actions";
 
 type Kind = Database["public"]["Enums"]["cold_chain_device_kind"];
@@ -32,11 +32,11 @@ export function AddDeviceForm({ facilities }: { facilities: { id: string; label:
             required
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
-            <option value="" className="text-black">
+            <option value="">
               নির্বাচন করুন…
             </option>
             {facilities.map((f) => (
-              <option key={f.id} value={f.id} className="text-black">
+              <option key={f.id} value={f.id}>
                 {f.label}
               </option>
             ))}
@@ -65,7 +65,7 @@ export function AddDeviceForm({ facilities }: { facilities: { id: string; label:
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
           >
             {(Object.keys(DEVICE_KIND_BN) as Kind[]).map((k) => (
-              <option key={k} value={k} className="text-black">
+              <option key={k} value={k}>
                 {DEVICE_KIND_BN[k]}
               </option>
             ))}

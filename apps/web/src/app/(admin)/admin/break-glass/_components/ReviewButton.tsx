@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { SubmitButton } from "../../_components/ui";
+import { SubmitButton } from "@/components/ui/kit";
 import { reviewBreakGlassAction, type ReviewState } from "../_actions";
 
 export function ReviewButton({ id }: { id: string }) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { SubmitButton } from "../../_components/ui";
+import { SubmitButton } from "@/components/ui/kit";
 import { upsertPopulationAction, type PopulationState } from "../_actions";
 import { AGE_BANDS } from "./age-bands";
 

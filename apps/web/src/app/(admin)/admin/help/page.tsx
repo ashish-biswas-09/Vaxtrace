@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
-import { PageHeader } from "../_components/ui";
+import { PageHeader } from "@/components/ui/kit";
+export const metadata = { title: "সহায়িকা" };
 
 export const dynamic = "force-dynamic";
 

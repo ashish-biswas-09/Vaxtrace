@@ -18,7 +18,7 @@ import {
 import { Callout } from "./Callout";
 import { CoverageBars, TrendArea, type CoverageRow } from "./Chart";
 import { QueueCard, type QueueRow } from "./QueueCard";
-import { StatCard, StatusBadge } from "./ui";
+import { StatCard, StatusBadge } from "@/components/ui/kit";
 
 // One async component per dashboard zone, each awaited inside its own <Suspense> in the page.
 // Severity descends: what needs a decision today, then the numbers that justify one, then the
