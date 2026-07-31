@@ -588,10 +588,11 @@ update notifications n
    set child_id = s.child_id,
        guardian_id = c.guardian_id,
        send_date = n.due_date,
-       recipient_to = p.contact
+       -- Scalar subquery, not a join: the UPDATE target may not be referenced from a join
+       -- condition inside its own FROM clause.
+       recipient_to = (select p.contact from profiles p where p.id = n.recipient_id)
   from schedules s
   join children c on c.id = s.child_id
-  left join profiles p on p.id = n.recipient_id
  where s.id = n.schedule_id and n.child_id is null;
 
 -- Legacy rows that cannot be resolved (a schedule since deleted) would block the NOT NULLs.

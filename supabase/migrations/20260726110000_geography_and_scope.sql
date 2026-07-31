@@ -941,7 +941,7 @@ create policy inventories_select on inventories for select using (
   (select auth_role()) in ('worker','admin')
   and (
     facility_id is null
-    or facility_id = any ((select auth_facilities()))
+    or facility_id = any ((select auth_facilities())::uuid[])
     or exists (select 1 from facilities f join locations l on l.id = f.location_id
                 where f.id = inventories.facility_id
                   and l.path <@ any ((select auth_scopes())))
@@ -952,7 +952,7 @@ create policy inventories_insert on inventories for insert with check (
   (select auth_role()) in ('worker','admin')
   and (
     facility_id is null
-    or facility_id = any ((select auth_facilities()))
+    or facility_id = any ((select auth_facilities())::uuid[])
     or exists (select 1 from facilities f join locations l on l.id = f.location_id
                 where f.id = inventories.facility_id
                   and l.path <@ any ((select auth_scopes())))
@@ -964,7 +964,7 @@ create policy inventories_update on inventories for update
     (select auth_role()) in ('worker','admin')
     and (
       facility_id is null
-      or facility_id = any ((select auth_facilities()))
+      or facility_id = any ((select auth_facilities())::uuid[])
       or exists (select 1 from facilities f join locations l on l.id = f.location_id
                   where f.id = inventories.facility_id
                     and l.path <@ any ((select auth_scopes())))
@@ -974,7 +974,7 @@ create policy inventories_update on inventories for update
     (select auth_role()) in ('worker','admin')
     and (
       facility_id is null
-      or facility_id = any ((select auth_facilities()))
+      or facility_id = any ((select auth_facilities())::uuid[])
       or exists (select 1 from facilities f join locations l on l.id = f.location_id
                   where f.id = inventories.facility_id
                     and l.path <@ any ((select auth_scopes())))

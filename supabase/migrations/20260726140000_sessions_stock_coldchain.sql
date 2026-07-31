@@ -841,7 +841,7 @@ create policy stock_transactions_select on stock_transactions for select using (
   (select auth_role()) in ('worker','admin')
   and (
     facility_id is null
-    or facility_id = any ((select auth_facilities()))
+    or facility_id = any ((select auth_facilities())::uuid[])
     or exists (select 1 from facilities f join locations l on l.id = f.location_id
                 where f.id = stock_transactions.facility_id
                   and l.path <@ any ((select auth_scopes())))
@@ -859,7 +859,7 @@ create policy stock_transactions_insert on stock_transactions for insert with ch
      where i.id = stock_transactions.inventory_id
        and (
          i.facility_id is null
-         or i.facility_id = any ((select auth_facilities()))
+         or i.facility_id = any ((select auth_facilities())::uuid[])
          or exists (select 1 from facilities f join locations l on l.id = f.location_id
                      where f.id = i.facility_id
                        and l.path <@ any ((select auth_scopes())))
@@ -876,7 +876,7 @@ create policy requisitions_select on requisitions for select using (
   and exists (
     select 1 from facilities f join locations l on l.id = f.location_id
      where f.id in (requisitions.from_facility_id, requisitions.to_facility_id)
-       and (f.id = any ((select auth_facilities())) or l.path <@ any ((select auth_scopes())))
+       and (f.id = any ((select auth_facilities())::uuid[]) or l.path <@ any ((select auth_scopes())))
   )
 );
 create policy requisitions_insert on requisitions for insert with check (
@@ -885,7 +885,7 @@ create policy requisitions_insert on requisitions for insert with check (
   and exists (
     select 1 from facilities f join locations l on l.id = f.location_id
      where f.id = requisitions.from_facility_id
-       and (f.id = any ((select auth_facilities())) or l.path <@ any ((select auth_scopes())))
+       and (f.id = any ((select auth_facilities())::uuid[]) or l.path <@ any ((select auth_scopes())))
   )
 );
 -- Deciding is the supplying store's call, not the requester's. Restricting the UPDATE to the
@@ -896,7 +896,7 @@ create policy requisitions_update on requisitions for update
     and exists (
       select 1 from facilities f join locations l on l.id = f.location_id
        where f.id = requisitions.to_facility_id
-         and (f.id = any ((select auth_facilities())) or l.path <@ any ((select auth_scopes())))
+         and (f.id = any ((select auth_facilities())::uuid[]) or l.path <@ any ((select auth_scopes())))
     )
   )
   with check (
@@ -904,7 +904,7 @@ create policy requisitions_update on requisitions for update
     and exists (
       select 1 from facilities f join locations l on l.id = f.location_id
        where f.id = requisitions.to_facility_id
-         and (f.id = any ((select auth_facilities())) or l.path <@ any ((select auth_scopes())))
+         and (f.id = any ((select auth_facilities())::uuid[]) or l.path <@ any ((select auth_scopes())))
     )
   );
 
@@ -919,7 +919,7 @@ create policy requisitions_receive on requisitions for update
     and exists (
       select 1 from facilities f join locations l on l.id = f.location_id
        where f.id = requisitions.from_facility_id
-         and (f.id = any ((select auth_facilities())) or l.path <@ any ((select auth_scopes())))
+         and (f.id = any ((select auth_facilities())::uuid[]) or l.path <@ any ((select auth_scopes())))
     )
   )
   with check (
@@ -927,7 +927,7 @@ create policy requisitions_receive on requisitions for update
     and exists (
       select 1 from facilities f join locations l on l.id = f.location_id
        where f.id = requisitions.from_facility_id
-         and (f.id = any ((select auth_facilities())) or l.path <@ any ((select auth_scopes())))
+         and (f.id = any ((select auth_facilities())::uuid[]) or l.path <@ any ((select auth_scopes())))
     )
   );
 
@@ -949,7 +949,7 @@ create policy requisition_lines_update on requisition_lines for update
              join facilities f on f.id = r.to_facility_id
              join locations  l on l.id = f.location_id
             where r.id = requisition_lines.requisition_id
-              and (f.id = any ((select auth_facilities()))
+              and (f.id = any ((select auth_facilities())::uuid[])
                    or l.path <@ any ((select auth_scopes()))))
   )
   with check (
@@ -957,7 +957,7 @@ create policy requisition_lines_update on requisition_lines for update
              join facilities f on f.id = r.to_facility_id
              join locations  l on l.id = f.location_id
             where r.id = requisition_lines.requisition_id
-              and (f.id = any ((select auth_facilities()))
+              and (f.id = any ((select auth_facilities())::uuid[])
                    or l.path <@ any ((select auth_scopes()))))
   );
 
@@ -968,7 +968,7 @@ create policy requisition_lines_update on requisition_lines for update
 create policy cold_chain_devices_select on cold_chain_devices for select using (
   (select auth_role()) in ('worker','admin')
   and (
-    facility_id = any ((select auth_facilities()))
+    facility_id = any ((select auth_facilities())::uuid[])
     or exists (select 1 from facilities f join locations l on l.id = f.location_id
                 where f.id = cold_chain_devices.facility_id
                   and l.path <@ any ((select auth_scopes())))

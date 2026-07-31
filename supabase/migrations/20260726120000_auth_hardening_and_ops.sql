@@ -385,10 +385,10 @@ revoke execute on function public.job_refresh_doses()                   from ano
 revoke execute on function public.job_purge_rate_limits()               from anon, authenticated, public;
 
 -- Repoint every schedule at its instrumented wrapper.
-select cron.unschedule('enqueue-reminders');
-select cron.unschedule('reconcile-schedules');
-select cron.unschedule('refresh-doses');
-select cron.unschedule('purge-rate-limits');
+-- Unschedule by lookup, not by name: cron.unschedule(name) throws when the job is absent, and
+-- 'purge-rate-limits' has never been scheduled — it is registered for the first time below.
+select cron.unschedule(jobid) from cron.job
+ where jobname in ('enqueue-reminders','reconcile-schedules','refresh-doses','purge-rate-limits');
 
 select cron.schedule('enqueue-reminders',   '30 0 * * *', $cron$select public.job_enqueue_reminders()$cron$);
 select cron.schedule('reconcile-schedules', '0 1 * * *',  $cron$select public.job_reconcile_schedules()$cron$);

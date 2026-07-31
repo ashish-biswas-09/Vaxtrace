@@ -636,7 +636,10 @@ revoke execute on function public.trg_record_after_void() from anon, authenticat
 -- Dropout, per WHO: (dose 1 − dose N) / dose 1, on the same cohort. One scan, conditional
 -- aggregation, and the numerator and denominator stay visible next to the rate — a rate
 -- without its N is not a statistic (20260725120000).
-create or replace view v_dropout
+-- Dropped rather than replaced: the old view's second column was `started`, and CREATE OR
+-- REPLACE VIEW may only append columns, never rename or reposition them.
+drop view if exists v_dropout;
+create view v_dropout
 with (security_invoker = true) as
 select v.code, v.name_en, v.name_bn,
        count(distinct r.child_id) filter (where r.dose_number = 1)             as started,
