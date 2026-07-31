@@ -241,57 +241,66 @@ export async function getFailedQueue() {
   const supabase = await requireRole("admin");
   const { data: rows } = await supabase
     .from("notifications")
-    .select("id, recipient_id, channel, status, last_error, scheduled_for")
+    .select("id, guardian_id, channel, status, last_error, scheduled_for")
     .in("status", ["failed", "dead"])
     .order("scheduled_for", { ascending: false })
     .limit(5);
 
-  // recipient_id is nullable since the guardian split — a queued row can outlive the profile
-  // it was addressed to.
+  // The name comes from `guardians`, not `profiles`. Since the guardian split a reminder is
+  // addressed to a guardian record, and `recipient_id` — the profile — is only populated for
+  // the small minority who have claimed an account, so resolving through it left every row
+  // in this queue labelled "—".
   const ids = [
-    ...new Set((rows ?? []).map((r) => r.recipient_id).filter((id): id is string => !!id)),
+    ...new Set((rows ?? []).map((r) => r.guardian_id).filter((id): id is string => !!id)),
   ];
   const { data: people } = ids.length
-    ? await supabase.from("profiles").select("id, full_name").in("id", ids)
+    ? await supabase.from("guardians").select("id, full_name").in("id", ids)
     : { data: [] };
   const nameById = new Map((people ?? []).map((p) => [p.id, p.full_name]));
 
   return (rows ?? []).map((r) => ({
     id: r.id,
-    name: (r.recipient_id ? nameById.get(r.recipient_id) : null) ?? "—",
+    name: (r.guardian_id ? nameById.get(r.guardian_id) : null) ?? "—",
     channel: r.channel,
     status: r.status,
     error: r.last_error,
   }));
 }
 
-// ── Activity ────────────────────────────────────────────────────────────────────
+// ── Session plan ────────────────────────────────────────────────────────────────
 //
-// The audit *screen* is gone; the trail is not. This feed is what remains of it on the admin
-// surface, and it is the only thing that answers "who changed this" without opening the
-// database.
-
-export async function getActivity() {
+// This slot used to hold a raw audit feed. In practice it filled with rows nobody acts on —
+// eight identical `notification_preferences.insert` lines attributed to "সিস্টেম" — because
+// the audit trail records every trigger write, not the handful of human decisions worth
+// surfacing. The trail is still there and still queryable; it is just not a dashboard.
+//
+// What an officer opening this screen actually needs is the work plan: which sessions run in
+// the next fortnight, who leads them, and whether the ones that already ran produced doses.
+export async function getSessionPlan() {
   const supabase = await requireRole("admin");
+  const today = todayIso();
+
   const { data: rows } = await supabase
-    .from("audit_log")
-    .select("id, action, at, actor_id")
-    .order("at", { ascending: false })
+    .from("v_session_tally")
+    .select(
+      "session_id, code, session_date, type, status, facility_name_bn, target_children, doses_given, children_served",
+    )
+    .gte("session_date", shift(today, -7))
+    .lte("session_date", shift(today, 21))
+    .order("session_date", { ascending: true })
     .limit(8);
 
-  const ids = [...new Set((rows ?? []).map((r) => r.actor_id).filter(Boolean))] as string[];
-  const { data: actors } = ids.length
-    ? await supabase.from("profiles").select("id, full_name").in("id", ids)
-    : { data: [] };
-  const nameById = new Map((actors ?? []).map((a) => [a.id, a.full_name]));
-
   return (rows ?? []).map((r) => ({
-    id: r.id,
-    action: r.action,
-    at: r.at,
-    // Rows written by the nightly sweep and the schedule triggers have no actor. "সিস্টেম" is
-    // the honest attribution — a blank cell reads like missing data.
-    actor: r.actor_id ? (nameById.get(r.actor_id) ?? "—") : "সিস্টেম",
+    id: r.session_id as string,
+    code: r.code as string,
+    date: r.session_date as string,
+    type: r.type as string,
+    status: r.status as string,
+    facility: (r.facility_name_bn as string | null) ?? "—",
+    target: (r.target_children as number | null) ?? null,
+    doses: (r.doses_given as number | null) ?? 0,
+    children: (r.children_served as number | null) ?? 0,
+    isToday: r.session_date === today,
   }));
 }
 

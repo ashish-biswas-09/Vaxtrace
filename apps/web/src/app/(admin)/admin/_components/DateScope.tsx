@@ -2,26 +2,13 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronDownIcon } from "@/components/icons";
+import { DEFAULT_RANGE, RANGES } from "./ranges";
 
 // Nothing on the admin surface could be scoped to a period: every number was "all time" or
 // "now", and a coverage figure with no window is not a figure a programme officer can quote.
 //
 // The window lives in the URL so a scoped view is shareable and survives a reload, and only
 // the two screens that actually read it render the control.
-
-export const RANGES = [
-  { value: "7", label: "গত ৭ দিন", days: 7 },
-  { value: "30", label: "গত ৩০ দিন", days: 30 },
-  { value: "90", label: "গত ৯০ দিন", days: 90 },
-  { value: "365", label: "গত ১ বছর", days: 365 },
-] as const;
-
-export const DEFAULT_RANGE = "30";
-
-/** Days for a `range` search param, clamped to the allowed set. */
-export function rangeDays(value: string | undefined): number {
-  return RANGES.find((r) => r.value === value)?.days ?? 30;
-}
 
 const SCOPED = ["/admin", "/admin/reports"];
 

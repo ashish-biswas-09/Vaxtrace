@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth";
 import { toBn, todayIso } from "@/lib/format";
-import { childCoverage } from "./coverage";
+import { childCoverage, type Sched } from "./coverage";
+import { selectAll } from "@/lib/paged";
 import { ChildrenTable, type ChildRow } from "./_components/ChildrenTable";
 import { Button } from "@/components/ui/Button";
 import { PlusIcon } from "@/components/icons";
@@ -12,13 +13,18 @@ export const dynamic = "force-dynamic";
 export default async function ChildrenPage() {
   const supabase = await requireRole("admin");
 
-  const [{ data: kids }, { data: scheds }] = await Promise.all([
+  const [{ data: kids }, scheds] = await Promise.all([
     supabase
       .from("children")
       .select("id, child_id, full_name, date_of_birth, gender, guardian_id, status, created_at")
       .is("deleted_at", null)
       .order("created_at", { ascending: false }),
-    supabase.from("schedules").select("child_id, status, due_date"),
+    // Paged: one schedule row per child per dose is thousands of rows, and a plain select
+    // stops at the PostgREST row cap without saying so — which showed as "—" coverage for
+    // every child whose schedule rows fell past it.
+    selectAll<Sched>(() =>
+      supabase.from("schedules").select("child_id, status, due_date").order("child_id"),
+    ),
   ]);
 
   // The guardian is a domain record now, not a profile — and it is the single source of truth
@@ -29,7 +35,7 @@ export default async function ChildrenPage() {
     : { data: [] as { id: string; full_name: string; phone: string }[] };
   const guardianById = new Map((guardians ?? []).map((g) => [g.id, g]));
 
-  const rateFor = childCoverage(scheds ?? [], todayIso());
+  const rateFor = childCoverage(scheds, todayIso());
 
   const rows: ChildRow[] = (kids ?? []).map((k) => {
     const g = guardianById.get(k.guardian_id);

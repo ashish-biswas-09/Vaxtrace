@@ -47,8 +47,17 @@ export default async function LocationsPage() {
     facilityCount.set(f.location_id, (facilityCount.get(f.location_id) ?? 0) + 1);
   }
 
-  const open = nodes.filter((n) => n.valid_to === null);
+  // The country root is the anchor of every ltree path and the scope a national posting
+  // attaches to, so it stays in the database — but it is not an administrative area anyone
+  // administers, and listing it as a row just repeats the grand total under the name
+  // "বাংলাদেশ". The table starts at the divisions, which is where the hierarchy becomes
+  // operational. The same rule is why the area picker's first select offers divisions.
+  const areas = nodes.filter((n) => n.parent_id !== null);
+  const open = areas.filter((n) => n.valid_to === null);
   const withoutGeoCode = open.filter((n) => !n.geo_code).length;
+  // The root is still offered as a PARENT — a new division has to hang off something — it is
+  // only excluded from the list of areas.
+  const parentOptions = nodes.filter((n) => n.valid_to === null);
 
   return (
     <div className="flex flex-col gap-6">
@@ -94,8 +103,10 @@ export default async function LocationsPage() {
             </tr>
           </thead>
           <tbody>
-            {nodes.map((n) => {
-              const depth = nlevel(n.path) - 1;
+            {areas.map((n) => {
+              // Depth is measured from the divisions, so the first column is not indented by
+              // a root that is no longer shown.
+              const depth = nlevel(n.path) - 2;
               return (
                 <tr
                   key={n.id}
@@ -148,7 +159,7 @@ export default async function LocationsPage() {
             খোলা হয়, যাতে পুরনো রিপোর্ট অপরিবর্তিত থাকে।
           </p>
           <CreateLocationForm
-            options={open
+            options={parentOptions
               .filter((n) => n.level !== "village" && n.level !== "mahalla")
               .map((n) => ({
                 id: n.id,

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireRole, requireUser } from "@/lib/auth";
 import { todayIso } from "@/lib/format";
-import { LEVEL_LABEL_BN, nlevel, type LocationNode } from "@/lib/locations";
+import { type LocationNode } from "@/lib/locations";
 import { RegisterChildForm } from "../../../../(worker)/worker/_components/RegisterChildForm";
 export const metadata = { title: "নতুন শিশু নিবন্ধন" };
 
@@ -41,11 +41,7 @@ export default async function AdminRegisterChildPage() {
       </div>
       <RegisterChildForm
         guardians={guardians ?? []}
-        areas={nodes.map((n) => ({
-          id: n.id,
-          depth: nlevel(n.path) - 1,
-          label: `${n.name_bn} · ${LEVEL_LABEL_BN[n.level]}`,
-        }))}
+        areas={nodes}
         today={todayIso()}
         defaultAreaId={profile?.default_location_id ?? null}
       />

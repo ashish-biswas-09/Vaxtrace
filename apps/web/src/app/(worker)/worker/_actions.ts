@@ -41,6 +41,9 @@ const schema = z
     guardian_id: z.string().uuid().or(z.literal("")),
     guardian_name: z.string().trim().max(120),
     guardian_phone: z.string().transform(digits),
+    // The house, not the area. The ward says which report a child lands in; the address is
+    // what a worker walks to, and a route list without it is a list of names.
+    guardian_address: z.string().trim().max(300),
     guardian_relationship: z.enum([
       "mother",
       "father",
@@ -78,6 +81,7 @@ export async function registerChildAction(
     guardian_id: formData.get("guardian_id") ?? "",
     guardian_name: formData.get("guardian_name") ?? "",
     guardian_phone: formData.get("guardian_phone") ?? "",
+    guardian_address: formData.get("guardian_address") ?? "",
     guardian_relationship: formData.get("guardian_relationship") ?? "mother",
     confirmed_new: formData.get("confirmed_new")?.toString(),
   });
@@ -141,6 +145,7 @@ export async function registerChildAction(
         full_name: parsed.data.guardian_name,
         phone: parsed.data.guardian_phone,
         relationship: parsed.data.guardian_relationship,
+        address: parsed.data.guardian_address || null,
         location_id: parsed.data.location_id,
         created_by: user.id,
       })

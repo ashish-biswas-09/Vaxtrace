@@ -2,6 +2,8 @@
 
 import { useActionState, useState } from "react";
 import { RELATIONSHIP_LABEL_BN, hasUsablePhone } from "@/lib/guardians";
+import { AreaCascade } from "@/components/AreaCascade";
+import type { LocationNode } from "@/lib/locations";
 import { registerChildAction, type RegisterState } from "../_actions";
 
 const field =
@@ -13,7 +15,9 @@ export type GuardianOption = {
   phone: string;
 };
 
-export type AreaOption = { id: string; label: string; depth: number };
+// The picker needs the tree, not a pre-flattened list: it walks parent_id to build one select
+// per administrative level.
+export type AreaOption = LocationNode;
 
 const RELATIONSHIPS = Object.keys(RELATIONSHIP_LABEL_BN) as (keyof typeof RELATIONSHIP_LABEL_BN)[];
 
@@ -108,26 +112,27 @@ export function RegisterChildForm({
           </label>
         </div>
 
+        <fieldset className="flex flex-col gap-1">
+          <legend className="text-xs text-[var(--color-muted)]">এলাকা</legend>
+          <AreaCascade nodes={areas} defaultId={defaultAreaId} />
+          <span className="mt-1 text-xs text-[var(--color-muted)]">
+            বিভাগ থেকে শুরু করে যতটা নিচ পর্যন্ত জানা আছে ততটা নির্বাচন করুন — এর উপরেই কভারেজ
+            রিপোর্ট ও ডিফল্টার তালিকা তৈরি হয়।
+          </span>
+        </fieldset>
+
         <label className="text-xs text-[var(--color-muted)]">
-          এলাকা (ওয়ার্ড / গ্রাম)
-          <select
-            name="location_id"
-            required
-            defaultValue={defaultAreaId ?? ""}
+          বাসার ঠিকানা (গ্রাম / বাড়ি / সড়ক)
+          <input
+            name="guardian_address"
+            maxLength={300}
+            placeholder="গ্রাম, বাড়ি নং, সড়ক"
             className={field}
-          >
-            <option value="" disabled>
-              নির্বাচন করুন
-            </option>
-            {areas.map((a) => (
-              <option key={a.id} value={a.id}>
-                {" ".repeat(a.depth * 2)}
-                {a.label}
-              </option>
-            ))}
-          </select>
+          />
+          {/* Kept on the guardian, not the child: siblings share a house, and a defaulter
+              route list is walked household by household. */}
           <span className="mt-1 block">
-            শিশুটি কোন এলাকার — এর উপরেই কভারেজ রিপোর্ট ও ডিফল্টার তালিকা তৈরি হয়।
+            ডিফল্টার ট্রেসিংয়ে স্বাস্থ্যকর্মী এই ঠিকানা ধরেই বাড়িতে যান।
           </span>
         </label>
 

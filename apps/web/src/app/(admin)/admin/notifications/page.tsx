@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/auth";
 import { toBn } from "@/lib/format";
+import { selectAll } from "@/lib/paged";
 import { StatCard } from "@/components/ui/kit";
 import { NOTIF_STATUS } from "./status";
 import { NotificationsTable, type NotifRow } from "./_components/NotificationsTable";
@@ -11,8 +12,10 @@ export const dynamic = "force-dynamic";
 export default async function NotificationsPage() {
   const supabase = await requireRole("admin");
 
-  const [{ data: all }, { data: log }] = await Promise.all([
-    supabase.from("notifications").select("status"),
+  const [all, { data: log }] = await Promise.all([
+    // The status tally counts every row, so it has to read past the row cap or it under-reports
+    // the moment the queue outgrows one page.
+    selectAll<{ status: string }>(() => supabase.from("notifications").select("status").order("id")),
     supabase
       .from("notifications")
       .select(
@@ -22,7 +25,7 @@ export default async function NotificationsPage() {
       .limit(500),
   ]);
 
-  const count = (s: string) => (all ?? []).filter((n) => n.status === s).length;
+  const count = (s: string) => all.filter((n) => n.status === s).length;
 
   // The recipient is a guardian, not a profile: a guardian with no account is exactly the
   // case the reminder system has to serve (BS-02), and it has no row in `profiles`.

@@ -1,16 +1,15 @@
 import Link from "next/link";
-import { dateBn, dateTimeBn, toBn } from "@/lib/format";
+import { dateBn, toBn } from "@/lib/format";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { auditLabel } from "../_audit";
 import {
-  getActivity,
   getAlerts,
   getCoverage,
   getDefaulterQueue,
   getDoseTrend,
   getFailedQueue,
   getKpis,
+  getSessionPlan,
   getStockQueue,
   windowDates,
   type Window,
@@ -243,23 +242,53 @@ export async function Queues() {
   );
 }
 
-// ── 5 · Activity ────────────────────────────────────────────────────────────────
+// ── 5 · Session plan ────────────────────────────────────────────────────────────
+//
+// Replaces the raw audit feed that used to sit here. That feed listed whatever the triggers
+// had written last — usually eight identical system inserts — which is a log, not a decision
+// aid. This is the fortnight's work: what already ran and what it produced, and what is
+// coming that still needs a team and stock behind it.
 
-export async function ActivityFeed() {
-  const rows = await getActivity();
+const SESSION_TYPE_BN: Record<string, string> = {
+  fixed: "কেন্দ্রে",
+  outreach: "আউটরিচ",
+  campaign: "ক্যাম্পেইন",
+};
+
+export async function SessionPlan() {
+  const rows = await getSessionPlan();
   if (!rows.length) return null;
 
   return (
     <Card>
-      <CardHeader title="সাম্প্রতিক কার্যক্রম" />
+      <CardHeader
+        title="সেশন পরিকল্পনা"
+        action={
+          <Link href="/admin/sessions" className="text-sm text-[var(--color-primary)]">
+            সব দেখুন →
+          </Link>
+        }
+      />
       <ul className="flex flex-col divide-y divide-[var(--border-subtle)]">
         {rows.map((r) => (
           <li key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5 text-sm">
-            <StatusBadge tone="muted">{auditLabel(r.action)}</StatusBadge>
-            <span className="text-[var(--text-secondary)]">{r.actor}</span>
-            {/* dateBn alone rendered every entry from today as the same string, so the feed
-                read as unordered. The time is the whole point of a feed. */}
-            <span className="ml-auto text-xs text-[var(--text-muted)]">{dateTimeBn(r.at)}</span>
+            <span className="min-w-[5.5rem] text-[var(--text-secondary)]">{dateBn(r.date)}</span>
+            <StatusBadge
+              tone={
+                r.status === "cancelled" ? "danger" : r.status === "held" ? "muted" : "primary"
+              }
+            >
+              {SESSION_TYPE_BN[r.type] ?? r.type}
+            </StatusBadge>
+            <span className="truncate text-[var(--text-primary)]">{r.facility}</span>
+            {r.isToday && <StatusBadge tone="primary">আজ</StatusBadge>}
+            <span className="ml-auto text-xs text-[var(--text-muted)]">
+              {r.status === "held"
+                ? `${toBn(r.doses)} ডোজ · ${toBn(r.children)} শিশু`
+                : r.target !== null
+                  ? `লক্ষ্য ${toBn(r.target)} শিশু`
+                  : "—"}
+            </span>
           </li>
         ))}
       </ul>

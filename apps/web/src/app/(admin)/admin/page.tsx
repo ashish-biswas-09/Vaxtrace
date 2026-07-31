@@ -3,10 +3,10 @@ import { dateTimeBn } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { ChildrenIcon, DownloadIcon, PlusIcon, RefreshIcon } from "@/components/icons";
 import { buildWindow, getChildrenCount } from "./_queries";
-import { rangeDays } from "./_components/DateScope";
+import { rangeDays } from "./_components/ranges";
 import { EmptyState, PageHeader } from "@/components/ui/kit";
 import {
-  ActivityFeed,
+  SessionPlan,
   AlertRail,
   BlockSkeleton,
   KpiRow,
@@ -109,7 +109,7 @@ export default async function AdminDashboardPage({
       </Suspense>
 
       <Suspense fallback={<BlockSkeleton className="h-56" />}>
-        <ActivityFeed />
+        <SessionPlan />
       </Suspense>
     </div>
   );
