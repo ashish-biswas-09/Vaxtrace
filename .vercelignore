@@ -1,0 +1,14 @@
+# Vercel installs dependencies and builds from source, so none of this needs uploading.
+# Without it `vercel deploy` from the repo root packs every nested node_modules and build
+# cache in the workspace — a ~4 GB upload that times out before the build ever starts.
+node_modules
+.next
+.turbo
+dist
+out
+coverage
+graphify-out
+
+# Bulky documents that are not part of the app.
+*.docx
+*.pdf
