@@ -99,7 +99,7 @@ export async function changePasswordAction(
   // holds no storage, so verifying is a pure yes/no with nothing to clean up.
   const verifier = createStatelessClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     { auth: { persistSession: false, autoRefreshToken: false } },
   );
   const { error: reauthError } = await verifier.auth.signInWithPassword({
