@@ -1122,6 +1122,7 @@ export type Database = {
           reported_at: string;
           reported_by: string;
           severity: Database["public"]["Enums"]["aefi_severity"];
+          severity_change_reason: string | null;
           status: Database["public"]["Enums"]["aefi_status"];
           symptoms: string;
           vaccination_record_id: string | null;
@@ -1157,6 +1158,7 @@ export type Database = {
           investigation_note?: string | null;
           outcome?: Database["public"]["Enums"]["aefi_outcome"];
           severity?: Database["public"]["Enums"]["aefi_severity"];
+          severity_change_reason?: string | null;
           status?: Database["public"]["Enums"]["aefi_status"];
           symptoms?: string;
         };
@@ -1446,6 +1448,10 @@ export type Database = {
       monthly_doses: {
         Args: { p_parent?: string | null; p_vaccine_id?: string | null; p_months?: number };
         Returns: { month: string; doses: number; children: number }[];
+      };
+      session_staff: {
+        Args: { p_facility: string };
+        Returns: { id: string; full_name: string | null }[];
       };
       fefo_batch: {
         Args: { p_vaccine_id: string; p_facility_id?: string | null };
