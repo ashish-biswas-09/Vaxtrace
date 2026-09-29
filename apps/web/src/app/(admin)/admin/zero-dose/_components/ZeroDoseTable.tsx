@@ -21,7 +21,7 @@ const columns: Column<ZeroDoseRow>[] = [
   {
     header: "শিশু",
     cell: (r) => (
-      <Link href={`/admin/children/${r.child_id}`} className="text-[var(--color-primary)]">
+      <Link href={`/admin/children/${r.child_id}`} className="text-[var(--accent)]">
         {r.full_name}
       </Link>
     ),

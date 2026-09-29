@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { requireRole } from "@/lib/auth";
-import { ageBn, dateBn, toBn } from "@/lib/format";
+import { requireAppRole } from "@/lib/auth";
+import { ageBn, dateBn, todayIso, toBn } from "@/lib/format";
 import { pathTrail, type LocationNode } from "@/lib/locations";
+import { selectAll } from "@/lib/paged";
 import { EmptyState, PageHeader, StatCard } from "@/components/ui/kit";
 import { PrintButton } from "../_components/PrintButton";
 import { ZeroDoseTable, type ZeroDoseRow } from "./_components/ZeroDoseTable";
@@ -9,40 +10,82 @@ export const metadata = { title: "শূন্য-ডোজ শিশু" };
 
 export const dynamic = "force-dynamic";
 
+type Source = {
+  child_id: string | null;
+  child_code: string | null;
+  full_name: string | null;
+  date_of_birth: string | null;
+  location_path: string | null;
+  guardian_name: string | null;
+  guardian_phone: string | null;
+  address: string | null;
+  marker_due_date: string | null;
+  age_days: number | null;
+};
+
+const monthsAgo = (months: number) => {
+  const [y, m, d] = todayIso().split("-").map(Number);
+  const dt = new Date(y, m - 1 - months, d);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+};
+
 // The zero-dose indicator in the form a worker can act on.
 //
-// The percentage belongs on the coverage screen; nobody can visit a percentage. This is the
-// list: a name, an age, an address and a phone number per row, printable, so it goes into a
-// pocket and comes back with ticks on it. It is deliberately the UNDER-twelve-months window
-// rather than the 12–23 month indicator window — these are the children who can still be
-// reached in time, and reaching them is the point.
+// Two windows, named differently because they are different numbers:
+//   default   UNDER 12 months — the children who can still be reached in time (v_zero_dose)
+//   ?window=12-23   12–23 months — the WHO indicator the coverage screen counts, so its
+//                   "শূন্য-ডোজ" link lands on a list exactly as long as the number clicked (K-12)
 export default async function ZeroDosePage({
   searchParams,
 }: {
-  searchParams: Promise<{ area?: string }>;
+  searchParams: Promise<{ area?: string; window?: string }>;
 }) {
-  const supabase = await requireRole("admin");
-  const { area } = await searchParams;
+  const { supabase } = await requireAppRole("supervisor");
+  const { area, window } = await searchParams;
+  const indicator = window === "12-23";
 
-  const [{ data: rows }, { data: locations }, { data: marker }] = await Promise.all([
-    supabase
-      .from("v_zero_dose")
-      .select("child_id, child_code, full_name, date_of_birth, gender, location_path, guardian_name, guardian_phone, address, marker_due_date, age_days")
-      .order("date_of_birth"),
+  const [{ data: locations }, { data: marker }] = await Promise.all([
     supabase
       .from("locations")
       .select("id, name_bn, name_en, level, path, parent_id")
       .is("valid_to", null)
       .order("path"),
-    supabase.from("vaccines").select("code, name_bn").eq("is_zero_dose_marker", true).maybeSingle(),
+    supabase
+      .from("vaccines")
+      .select("id, code, name_bn")
+      .eq("is_zero_dose_marker", true)
+      .maybeSingle(),
   ]);
 
   const nodes = (locations ?? []) as LocationNode[];
   const byPath = new Map(nodes.map((l) => [l.path, l]));
 
+  if (!marker) {
+    return (
+      <div className="flex flex-col gap-6">
+        <PageHeader title="শূন্য-ডোজ শিশু" />
+        <EmptyState
+          title="শূন্য-ডোজের সূচক নির্ধারণ করা হয়নি"
+          hint="কোন টিকার প্রথম ডোজ দিয়ে শূন্য-ডোজ মাপা হবে (সাধারণত পেন্টাভ্যালেন্ট), তা টিকা তালিকায় চিহ্নিত করুন।"
+          action={{ href: "/admin/catalog", label: "টিকা তালিকায় যান" }}
+        />
+      </div>
+    );
+  }
+
+  const source: Source[] = indicator
+    ? await indicatorWindow(supabase, marker.id)
+    : ((
+        await supabase
+          .from("v_zero_dose")
+          .select("child_id, child_code, full_name, date_of_birth, location_path, guardian_name, guardian_phone, address, marker_due_date, age_days")
+          .order("date_of_birth")
+      ).data ?? []);
+
   // The area filter is a path-prefix test, exactly as the SQL side does it — clicking a
   // zero-dose count on the coverage screen has to land on that area's children and no others.
-  const filtered = (rows ?? []).filter(
+  const filtered = source.filter(
     (r) => !area || r.location_path === area || r.location_path?.startsWith(`${area}.`),
   );
 
@@ -60,73 +103,74 @@ export default async function ZeroDosePage({
   }));
 
   // Under six months is still comfortably within the schedule's own catch-up window; past it,
-  // the child is at real risk of never starting. Splitting the count says which of the two
-  // problems this list is.
+  // the child is at real risk of never starting.
   const urgent = list.filter((r) => r.age_days >= 180).length;
-
-  if (!marker) {
-    return (
-      <div className="flex flex-col gap-6">
-        <PageHeader title="শূন্য-ডোজ শিশু" />
-        <EmptyState
-          title="শূন্য-ডোজের সূচক নির্ধারণ করা হয়নি"
-          hint="কোন টিকার প্রথম ডোজ দিয়ে শূন্য-ডোজ মাপা হবে (সাধারণত পেন্টাভ্যালেন্ট) তা টিকা তালিকায় চিহ্নিত করতে হবে। চিহ্নিত না করে অনুমান করলে সংখ্যাটি ভুল টিকার বিপরীতে হিসাব হবে।"
-          action={{ href: "/admin/catalog", label: "টিকা তালিকায় যান" }}
-        />
-      </div>
-    );
-  }
+  const band = indicator ? "১২–২৩ মাস বয়সী" : "১২ মাসের কম বয়সী";
+  const other = indicator
+    ? { href: `/admin/zero-dose${area ? `?area=${encodeURIComponent(area)}` : ""}`, label: "১২ মাসের কম বয়সীদের তালিকা" }
+    : { href: `/admin/zero-dose?window=12-23${area ? `&area=${encodeURIComponent(area)}` : ""}`, label: "১২–২৩ মাস বয়সীদের তালিকা" };
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="শূন্য-ডোজ শিশু"
-        description={`১২ মাসের কম বয়সী যেসব শিশু ${marker.name_bn}-এর প্রথম ডোজ এখনো পায়নি। এরাই সেই শিশু, যাদের কাছে কর্মসূচি একবারও পৌঁছায়নি।`}
-        actions={<PrintButton label="তালিকা ছাপুন" />}
+        title={indicator ? "শূন্য-ডোজ শিশু (১২–২৩ মাস)" : "শূন্য-ডোজ শিশু (১২ মাসের কম)"}
+        description={`${band} যেসব শিশু ${marker.name_bn}-এর প্রথম ডোজ এখনো পায়নি।`}
+        actions={<PrintButton />}
       />
 
       <div className="print-only text-sm">
         <p>
           <strong>এলাকা:</strong> {area ? pathTrail(area, byPath) : "সমগ্র দায়িত্বাধীন এলাকা"} ·{" "}
-          <strong>মোট:</strong> {toBn(list.length)} জন
+          <strong>বয়স:</strong> {band} · <strong>মোট:</strong> {toBn(list.length)} জন
         </p>
       </div>
 
-      <section className="grid gap-4 sm:grid-cols-3 print:hidden">
+      <section className="grid grid-cols-2 gap-4 sm:grid-cols-3 print:hidden">
         <StatCard
           label="শূন্য-ডোজ শিশু"
           value={toBn(list.length)}
           tone={list.length > 0 ? "danger" : "success"}
-          hint="১২ মাসের কম বয়সী"
+          hint={band}
         />
-        <StatCard
-          label="৬ মাসের বেশি বয়সী"
-          value={toBn(urgent)}
-          tone={urgent > 0 ? "danger" : "success"}
-          hint="সময়সূচির স্বাভাবিক ক্যাচ-আপ সীমা পেরিয়ে গেছে"
-        />
+        {!indicator && (
+          <StatCard
+            label="৬ মাসের বেশি বয়সী"
+            value={toBn(urgent)}
+            tone={urgent > 0 ? "danger" : "success"}
+            hint="সূচির স্বাভাবিক ক্যাচ-আপ সীমা পেরিয়ে গেছে"
+          />
+        )}
         <StatCard
           label="ফলো-আপ বোর্ড"
           value="→"
           tone="primary"
           href="/admin/tracing"
-          hint="এই শিশুদের জন্য পরিদর্শনের দায়িত্ব বরাদ্দ করুন"
+          hint="এই শিশুদের পরিদর্শনের দায়িত্ব দিন"
         />
       </section>
 
-      {area && (
-        <p className="text-sm text-[var(--color-muted)] print:hidden">
-          {pathTrail(area, byPath)} এলাকায় সীমাবদ্ধ ·{" "}
-          <Link href="/admin/zero-dose" className="text-[var(--color-primary)]">
-            সব এলাকা দেখুন
-          </Link>
-        </p>
-      )}
+      <p className="text-sm text-[var(--text-secondary)] print:hidden">
+        {area && (
+          <>
+            {pathTrail(area, byPath)} এলাকায় সীমাবদ্ধ ·{" "}
+            <Link
+              href={indicator ? "/admin/zero-dose?window=12-23" : "/admin/zero-dose"}
+              className="text-[var(--accent)]"
+            >
+              সব এলাকা দেখুন
+            </Link>{" "}
+            ·{" "}
+          </>
+        )}
+        <Link href={other.href} className="text-[var(--accent)]">
+          {other.label}
+        </Link>
+      </p>
 
       {list.length === 0 ? (
         <EmptyState
           title="এই এলাকায় কোনো শূন্য-ডোজ শিশু নেই"
-          hint="১২ মাসের কম বয়সী প্রতিটি নিবন্ধিত শিশু অন্তত প্রথম ডোজ পেয়েছে। মনে রাখুন, এটি শুধু নিবন্ধিত শিশুদের কথা বলে — এলাকায় অনিবন্ধিত শিশু থাকলে তারা এখানে আসবে না, সেটি এলাকাভিত্তিক কভারেজের নিবন্ধন হার দেখলে বোঝা যাবে।"
+          hint={`${band} প্রতিটি নিবন্ধিত শিশু অন্তত প্রথম ডোজ পেয়েছে। অনিবন্ধিত শিশু এই তালিকায় আসে না।`}
           action={{ href: "/admin/coverage", label: "কভারেজ দেখুন" }}
         />
       ) : (
@@ -134,4 +178,61 @@ export default async function ZeroDosePage({
       )}
     </div>
   );
+}
+
+// The 12–23 month window, computed with the same predicate coverage_by_area() counts with:
+// active, not deleted, born 12–24 months ago, no un-voided first dose of the marker antigen.
+// Every read is the caller's own RLS-scoped client.
+// ponytail: aggregates in the app; move to a view (extend v_zero_dose with an age band) if the
+// 12–23 month cohort in one scope grows past a few thousand children.
+async function indicatorWindow(
+  supabase: Awaited<ReturnType<typeof requireAppRole>>["supabase"],
+  markerId: string,
+): Promise<Source[]> {
+  const [kids, given] = await Promise.all([
+    selectAll(() =>
+      supabase
+        .from("children")
+        .select("id, child_id, full_name, date_of_birth, location_path, guardian_id")
+        .is("deleted_at", null)
+        .eq("status", "active")
+        .lte("date_of_birth", monthsAgo(12))
+        .gt("date_of_birth", monthsAgo(24))
+        .order("date_of_birth"),
+    ),
+    selectAll(() =>
+      supabase
+        .from("vaccination_records")
+        .select("child_id")
+        .eq("vaccine_id", markerId)
+        .eq("dose_number", 1)
+        .is("voided_at", null)
+        .order("child_id"),
+    ),
+  ]);
+
+  const reached = new Set(given.map((r) => r.child_id));
+  const zero = kids.filter((k) => !reached.has(k.id));
+  const guardianIds = [...new Set(zero.map((k) => k.guardian_id))];
+  const { data: guardians } = guardianIds.length
+    ? await supabase.from("guardians").select("id, full_name, phone, address").in("id", guardianIds)
+    : { data: [] as { id: string; full_name: string; phone: string | null; address: string | null }[] };
+  const gById = new Map((guardians ?? []).map((g) => [g.id, g]));
+  const today = new Date(todayIso()).getTime();
+
+  return zero.map((k) => {
+    const g = gById.get(k.guardian_id);
+    return {
+      child_id: k.id,
+      child_code: k.child_id,
+      full_name: k.full_name,
+      date_of_birth: k.date_of_birth,
+      location_path: k.location_path,
+      guardian_name: g?.full_name ?? null,
+      guardian_phone: g?.phone ?? null,
+      address: g?.address ?? null,
+      marker_due_date: null,
+      age_days: Math.round((today - new Date(k.date_of_birth).getTime()) / 86_400_000),
+    };
+  });
 }

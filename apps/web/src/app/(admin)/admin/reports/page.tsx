@@ -1,148 +1,155 @@
-import { requireRole } from "@/lib/auth";
-import { pctBn, toBn, dateBn } from "@/lib/format";
-import { StatusBadge } from "@/components/ui/kit";
-import { CoverageBars, type CoverageRow } from "../_components/Chart";
+import { requireAppRole } from "@/lib/auth";
+import { pctBn, toBn } from "@/lib/format";
+import { selectAll } from "@/lib/paged";
+import { dropoutTone } from "@/lib/programme";
+import { EmptyState, PageHeader, StatusBadge } from "@/components/ui/kit";
+import { DownloadIcon } from "@/components/icons";
+import { buildWindow, daily, windowDates } from "../_queries";
+import { Callout } from "../_components/Callout";
+import { CoverageBars, TrendArea, type CoverageRow } from "../_components/Chart";
 import { PrintButton } from "../_components/PrintButton";
+import { RANGES, rangeDays } from "../_components/ranges";
 export const metadata = { title: "রিপোর্ট" };
 
 export const dynamic = "force-dynamic";
 
 // Reports + analytics unified here (audit C4 — the two competing analytics IAs were tech debt).
-export default async function ReportsPage() {
-  const supabase = await requireRole("admin");
-  const [{ data: coverage }, { data: dropout }, { data: daily }] = await Promise.all([
+//
+// Coverage and dropout are cohort figures — "of everyone due so far" — so the top-bar period
+// picker scopes the daily-dose series only, and the page says so rather than implying a
+// seven-day coverage figure (K-11). Every read is the caller's own RLS-scoped client, so a
+// supervisor sees their area and a national manager the country.
+export default async function ReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
+  const { supabase } = await requireAppRole("supervisor");
+  const { range } = await searchParams;
+  const w = buildWindow(rangeDays(range));
+  const rangeLabel = RANGES.find((r) => r.days === w.days)?.label ?? "";
+
+  const [coverage, dropout, vaccines, doses] = await Promise.all([
     supabase
       .from("v_coverage")
       .select("code, name_bn, coverage_rate, done_count, due_count")
       .order("code"),
-    supabase.from("v_dropout").select("code, started, completed").order("code"),
-    supabase.from("mv_daily_doses").select("administered_date, doses").order("administered_date"),
+    supabase.from("v_dropout").select("code, name_bn, started, completed, dropout_rate").order("code"),
+    supabase.from("vaccines").select("code, total_doses"),
+    // The daily series used to read mv_daily_doses, which is (rightly) not granted to signed-in
+    // users — a materialized view has no RLS — so the chart was always empty (K-03). The dose
+    // rows themselves are RLS-scoped; the window keeps the read small.
+    selectAll(() =>
+      supabase
+        .from("vaccination_records")
+        .select("administered_date")
+        .is("voided_at", null)
+        .gte("administered_date", w.start)
+        .lte("administered_date", w.end)
+        .order("administered_date"),
+    ),
   ]);
+  for (const r of [coverage, dropout]) if (r.error) console.error("reports", r.error);
 
-  const maxDaily = Math.max(1, ...(daily ?? []).map((d) => d.doses ?? 0));
+  // Dropout needs a first and a last dose; for a single-dose antigen it is ০% by definition and
+  // only adds noise.
+  const multiDose = new Set(
+    (vaccines.data ?? []).filter((v) => (v.total_doses ?? 1) > 1).map((v) => v.code),
+  );
+  const dropoutRows = (dropout.data ?? []).filter((r) => r.code && multiDose.has(r.code));
+  const series = daily(doses.map((d) => d.administered_date), w);
+  const cov = (coverage.data ?? []) as CoverageRow[];
+
+  const th = "px-4 py-3 font-medium";
+  const td = "px-4 py-3";
 
   return (
     <div className="flex flex-col gap-8">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">রিপোর্ট ও পরিসংখ্যান</h1>
-          <p className="text-sm text-[var(--color-muted)]">টিকা কভারেজ ও ড্রপআউট বিশ্লেষণ</p>
-        </div>
-        <div className="flex items-center gap-2 print:hidden">
-          <a
-            href="/admin/reports/export"
-            className="rounded-md border border-[var(--color-border)] px-4 py-2 text-sm font-medium"
-          >
-            CSV ডাউনলোড
-          </a>
-          <PrintButton />
-        </div>
-      </header>
+      <PageHeader
+        title="রিপোর্ট"
+        description="টিকাভিত্তিক কভারেজ, ড্রপআউট ও দৈনিক প্রদত্ত ডোজ — আপনার দায়িত্বাধীন এলাকার।"
+        actions={
+          <>
+            {/* A plain anchor, not a client-side <Link>: the target is a file download. */}
+            <a
+              href="/admin/reports/export"
+              download
+              className="inline-flex h-10 items-center gap-2 rounded-[var(--r-md)] border border-[var(--border-strong)] px-4 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-raised)]"
+            >
+              <DownloadIcon size={16} />
+              CSV ডাউনলোড
+            </a>
+            <PrintButton />
+          </>
+        }
+      />
 
-      <section className="rounded-xl border border-[var(--color-border)] p-5">
+      <section className="rounded-[var(--r-lg)] border border-[var(--border-default)] bg-[var(--surface)] p-5">
         <h2 className="mb-4 text-lg font-medium">টিকাভিত্তিক কভারেজ</h2>
-        <CoverageBars rows={(coverage ?? []) as CoverageRow[]} />
+        {coverage.error ? (
+          <Callout tone="danger" title="কভারেজের হিসাব দেখানো যাচ্ছে না">
+            একটু পরে আবার চেষ্টা করুন।
+          </Callout>
+        ) : (
+          // The bars carry the rate, the numerator and the denominator, so the detailed table
+          // that repeated them row for row is gone.
+          cov.length === 0 ? (
+            <EmptyState title="কভারেজের কোনো তথ্য নেই" hint="নিবন্ধিত শিশুর কোনো ডোজের সময় এখনো হয়নি।" />
+          ) : (
+            <CoverageBars rows={cov} />
+          )
+        )}
       </section>
 
+
       <section>
-        <h2 className="mb-3 text-lg font-medium">কভারেজ (বিস্তারিত)</h2>
-        <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
-          <table className="w-full text-sm">
-            <thead className="bg-[var(--color-border)]/40 text-left text-[var(--color-muted)]">
-              <tr>
-                <th scope="col" className="px-4 py-3 font-medium">কোড</th>
-                <th scope="col" className="px-4 py-3 font-medium">টিকা</th>
-                <th scope="col" className="px-4 py-3 text-right font-medium">সম্পন্ন</th>
-                <th scope="col" className="px-4 py-3 text-right font-medium">দেয়</th>
-                <th scope="col" className="px-4 py-3 text-right font-medium">কভারেজ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(coverage ?? []).map((r) => (
-                <tr key={r.code} className="border-t border-[var(--color-border)]">
-                  <td className="px-4 py-3 font-mono text-xs">{r.code}</td>
-                  <td className="px-4 py-3">{r.name_bn}</td>
-                  {/* Numerator and denominator alongside the rate: a report that is going to
-                      be defended needs its N visible, not inferred. */}
-                  <td className="px-4 py-3 text-right tabular-nums">{toBn(r.done_count ?? 0)}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{toBn(r.due_count ?? 0)}</td>
-                  <td className="px-4 py-3 text-right">
-                    <StatusBadge
-                      tone={
-                        r.coverage_rate == null
-                          ? "muted"
-                          : r.coverage_rate >= 0.8
-                            ? "success"
-                            : r.coverage_rate >= 0.5
-                              ? "warning"
-                              : "danger"
-                      }
-                    >
-                      {pctBn(r.coverage_rate)}
-                    </StatusBadge>
-                  </td>
+        <h2 className="mb-1 text-lg font-medium">ড্রপআউট</h2>
+        <p className="mb-3 text-sm text-[var(--text-secondary)]">
+          প্রথম ডোজ পাওয়া শিশুদের কত অংশ শেষ ডোজ পায়নি। একক ডোজের টিকা এখানে নেই।
+        </p>
+        {dropout.error ? (
+          <Callout tone="danger" title="ড্রপআউটের হিসাব দেখানো যাচ্ছে না">
+            একটু পরে আবার চেষ্টা করুন।
+          </Callout>
+        ) : dropoutRows.length === 0 ? (
+          <EmptyState title="ড্রপআউটের কোনো তথ্য নেই" hint="একাধিক ডোজের কোনো টিকার প্রথম ডোজ এখনো দেওয়া হয়নি।" />
+        ) : (
+          <div className="overflow-x-auto rounded-[var(--r-lg)] border border-[var(--border-default)] bg-[var(--surface)]">
+            <table className="w-full text-sm">
+              <caption className="sr-only">টিকা অনুযায়ী ড্রপআউট</caption>
+              <thead className="bg-[var(--surface-raised)] text-left text-[var(--text-secondary)]">
+                <tr>
+                  <th scope="col" className={th}>টিকা</th>
+                  <th scope="col" className={`${th} text-right`}>প্রথম ডোজ পেয়েছে</th>
+                  <th scope="col" className={`${th} text-right`}>শেষ ডোজ পেয়েছে</th>
+                  <th scope="col" className={`${th} text-right`}>ড্রপআউট হার</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-lg font-medium">ড্রপআউট</h2>
-        <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
-          <table className="w-full text-sm">
-            <thead className="bg-[var(--color-border)]/40 text-left text-[var(--color-muted)]">
-              <tr>
-                <th scope="col" className="px-4 py-3 font-medium">কোড</th>
-                <th scope="col" className="px-4 py-3 text-right font-medium">শুরু করেছে</th>
-                <th scope="col" className="px-4 py-3 text-right font-medium">সম্পূর্ণ করেছে</th>
-                <th scope="col" className="px-4 py-3 text-right font-medium">ড্রপআউট হার</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(dropout ?? []).map((r) => {
-                const started = r.started ?? 0;
-                const completed = r.completed ?? 0;
-                const rate = started ? 1 - completed / started : null;
-                return (
-                  <tr key={r.code} className="border-t border-[var(--color-border)]">
-                    <td className="px-4 py-3 font-mono text-xs">{r.code}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{toBn(started)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{toBn(completed)}</td>
-                    <td className="px-4 py-3 text-right">
-                      <StatusBadge tone={rate != null && rate > 0.1 ? "danger" : "success"}>
-                        {pctBn(rate)}
-                      </StatusBadge>
+              </thead>
+              <tbody>
+                {dropoutRows.map((r) => (
+                  <tr key={r.code} className="border-t border-[var(--border-subtle)]">
+                    <td className={td}>
+                      {r.name_bn} <span className="font-mono text-xs text-[var(--text-muted)]">{r.code}</span>
+                    </td>
+                    <td className={`${td} text-right tabular-nums`}>{toBn(r.started ?? 0)}</td>
+                    <td className={`${td} text-right tabular-nums`}>{toBn(r.completed ?? 0)}</td>
+                    <td className={`${td} text-right`}>
+                      <StatusBadge tone={dropoutTone(r.dropout_rate)}>{pctBn(r.dropout_rate)}</StatusBadge>
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
-      <section className="rounded-xl border border-[var(--color-border)] p-5">
-        <h2 className="mb-4 text-lg font-medium">দৈনিক প্রদত্ত ডোজ</h2>
-        {daily && daily.length > 0 ? (
-          <div className="flex h-40 items-end gap-2">
-            {daily.map((d) => (
-              <div key={d.administered_date} className="flex flex-1 flex-col items-center gap-1">
-                <div
-                  className="w-full rounded-t bg-[var(--color-primary)]"
-                  style={{ height: `${Math.round(((d.doses ?? 0) / maxDaily) * 100)}%` }}
-                  title={`${d.doses}`}
-                />
-                <span className="text-[10px] text-[var(--color-muted)]">
-                  {dateBn(d.administered_date).slice(0, 5)}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-[var(--color-muted)]">কোনো তথ্য নেই।</p>
-        )}
+      <section className="rounded-[var(--r-lg)] border border-[var(--border-default)] bg-[var(--surface)] p-5">
+        <h2 className="mb-1 text-lg font-medium">দৈনিক প্রদত্ত ডোজ</h2>
+        <p className="mb-4 text-sm text-[var(--text-secondary)]">
+          {rangeLabel} · মোট {toBn(series.reduce((a, b) => a + b, 0))} ডোজ। সময়সীমা ওপরের বাছাই থেকে বদলানো যায়।
+        </p>
+        <TrendArea points={series} labels={windowDates(w)} caption={`দৈনিক প্রদত্ত ডোজ, ${rangeLabel}`} />
       </section>
     </div>
   );

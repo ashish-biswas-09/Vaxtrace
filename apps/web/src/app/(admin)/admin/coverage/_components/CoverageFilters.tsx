@@ -1,6 +1,8 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { dateBn, toBn } from "@/lib/format";
 
 // A plain GET form, not client state.
 //
@@ -9,85 +11,92 @@ import { useSearchParams } from "next/navigation";
 // steps through filter changes, a filtered view is a shareable link ("look at Kaliakair's
 // Penta-3"), and the table still renders with JavaScript disabled. `area` rides along in a
 // hidden field so changing the antigen does not throw away the drill-down.
+//
+// The server has already validated every value it passes in (lib/coverageParams.ts), so the
+// controls show what the query actually used.
 export function CoverageFilters({
   vaccines,
+  years,
   current,
 }: {
   vaccines: { id: string; label: string }[];
+  years: number[];
   current: { area: string; vaccine: string; year: string; from: string; to: string };
 }) {
-  // Read from the URL rather than from props for the fields the parent normalises, so the
-  // control shows what the user typed even when the server substituted a default.
-  const params = useSearchParams();
-  const year = Number(current.year);
-  const years = [year + 1, year, year - 1, year - 2];
+  // `from` sets the earliest date the `to` picker will accept, so a reversed range cannot be
+  // entered in the first place; both echo the chosen date in Bengali under the native picker,
+  // whose own format follows the browser's locale (mm/dd/yyyy).
+  const [from, setFrom] = useState(current.from);
+  const [to, setTo] = useState(current.to);
+  const control =
+    "h-10 rounded-[var(--r-md)] border border-[var(--border-default)] bg-[var(--surface)] px-3 text-sm text-[var(--text-primary)]";
 
   return (
     <form
       method="get"
-      className="flex flex-wrap items-end gap-3 rounded-xl border border-[var(--color-border)] p-4 print:hidden"
+      className="flex flex-wrap items-start gap-x-3 gap-y-2 rounded-[var(--r-lg)] border border-[var(--border-default)] bg-[var(--surface)] p-4 print:hidden"
     >
       <input type="hidden" name="area" value={current.area} />
 
-      <label className="text-xs text-[var(--color-muted)]">
-        টিকা
-        <select
-          name="vaccine"
-          defaultValue={current.vaccine}
-          className="mt-1 block w-56 rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
-        >
-          <option value="all">
-            সব টিকা (জনসংখ্যা-ভিত্তিক হিসাব ছাড়া)
-          </option>
+      <Field label="টিকা">
+        <select name="vaccine" defaultValue={current.vaccine} className={`${control} w-56`}>
+          <option value="all">সব টিকা</option>
           {vaccines.map((v) => (
             <option key={v.id} value={v.id}>
               {v.label}
             </option>
           ))}
         </select>
-      </label>
+      </Field>
 
-      <label className="text-xs text-[var(--color-muted)]">
-        হর-বছর
-        <select
-          name="year"
-          defaultValue={current.year}
-          className="mt-1 block w-28 rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
-        >
+      <Field label="লক্ষ্য শিশুর বছর">
+        <select name="year" defaultValue={current.year} className={`${control} w-28`}>
           {years.map((y) => (
             <option key={y} value={y}>
-              {y}
+              {toBn(y)}
             </option>
           ))}
         </select>
-      </label>
+      </Field>
 
-      <label className="text-xs text-[var(--color-muted)]">
-        ডোজের সময়কাল — শুরু
+      <Field label="ডোজের তারিখ: থেকে" hint={from ? dateBn(from) : "দিন/মাস/বছর"}>
         <input
           type="date"
           name="from"
-          defaultValue={params.get("from") ?? current.from}
-          className="mt-1 block rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
+          value={from}
+          onChange={(e) => setFrom(e.target.value)}
+          className={control}
         />
-      </label>
+      </Field>
 
-      <label className="text-xs text-[var(--color-muted)]">
-        শেষ
+      <Field label="পর্যন্ত" hint={to ? dateBn(to) : "দিন/মাস/বছর"}>
         <input
           type="date"
           name="to"
-          defaultValue={params.get("to") ?? current.to}
-          className="mt-1 block rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
+          value={to}
+          onChange={(e) => setTo(e.target.value)}
+          min={from || undefined}
+          className={control}
         />
-      </label>
+      </Field>
 
-      <button
-        type="submit"
-        className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-primary-fg)]"
-      >
-        প্রয়োগ করুন
-      </button>
+      {/* An empty label line so the button sits on the same row as the controls. */}
+      <div className="flex flex-col gap-1">
+        <span aria-hidden="true" className="h-5" />
+        <Button type="submit">ফলাফল দেখুন</Button>
+      </div>
     </form>
+  );
+}
+
+// Every cell has the same three rows — label, control, hint — so the controls line up whether
+// or not a field has a hint beneath it.
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <label className="flex flex-col gap-1 text-xs text-[var(--text-secondary)]">
+      <span className="h-5 leading-5">{label}</span>
+      {children}
+      <span className="h-5 leading-5 text-[var(--text-muted)]">{hint}</span>
+    </label>
   );
 }
