@@ -1,11 +1,16 @@
-import { requireRole } from "@/lib/auth";
+import { mfaGate, requireAppRole } from "@/lib/auth";
 import { csvResponse, toCsv } from "@/lib/csv";
+import { todayIso } from "@/lib/format";
 
 // CSV export of the coverage report (TODO 2.12). A GET route handler is the native primitive
-// for file download — Content-Disposition triggers the browser save dialog. requireRole
-// redirects non-admins, so this can't leak the report to other roles.
+// for file download — Content-Disposition triggers the browser save dialog.
+//
+// Route handlers do not render the admin layout, so the role and MFA gates are applied here
+// explicitly (K-08). The read is the caller's RLS-scoped client: a supervisor exports their
+// own area, not the country.
 export async function GET() {
-  const supabase = await requireRole("admin");
+  const { supabase, claims } = await requireAppRole("supervisor");
+  await mfaGate(supabase, claims);
   const { data } = await supabase
     .from("v_coverage")
     .select("code, name_en, name_bn, coverage_rate, done_count, due_count")
@@ -25,5 +30,5 @@ export async function GET() {
     ]),
   );
 
-  return csvResponse(csv, "vaxtrace-coverage-report.csv");
+  return csvResponse(csv, `vaxtrace-coverage-${todayIso()}.csv`);
 }

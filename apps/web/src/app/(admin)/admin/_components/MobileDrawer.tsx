@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { CloseIcon, MenuIcon } from "@/components/icons";
+import type { AppRole } from "@/lib/roles";
 import { AdminNav, type NavCounts } from "./AdminNav";
 
 // The nav below `lg`. Previously a plain absolutely-positioned div: no focus trap, no Escape,
@@ -15,12 +16,14 @@ import { AdminNav, type NavCounts } from "./AdminNav";
 // its `open` state and the <dialog> element with it — rather than by resetting state from an
 // effect, which costs an extra render pass and is the cascading-renders lint rule's whole
 // complaint.
-export function MobileDrawer({ counts }: { counts: NavCounts }) {
+type Props = { counts: NavCounts; appRole: AppRole | null };
+
+export function MobileDrawer({ counts, appRole }: Props) {
   const pathname = usePathname();
-  return <MobileDrawerPanel key={pathname} counts={counts} />;
+  return <MobileDrawerPanel key={pathname} counts={counts} appRole={appRole} />;
 }
 
-function MobileDrawerPanel({ counts }: { counts: NavCounts }) {
+function MobileDrawerPanel({ counts, appRole }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
 
@@ -70,7 +73,7 @@ function MobileDrawerPanel({ counts }: { counts: NavCounts }) {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-3">
-            <AdminNav counts={counts} onNavigate={hide} />
+            <AdminNav counts={counts} appRole={appRole} onNavigate={hide} />
           </div>
         </div>
       </dialog>

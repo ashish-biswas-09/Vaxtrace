@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
+import type { AppRole } from "@/lib/roles";
 import { AdminNav, type NavCounts } from "./AdminNav";
 
 // Desktop rail. Collapses to icons so an admin working in a wide table can reclaim 192px
@@ -30,9 +31,11 @@ function toggleRail() {
 
 export function Sidebar({
   counts,
+  appRole,
   identity,
 }: {
   counts: NavCounts;
+  appRole: AppRole | null;
   identity: { code: string | null; role: string };
 }) {
   // `[` toggles the rail. Ignored while the user is typing, or it would eat the bracket.
@@ -71,7 +74,7 @@ export function Sidebar({
       </Link>
 
       <div className="flex-1 p-3">
-        <AdminNav counts={counts} />
+        <AdminNav counts={counts} appRole={appRole} />
       </div>
 
       <div className="vt-rail-foot sticky bottom-0 flex items-center gap-2 border-t border-[var(--border-subtle)] bg-[var(--surface)] p-3">

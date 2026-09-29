@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireRole, getUserRole } from "@/lib/auth";
+import { appRoleAtLeast, getAppRole, getUserRole, requireRole } from "@/lib/auth";
 import { AccountMenu } from "@/components/AccountMenu";
 
 // Worker shell. Deliberately lighter than the admin one: a worker uses this on a phone or a
@@ -11,7 +11,8 @@ export default async function WorkerLayout({ children }: { children: React.React
       data: { user },
     },
     role,
-  ] = await Promise.all([supabase.auth.getUser(), getUserRole(supabase)]);
+    appRole,
+  ] = await Promise.all([supabase.auth.getUser(), getUserRole(supabase), getAppRole(supabase)]);
 
   const { data: myRole } = user
     ? await supabase
@@ -43,6 +44,16 @@ export default async function WorkerLayout({ children }: { children: React.React
             >
               শিশু নিবন্ধন
             </Link>
+            {/* A supervisor's programme screens (coverage, sessions, AEFI, data quality) live
+                in /admin, scoped to their own area. */}
+            {appRoleAtLeast(appRole, "supervisor") && (
+              <Link
+                href="/admin/coverage"
+                className="rounded-md px-3 py-2 text-sm hover:bg-[var(--color-border)]"
+              >
+                কর্মসূচি
+              </Link>
+            )}
           </nav>
         </div>
         <AccountMenu

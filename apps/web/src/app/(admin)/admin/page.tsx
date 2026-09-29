@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { appRoleAtLeast, requireAppRole } from "@/lib/auth";
 import { dateTimeBn } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { ChildrenIcon, DownloadIcon, PlusIcon, RefreshIcon } from "@/components/icons";
@@ -24,6 +26,11 @@ export default async function AdminDashboardPage({
 }: {
   searchParams: Promise<{ range?: string }>;
 }) {
+  // The dashboard reads programme-wide queues guarded at programme_manager. A supervisor's
+  // home in /admin is their own scope's coverage.
+  const { claims } = await requireAppRole("supervisor");
+  if (!appRoleAtLeast(claims.appRole, "programme_manager")) redirect("/admin/coverage");
+
   const { range } = await searchParams;
   const w = buildWindow(rangeDays(range));
 

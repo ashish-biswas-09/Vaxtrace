@@ -1,4 +1,4 @@
-import { requireRole, getUserRole } from "@/lib/auth";
+import { APP_ROLE_LABEL_BN, getUserRole, mfaGate, requireAppRole } from "@/lib/auth";
 import { todayIso } from "@/lib/format";
 import { ToastProvider } from "@/components/ui/Toast";
 import { batchStatus } from "./inventory/status";
@@ -7,20 +7,23 @@ import { Topbar } from "./_components/Topbar";
 import { BreadcrumbProvider } from "./_components/Breadcrumbs";
 import type { NavCounts } from "./_components/AdminNav";
 
-const ROLE_BN: Record<string, string> = {
-  admin: "অ্যাডমিন",
-  worker: "স্বাস্থ্যকর্মী",
-  parent: "অভিভাবক",
-};
-
-// Gates the whole /admin subtree on the JWT `user_role` claim (UX layer; RLS is the real
-// boundary).
+// Gates the whole /admin subtree (UX layer; RLS is the real boundary).
+//
+// The floor is `supervisor`, not the legacy `admin` user role: the requirements give a
+// supervisor session planning, coverage, AEFI investigation and data-quality review within
+// their scope, every one of those pages and actions already admits them, and RLS already
+// scopes what they read (K-01). Pages above that floor keep their own guards, and the nav
+// only lists what the reader's role can open.
+//
+// The MFA gate lives here so no page can forget it (K-08). It is a no-op below
+// programme_manager. Route handlers do not render layouts and call it themselves.
 //
 // The theme no longer lives here. It is on <html>, set before paint by the root layout, so
 // auth, /account and the worker console follow the same choice instead of the admin subtree
 // being the only dark thing in the application.
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await requireRole("admin");
+  const { supabase, claims } = await requireAppRole("supervisor");
+  await mfaGate(supabase, claims);
   const today = todayIso();
 
   // The seven figures the sidebar badges and the topbar bell show, in one wave. Fetched here
@@ -62,7 +65,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         .from("user_roles")
         .select("staff_code")
         .eq("user_id", user.id)
-        .eq("role", "admin")
+        .eq("role", claims.role ?? "admin")
         .maybeSingle()
     : { data: null };
 
@@ -91,9 +94,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="flex min-h-screen bg-[var(--canvas)] text-[var(--text-primary)]">
           <Sidebar
             counts={counts}
+            appRole={claims.appRole}
             identity={{
               code: myRole?.staff_code ?? null,
-              role: role ? (ROLE_BN[role] ?? role) : "—",
+              role: claims.appRole ? APP_ROLE_LABEL_BN[claims.appRole] : "—",
             }}
           />
 
@@ -103,6 +107,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="flex min-w-0 flex-1 flex-col">
             <Topbar
               counts={counts}
+              appRole={claims.appRole}
               user={{
                 email: user?.email ?? "",
                 role,

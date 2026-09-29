@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { SearchIcon } from "@/components/icons";
 import { toBn } from "@/lib/format";
 import { searchChildrenAction, type ChildHit } from "../_actions";
-import { NAV_GROUPS } from "./AdminNav";
+import { appRoleAtLeast, type AppRole } from "@/lib/roles";
+import { navFor } from "./AdminNav";
 
 // ⌘K / Ctrl+K. Two jobs: reach any destination without the sidebar, and reach a child by ID
 // or name from anywhere — previously only possible by navigating to the Children list first
@@ -14,18 +15,22 @@ import { NAV_GROUPS } from "./AdminNav";
 
 type Entry = { label: string; sub?: string; href: string };
 
-const DESTINATIONS: Entry[] = NAV_GROUPS.flatMap((g) =>
-  g.items.map((i) => ({ label: i.label, sub: g.heading, href: i.href })),
-);
-
-const ACTIONS: Entry[] = [
+const ALL_ACTIONS: Entry[] = [
   { label: "নতুন শিশু নিবন্ধন", sub: "দ্রুত কাজ", href: "/admin/children/new" },
   { label: "নতুন ব্যাচ যোগ", sub: "দ্রুত কাজ", href: "/admin/inventory/new" },
   { label: "নতুন টিকা যোগ", sub: "দ্রুত কাজ", href: "/admin/catalog/new" },
   { label: "রিপোর্ট রপ্তানি (CSV)", sub: "দ্রুত কাজ", href: "/admin/reports" },
 ];
 
-export function CommandPalette() {
+export function CommandPalette({ appRole }: { appRole: AppRole | null }) {
+  // Only what this role can open; anything else would bounce them to their landing page.
+  const DESTINATIONS: Entry[] = navFor(appRole).flatMap((g) =>
+    g.items.map((i) => ({ label: i.label, sub: g.heading, href: i.href })),
+  );
+  const canSearchChildren = appRoleAtLeast(appRole, "programme_manager");
+  const ACTIONS = canSearchChildren
+    ? ALL_ACTIONS
+    : ALL_ACTIONS.filter((a) => a.href === "/admin/reports");
   const ref = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -52,14 +57,15 @@ export function CommandPalette() {
   // Debounced so a five-character ID is one round trip, not five.
   useEffect(() => {
     const needle = q.trim();
-    if (needle.length < 2) return;
+    // Child search and the child pages are programme-manager screens.
+    if (needle.length < 2 || !canSearchChildren) return;
     const t = setTimeout(() => {
       startTransition(async () =>
         setResult({ q: needle, rows: await searchChildrenAction(needle) }),
       );
     }, 200);
     return () => clearTimeout(t);
-  }, [q]);
+  }, [q, canSearchChildren]);
 
   function open() {
     setQ("");

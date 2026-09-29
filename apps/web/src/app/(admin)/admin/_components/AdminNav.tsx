@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { toBn } from "@/lib/format";
+import { appRoleAtLeast, type AppRole } from "@/lib/roles";
 import {
   AefiIcon,
   BellIcon,
@@ -63,36 +64,47 @@ type Item = {
   Icon: (p: { className?: string; size?: number }) => React.ReactElement;
   count?: keyof NavCounts;
   countLabel?: string;
+  // The lowest role the page's own guard admits. Defaults to programme_manager, the floor of
+  // every requireRole("admin") page; a link the reader cannot open is not navigation.
+  minRole?: AppRole;
 };
+
+/** The nav as one role sees it: items they can open, groups that still have any. */
+export function navFor(appRole: AppRole | null) {
+  return NAV_GROUPS.map((g) => ({
+    ...g,
+    items: g.items.filter((i) => appRoleAtLeast(appRole, i.minRole ?? "programme_manager")),
+  })).filter((g) => g.items.length > 0);
+}
 
 export const NAV_GROUPS: { heading: string; items: Item[] }[] = [
   {
     heading: "পরিষেবা",
     items: [
-      { href: "/admin/children", label: "শিশু", Icon: ChildrenIcon, count: "due", countLabel: "টি দেয় ডোজ" },
+      { href: "/admin/children", label: "শিশু", Icon: ChildrenIcon, count: "due", countLabel: "টি ডোজের সময় হয়েছে" },
       { href: "/admin/guardians", label: "অভিভাবক", Icon: GuardiansIcon },
-      { href: "/admin/tracing", label: "ফলো-আপ বোর্ড", Icon: TracingIcon, count: "untraced", countLabel: "টি ফলো-আপ বরাদ্দ হয়নি" },
-      { href: "/admin/zero-dose", label: "শূন্য-ডোজ শিশু", Icon: ZeroDoseIcon, count: "zeroDose", countLabel: "টি শূন্য-ডোজ শিশু" },
+      { href: "/admin/tracing", label: "ফলো-আপ বোর্ড", Icon: TracingIcon, count: "untraced", countLabel: "টি ফলো-আপ বরাদ্দ হয়নি", minRole: "supervisor" },
+      { href: "/admin/zero-dose", label: "শূন্য-ডোজ শিশু", Icon: ZeroDoseIcon, count: "zeroDose", countLabel: "টি শূন্য-ডোজ শিশু", minRole: "supervisor" },
       { href: "/admin/duplicates", label: "সম্ভাব্য ডুপ্লিকেট", Icon: DuplicatesIcon },
     ],
   },
   {
     heading: "কর্মসূচি",
     items: [
-      { href: "/admin/coverage", label: "এলাকাভিত্তিক কভারেজ", Icon: CoverageIcon },
-      { href: "/admin/sessions", label: "টিকাদান সেশন", Icon: SessionsIcon },
-      { href: "/admin/reports", label: "রিপোর্ট", Icon: ReportsIcon },
-      { href: "/admin/aefi", label: "টিকা-পরবর্তী ঘটনা", Icon: AefiIcon, count: "openAefi", countLabel: "টি খোলা কেস" },
-      { href: "/admin/data-quality", label: "তথ্যের মান", Icon: DataQualityIcon },
+      { href: "/admin/coverage", label: "এলাকাভিত্তিক কভারেজ", Icon: CoverageIcon, minRole: "supervisor" },
+      { href: "/admin/sessions", label: "টিকাদান সেশন", Icon: SessionsIcon, minRole: "supervisor" },
+      { href: "/admin/reports", label: "রিপোর্ট", Icon: ReportsIcon, minRole: "supervisor" },
+      { href: "/admin/aefi", label: "AEFI", Icon: AefiIcon, count: "openAefi", countLabel: "টি খোলা কেস", minRole: "supervisor" },
+      { href: "/admin/data-quality", label: "তথ্যের মান", Icon: DataQualityIcon, minRole: "supervisor" },
     ],
   },
   {
     heading: "সরবরাহ",
     items: [
       { href: "/admin/inventory", label: "টিকা মজুদ", Icon: InventoryIcon, count: "stockAlerts", countLabel: "টি ব্যাচে মনোযোগ প্রয়োজন" },
-      { href: "/admin/stock", label: "স্টক লেজার", Icon: StockIcon },
-      { href: "/admin/requisitions", label: "চাহিদাপত্র", Icon: RequisitionsIcon },
-      { href: "/admin/cold-chain", label: "কোল্ড চেইন", Icon: ColdChainIcon, count: "coldChain", countLabel: "টি সতর্কতা" },
+      { href: "/admin/stock", label: "স্টক লেজার", Icon: StockIcon, minRole: "store_keeper" },
+      { href: "/admin/requisitions", label: "চাহিদাপত্র", Icon: RequisitionsIcon, minRole: "store_keeper" },
+      { href: "/admin/cold-chain", label: "কোল্ড চেইন", Icon: ColdChainIcon, count: "coldChain", countLabel: "টি সতর্কতা", minRole: "store_keeper" },
       { href: "/admin/catalog", label: "টিকা তালিকা", Icon: CatalogIcon },
     ],
   },
@@ -111,7 +123,7 @@ export const NAV_GROUPS: { heading: string; items: Item[] }[] = [
     heading: "প্রশাসন",
     items: [
       { href: "/admin/users", label: "ব্যবহারকারী", Icon: UsersIcon },
-      { href: "/admin/break-glass", label: "জরুরি প্রবেশাধিকার", Icon: BreakGlassIcon },
+      { href: "/admin/break-glass", label: "জরুরি প্রবেশাধিকার", Icon: BreakGlassIcon, minRole: "supervisor" },
       { href: "/admin/settings", label: "সেটিংস", Icon: SettingsIcon },
       { href: "/admin/help", label: "সহায়িকা", Icon: HelpIcon },
     ],
@@ -128,28 +140,34 @@ export function isActive(href: string, pathname: string) {
 // globals.css decides which is shown, so this component renders one tree either way.
 export function AdminNav({
   counts,
+  appRole,
   onNavigate,
 }: {
   counts: NavCounts;
+  appRole: AppRole | null;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
 
   return (
     <nav className="flex flex-col gap-1" aria-label="প্রধান মেনু">
-      <NavLink
-        item={{ href: "/admin", label: "ড্যাশবোর্ড", Icon: DashboardIcon }}
-        counts={counts}
-        pathname={pathname}
-        onNavigate={onNavigate}
-      />
+      {/* The dashboard reads programme-wide queues; a supervisor's home is their own scope's
+          coverage, which is where /admin sends them. */}
+      {appRoleAtLeast(appRole, "programme_manager") && (
+        <NavLink
+          item={{ href: "/admin", label: "ড্যাশবোর্ড", Icon: DashboardIcon }}
+          counts={counts}
+          pathname={pathname}
+          onNavigate={onNavigate}
+        />
+      )}
 
-      {NAV_GROUPS.map((group) => (
+      {navFor(appRole).map((group) => (
         // A <ul> per group under its own heading, so a screen reader announces "পরিষেবা, list,
         // 5 items" instead of one flat list of twenty-three links.
         <section key={group.heading} className="mt-4">
           <hr className="vt-nav-divider mx-2 mb-1 border-[var(--border-subtle)]" />
-          <h2 className="vt-nav-heading px-3 pb-1 text-[0.6875rem] font-semibold tracking-wide text-[var(--text-muted)] uppercase">
+          <h2 className="vt-nav-heading px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--text-muted)] uppercase">
             {group.heading}
           </h2>
           <ul className="flex flex-col gap-0.5">

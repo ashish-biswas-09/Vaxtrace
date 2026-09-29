@@ -9,6 +9,7 @@ import { DateScope } from "./DateScope";
 import { MobileDrawer } from "./MobileDrawer";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import type { NavCounts } from "./AdminNav";
+import { appRoleAtLeast, type AppRole } from "@/lib/roles";
 
 // The header used to hold a theme toggle and an avatar and nothing else — no title, no way
 // back, no search, no indication that anything needed attention. Everything an admin needs
@@ -16,26 +17,30 @@ import type { NavCounts } from "./AdminNav";
 
 export function Topbar({
   counts,
+  appRole,
   user,
 }: {
   counts: NavCounts;
+  appRole: AppRole | null;
   user: { email: string; role: string | null; staffCode: string | null };
 }) {
   return (
     <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-[var(--border-subtle)] bg-[var(--canvas)]/85 px-4 backdrop-blur sm:px-6 print:hidden">
-      <MobileDrawer counts={counts} />
+      <MobileDrawer counts={counts} appRole={appRole} />
 
       <div className="hidden min-w-0 flex-1 md:block">
         <Breadcrumbs />
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-2 md:flex-none">
-        <CommandPalette />
+        <CommandPalette appRole={appRole} />
         {/* useSearchParams needs a boundary or the whole route opts out of static rendering. */}
         <Suspense fallback={null}>
           <DateScope />
         </Suspense>
 
+        {/* Notifications is a programme-manager screen; a bell that redirects is worse than none. */}
+        {appRoleAtLeast(appRole, "programme_manager") && (
         <Link
           href="/admin/notifications"
           aria-label={
@@ -55,6 +60,7 @@ export function Topbar({
             </span>
           )}
         </Link>
+        )}
 
         <ThemeToggle />
         <AccountMenu email={user.email} role={user.role} staffCode={user.staffCode} />
