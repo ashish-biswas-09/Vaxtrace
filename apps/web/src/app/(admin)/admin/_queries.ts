@@ -43,7 +43,7 @@ function delta(current: number, previous: number) {
 }
 
 /** Counts per ISO day across the window, zero-filled so a sparkline has no gaps. */
-function daily(dates: (string | null | undefined)[], w: Window): number[] {
+export function daily(dates: (string | null | undefined)[], w: Window): number[] {
   const bucket = new Map<string, number>();
   for (const d of windowDates(w)) bucket.set(d, 0);
   for (const raw of dates) {

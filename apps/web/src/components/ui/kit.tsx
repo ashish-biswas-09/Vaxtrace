@@ -34,7 +34,10 @@ export function StatusBadge({ tone, children }: { tone: Tone; children: React.Re
     <span
       className="inline-block whitespace-nowrap rounded-[var(--r-sm)] px-2 py-0.5 text-xs font-medium"
       style={{
-        color: TONE_VAR[tone],
+        // The tones clear 4.5:1 on white, not on their own 14% tint (light theme measured
+        // 4.01–4.49 at 12px). A fifth of --text-primary darkens them in light and lightens
+        // them in dark, so the pill clears AA in both themes without new tokens.
+        color: `color-mix(in oklab, ${TONE_VAR[tone]} 80%, var(--text-primary))`,
         background: TONE_BG[tone],
         border: `1px solid color-mix(in oklab, ${TONE_VAR[tone]} 35%, transparent)`,
       }}
@@ -115,7 +118,12 @@ export function StatCard({
           )}
         </div>
       )}
-      {hint && <p className="mt-1 text-xs text-[var(--text-muted)]">{hint}</p>}
+      {/* Two lines on a phone, where cards sit two to a row; the whole hint from `sm` up. */}
+      {hint && (
+        <p className="mt-1 line-clamp-2 text-xs text-[var(--text-muted)] sm:line-clamp-none" title={hint}>
+          {hint}
+        </p>
+      )}
     </>
   );
 

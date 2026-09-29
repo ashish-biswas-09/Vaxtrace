@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { fromBn, toBn } from "@/lib/format";
 
 export type Column<T> = {
@@ -56,6 +56,19 @@ export function DataTable<T>({
   const [q, setQ] = useState("");
   const [active, setActive] = useState(-1);
   const [page, setPage] = useState(0);
+  const [printing, setPrinting] = useState(false);
+
+  // A printed list is every row the filter matches, not the page on screen (K-23).
+  useEffect(() => {
+    const on = () => setPrinting(true);
+    const off = () => setPrinting(false);
+    window.addEventListener("beforeprint", on);
+    window.addEventListener("afterprint", off);
+    return () => {
+      window.removeEventListener("beforeprint", on);
+      window.removeEventListener("afterprint", off);
+    };
+  }, []);
 
   let shown = searchText ? filterRows(rows, searchText, q) : rows;
   if (filters && active >= 0) shown = shown.filter(filters[active].predicate);
@@ -64,12 +77,12 @@ export function DataTable<T>({
   // last page that still has rows, not silently show an empty table.
   const pageCount = Math.max(1, Math.ceil(shown.length / pageSize));
   const current = Math.min(page, pageCount - 1);
-  const paged = shown.slice(current * pageSize, current * pageSize + pageSize);
+  const paged = printing ? shown : shown.slice(current * pageSize, current * pageSize + pageSize);
 
   return (
     <div className="flex flex-col gap-3">
       {(searchText || filters) && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 print:hidden">
           {searchText && (
             <input
               type="search"
@@ -80,7 +93,7 @@ export function DataTable<T>({
               }}
               placeholder={searchPlaceholder ?? "খুঁজুন…"}
               aria-label={searchPlaceholder ?? "খুঁজুন"}
-              className="w-64 rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm"
+              className="w-64 rounded-md border border-[var(--border-default)] bg-transparent px-3 py-2 text-sm"
             />
           )}
           {filters && (
@@ -116,7 +129,7 @@ export function DataTable<T>({
         {paged.map((row) => (
           <div
             key={rowKey(row)}
-            className="rounded-xl border border-[var(--color-border)] p-4 text-sm"
+            className="rounded-xl border border-[var(--border-default)] p-4 text-sm"
           >
             {card ? (
               card(row)
@@ -130,7 +143,7 @@ export function DataTable<T>({
                       <dd className="text-base font-medium">{c.cell(row)}</dd>
                     ) : (
                       <>
-                        <dt className="shrink-0 text-xs text-[var(--color-muted)]">{c.header}</dt>
+                        <dt className="shrink-0 text-xs text-[var(--text-muted)]">{c.header}</dt>
                         <dd className="text-right">{c.cell(row)}</dd>
                       </>
                     )}
@@ -141,7 +154,7 @@ export function DataTable<T>({
           </div>
         ))}
         {shown.length === 0 && (
-          <p className="rounded-xl border border-dashed border-[var(--color-border)] px-4 py-8 text-center text-sm text-[var(--color-muted)]">
+          <p className="rounded-xl border border-dashed border-[var(--border-default)] px-4 py-8 text-center text-sm text-[var(--text-muted)]">
             {q || active >= 0 ? "এই অনুসন্ধানে কিছু পাওয়া যায়নি।" : empty}
           </p>
         )}
@@ -149,9 +162,9 @@ export function DataTable<T>({
 
       {/* overflow-x-auto, not overflow-hidden: a wide table has to scroll inside its own box
           rather than clipping columns or forcing the whole page sideways on a tablet. */}
-      <div className="hidden overflow-x-auto rounded-xl border border-[var(--color-border)] md:block">
+      <div className="hidden overflow-x-auto rounded-xl border border-[var(--border-default)] md:block">
         <table className="w-full min-w-[40rem] text-sm">
-          <thead className="bg-[var(--color-border)]/40 text-left text-[var(--color-muted)]">
+          <thead className="bg-[var(--border-default)]/40 text-left text-[var(--text-muted)]">
             <tr>
               {columns.map((c) => (
                 <th
@@ -166,7 +179,7 @@ export function DataTable<T>({
           </thead>
           <tbody>
             {paged.map((row) => (
-              <tr key={rowKey(row)} className="border-t border-[var(--color-border)]">
+              <tr key={rowKey(row)} className="border-t border-[var(--border-default)]">
                 {columns.map((c) => (
                   <td
                     key={c.header}
@@ -181,7 +194,7 @@ export function DataTable<T>({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-4 py-8 text-center text-[var(--color-muted)]"
+                  className="px-4 py-8 text-center text-[var(--text-muted)]"
                 >
                   {/* Zero-result is not the same as empty: "no batches exist" and "your
                       search matched nothing" need different next actions. */}
@@ -194,8 +207,8 @@ export function DataTable<T>({
       </div>
 
       {pageCount > 1 && (
-        <nav aria-label="পৃষ্ঠা" className="flex items-center justify-between text-xs">
-          <span className="text-[var(--color-muted)]">
+        <nav aria-label="পৃষ্ঠা" className="flex items-center justify-between text-xs print:hidden">
+          <span className="text-[var(--text-muted)]">
             {toBn(current * pageSize + 1)}–{toBn(current * pageSize + paged.length)} /{" "}
             {toBn(shown.length)}
           </span>
@@ -203,7 +216,7 @@ export function DataTable<T>({
             <PageButton disabled={current === 0} onClick={() => setPage(current - 1)}>
               ← আগের
             </PageButton>
-            <span className="text-[var(--color-muted)]">
+            <span className="text-[var(--text-muted)]">
               {toBn(current + 1)} / {toBn(pageCount)}
             </span>
             <PageButton disabled={current >= pageCount - 1} onClick={() => setPage(current + 1)}>
@@ -230,7 +243,7 @@ function PageButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="rounded-md border border-[var(--color-border)] px-2 py-1 disabled:opacity-40"
+      className="min-h-9 pointer-coarse:min-h-11 rounded-md border border-[var(--border-default)] px-3 disabled:opacity-40"
     >
       {children}
     </button>
@@ -243,10 +256,10 @@ function FilterChip({ label, on, onClick }: { label: string; on: boolean; onClic
       type="button"
       onClick={onClick}
       aria-pressed={on}
-      className={`rounded-full px-3 py-1 text-xs ${
+      className={`min-h-9 pointer-coarse:min-h-11 rounded-full px-3 text-xs ${
         on
-          ? "bg-[var(--color-primary)] text-[var(--color-primary-fg)]"
-          : "border border-[var(--color-border)] text-[var(--color-muted)]"
+          ? "bg-[var(--accent)] text-[var(--accent-fg)]"
+          : "border border-[var(--border-default)] text-[var(--text-muted)]"
       }`}
     >
       {label}

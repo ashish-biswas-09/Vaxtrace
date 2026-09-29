@@ -5,19 +5,39 @@ import type { Database } from "@vaxtrace/db-types";
 // what happens when three screens each translate the same enum. This is the single copy.
 //
 // Client-safe by construction — it imports nothing but types.
+//
+// Term choices (হর → লক্ষ্য শিশু, স্থায়ী কেন্দ্র, AEFI, মধ্যক …) follow the glossary in
+// docs/karmasuchi-audit.md §8.2. Change a label there first, then here.
 
 type Enums = Database["public"]["Enums"];
 
 // --- Sessions ---------------------------------------------------------------
 
 export const SESSION_TYPE_BN: Record<Enums["session_type"], string> = {
-  fixed: "নির্ধারিত কেন্দ্র",
+  fixed: "স্থায়ী কেন্দ্র",
   outreach: "আউটরিচ",
   campaign: "ক্যাম্পেইন",
 };
 
 export const SESSION_STATUS_BN: Record<Enums["session_status"], { label: string; tone: Tone }> = {
   planned: { label: "পরিকল্পিত", tone: "primary" },
+  held: { label: "সম্পন্ন", tone: "success" },
+  cancelled: { label: "বাতিল", tone: "danger" },
+};
+
+// What a session row means today. `planned` splits in two: a planned session whose date has
+// passed without a single dose is not upcoming — nobody reported it held or cancelled, and it
+// was invisible in every filter and in the cancellation rate until it had its own name (K-05).
+export type SessionState = "upcoming" | "unreported" | "held" | "cancelled";
+
+export function sessionState(status: Enums["session_status"], date: string, today: string): SessionState {
+  if (status === "planned") return date >= today ? "upcoming" : "unreported";
+  return status;
+}
+
+export const SESSION_STATE_BN: Record<SessionState, { label: string; tone: Tone }> = {
+  upcoming: { label: "আসন্ন", tone: "primary" },
+  unreported: { label: "রিপোর্ট হয়নি", tone: "warning" },
   held: { label: "সম্পন্ন", tone: "success" },
   cancelled: { label: "বাতিল", tone: "danger" },
 };
@@ -105,6 +125,34 @@ export const AEFI_SEVERITY_BN: Record<Enums["aefi_severity"], { label: string; t
   serious: { label: "মারাত্মক", tone: "danger" },
 };
 
+// গুরুতর and মারাত্মক are near-synonyms in everyday Bengali; WHO's severe/serious distinction
+// has to be spelled out wherever someone chooses between them.
+export const AEFI_SEVERITY_HINT_BN: Record<Enums["aefi_severity"], string> = {
+  minor: "জ্বর বা ইনজেকশনের স্থানে প্রতিক্রিয়া",
+  severe: "চিকিৎসা লেগেছে, প্রাণঘাতী নয়",
+  serious: "ভর্তি, স্থায়ী ক্ষতি, প্রাণঘাতী বা মৃত্যু",
+};
+
+const AEFI_STATUS_ORDER: Enums["aefi_status"][] = [
+  "reported",
+  "under_investigation",
+  "classified",
+  "closed",
+];
+
+// Mirrors trg_aefi_transition(): forward only, plus re-opening a closed case for further
+// investigation. Offering a move the database will refuse is how a form ends in a raw error.
+export function aefiNextStatuses(current: Enums["aefi_status"]): Enums["aefi_status"][] {
+  if (current === "closed") return ["closed", "under_investigation"];
+  return AEFI_STATUS_ORDER.slice(AEFI_STATUS_ORDER.indexOf(current));
+}
+
+const AEFI_SEVERITY_ORDER: Enums["aefi_severity"][] = ["minor", "severe", "serious"];
+
+export function isSeverityDowngrade(from: Enums["aefi_severity"], to: Enums["aefi_severity"]) {
+  return AEFI_SEVERITY_ORDER.indexOf(to) < AEFI_SEVERITY_ORDER.indexOf(from);
+}
+
 export const AEFI_STATUS_BN: Record<Enums["aefi_status"], { label: string; tone: Tone }> = {
   reported: { label: "রিপোর্টকৃত", tone: "warning" },
   under_investigation: { label: "তদন্তাধীন", tone: "primary" },
@@ -136,13 +184,28 @@ export type Tone = "muted" | "success" | "warning" | "danger" | "primary";
 
 // --- Coverage presentation --------------------------------------------------
 
+// The one tone → colour map, for the places that paint a bar rather than a badge. Server- and
+// client-safe, unlike kit.tsx which is a client module.
+export const TONE_CSS: Record<Tone, string> = {
+  muted: "var(--text-muted)",
+  success: "var(--success)",
+  warning: "var(--warning)",
+  danger: "var(--danger)",
+  primary: "var(--accent)",
+};
+
+// The programme target every coverage figure is read against, and the threshold at which a
+// coverage figure turns green — one number, so the dashed target line and the badge colour
+// cannot disagree (K-10). 90% is the GVAP national target.
+export const COVERAGE_TARGET = 0.9;
+
 // UX-07, empty vs zero: `—` when there is no denominator to divide by, a real Bengali
 // percentage when the denominator exists and the answer genuinely is zero. Conflating the two
 // is how a catchment with no population estimate comes to look like a catchment with no
 // coverage, which is the opposite of the truth.
 export function coverageTone(rate: number | null | undefined): Tone {
   if (rate == null) return "muted";
-  if (rate >= 0.9) return "success";
+  if (rate >= COVERAGE_TARGET) return "success";
   if (rate >= 0.7) return "warning";
   return "danger";
 }

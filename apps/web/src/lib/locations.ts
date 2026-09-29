@@ -58,6 +58,26 @@ export function toIndentedOptions(
     }));
 }
 
+// Where an outreach or campaign session can be held: a place people live in, not an
+// administrative tier. A session "at বাংলাদেশ · দেশ" was selectable before (K-17).
+export const SESSION_SITE_LEVELS: LocationLevel[] = ["union", "ward", "urban_ward", "village", "mahalla"];
+
+// The area a facility serves: its nearest upazila or city-corporation ancestor (itself
+// included). Outreach from a facility goes to places inside it.
+export function catchmentRoot(path: string, byPath: Map<string, LocationNode>): string {
+  const parts = path.split(".");
+  for (let i = parts.length; i > 0; i--) {
+    const prefix = parts.slice(0, i).join(".");
+    const level = byPath.get(prefix)?.level;
+    if (level === "upazila" || level === "city_corporation") return prefix;
+  }
+  return path;
+}
+
+export function isUnder(path: string, root: string): boolean {
+  return path === root || path.startsWith(`${root}.`);
+}
+
 // The human-readable trail for a path, resolved against a map of every location the caller
 // can see. Falls back to the raw slug for anything missing, so a partially-loaded tree
 // degrades to something still readable rather than to blanks.

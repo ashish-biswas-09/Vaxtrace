@@ -23,7 +23,10 @@ export function Callout({
   href?: string;
   hrefLabel?: string;
 }) {
-  const { fg, bg } = TONE[tone];
+  // Text mixed a fifth toward --text-primary: the raw tone on its own tint measured 4.0:1
+  // (axe, light theme) — the same fix the status badges use.
+  const { fg: tint, bg } = TONE[tone];
+  const fg = `color-mix(in oklab, ${tint} 80%, var(--text-primary))`;
   const Icon = tone === "info" ? InfoIcon : AlertTriangleIcon;
 
   return (

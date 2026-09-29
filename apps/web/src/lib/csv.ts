@@ -3,7 +3,10 @@
 // quoting rule and the Excel BOM to be right.
 
 export function csvCell(value: string | number | null | undefined): string {
-  const s = value == null ? "" : String(value);
+  let s = value == null ? "" : String(value);
+  // A text cell starting with = + - @ (or a tab/CR) is run as a formula by Excel and Sheets.
+  // A leading apostrophe makes it literal text. Numbers are left alone so -5 stays a number.
+  if (typeof value === "string" && /^[=+\-@\t\r]/.test(s)) s = `'${s}`;
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 

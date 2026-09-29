@@ -1,22 +1,27 @@
 import { pctBn, toBn, dateBn } from "@/lib/format";
+import { COVERAGE_TARGET, TONE_CSS, coverageTone } from "@/lib/programme";
 
 // Dependency-free CSS/SVG charts (Recharts would be ~100KB for a handful of bars). Shared by
 // the dashboard and reports so the same measure reads identically on both.
 
-export function Bar({ ratio, tone }: { ratio: number; tone: string }) {
+// A thin bar on a visible track, with the target drawn inside the track itself. The target used
+// to be one absolutely-positioned line over the whole list, placed with a calc() that had to
+// agree with the grid's column widths — it drifted, and the track was white on white.
+export function Bar({ ratio, tone, target }: { ratio: number; tone: string; target?: number }) {
   return (
-    <div className="h-6 w-full overflow-hidden rounded-[var(--r-sm)] bg-[var(--surface-raised)]">
+    <div aria-hidden="true" className="relative h-2.5 w-full rounded-full bg-[var(--surface-sunken)]">
       <div
-        className="h-full rounded-[var(--r-sm)]"
-        style={{ width: `${Math.max(2, Math.round(ratio * 100))}%`, background: tone }}
+        className="h-full rounded-full"
+        style={{ width: `${Math.min(100, Math.max(1.5, ratio * 100))}%`, background: tone }}
       />
+      {target != null && (
+        <span
+          className="absolute -top-1 -bottom-1 w-0.5 rounded-full bg-[var(--text-secondary)]"
+          style={{ left: `calc(${target * 100}% - 1px)` }}
+        />
+      )}
     </div>
   );
-}
-
-export function coverageTone(rate: number | null | undefined): string {
-  const r = rate ?? 0;
-  return r >= 0.8 ? "var(--success)" : r >= 0.5 ? "var(--warning)" : "var(--danger)";
 }
 
 export type CoverageRow = {
@@ -27,9 +32,6 @@ export type CoverageRow = {
   due_count?: number | null;
 };
 
-/** The programme target every coverage figure is read against. */
-export const COVERAGE_TARGET = 0.8;
-
 // Per-vaccine coverage as a labelled bar list, with the value shown numerically beside each
 // bar so the chart is informational rather than decorative, and the denominator underneath —
 // "১০০%" from one dose and "১০০%" from four thousand look identical otherwise, and the
@@ -38,41 +40,60 @@ export function CoverageBars({ rows }: { rows: CoverageRow[] }) {
   if (rows.length === 0) {
     return <p className="text-sm text-[var(--text-muted)]">কোনো তথ্য নেই।</p>;
   }
-  return (
-    <div className="relative">
-      {/* Target line at 80%. A coverage bar with no target is a number without a verdict. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 hidden sm:block"
-        style={{ left: `calc(9rem + 0.75rem + (100% - 9rem - 6rem - 1.5rem) * ${COVERAGE_TARGET})` }}
-      >
-        <div className="h-full border-l border-dashed border-[var(--border-strong)]" />
-      </div>
+  // A coverage bar with no target is a number without a verdict; the summary line is that
+  // verdict for the whole list, readable before any bar is.
+  const met = rows.filter((r) => (r.coverage_rate ?? 0) >= COVERAGE_TARGET).length;
+  const swatch = (tone: keyof typeof TONE_CSS, label: string) => (
+    <span className="inline-flex items-center gap-1.5">
+      <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full" style={{ background: TONE_CSS[tone] }} />
+      {label}
+    </span>
+  );
 
-      <ul className="relative flex flex-col gap-4">
-        {rows.map((r) => (
-          <li
-            key={r.code}
-            className="grid grid-cols-[7rem_1fr_5rem] items-center gap-3 text-sm sm:grid-cols-[9rem_1fr_6rem]"
-          >
-            <span className="truncate" title={r.name_bn ?? r.code}>
-              {r.name_bn ?? r.code}
-            </span>
-            <Bar ratio={r.coverage_rate ?? 0} tone={coverageTone(r.coverage_rate)} />
-            <span className="text-right">
-              <span className="block tabular-nums">{pctBn(r.coverage_rate)}</span>
-              {r.due_count != null && (
-                <span className="block text-xs tabular-nums text-[var(--text-muted)]">
-                  {toBn(r.done_count ?? 0)}/{toBn(r.due_count)}
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-sm text-[var(--text-secondary)]">
+        <strong className="text-[var(--text-primary)]">
+          {toBn(met)}/{toBn(rows.length)}
+        </strong>{" "}
+        টি টিকা লক্ষ্যমাত্রা ({pctBn(COVERAGE_TARGET)}) পূরণ করেছে
+      </p>
+
+      <ul className="flex flex-col">
+        {rows.map((r) => {
+          const tone = coverageTone(r.coverage_rate);
+          return (
+            <li
+              key={r.code}
+              className="grid grid-cols-[7rem_1fr_7rem] items-center gap-3 border-t border-[var(--border-subtle)] py-2.5 text-sm first:border-t-0 sm:grid-cols-[9rem_1fr_8rem] sm:gap-4"
+            >
+              <span className="truncate" title={r.name_bn ?? r.code}>
+                {r.name_bn ?? r.code}
+              </span>
+              <Bar ratio={r.coverage_rate ?? 0} tone={TONE_CSS[tone]} target={COVERAGE_TARGET} />
+              <span className="flex items-baseline justify-end gap-2 whitespace-nowrap">
+                <span className="font-semibold tabular-nums" style={{ color: TONE_CSS[tone] }}>
+                  {pctBn(r.coverage_rate)}
                 </span>
-              )}
-            </span>
-          </li>
-        ))}
+                {r.due_count != null && (
+                  <span className="text-xs tabular-nums text-[var(--text-muted)]">
+                    {toBn(r.done_count ?? 0)}/{toBn(r.due_count)}
+                  </span>
+                )}
+              </span>
+            </li>
+          );
+        })}
       </ul>
 
-      <p className="mt-3 text-xs text-[var(--text-muted)]">
-        ড্যাশ লাইন = লক্ষ্যমাত্রা {pctBn(COVERAGE_TARGET)}
+      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--text-muted)]">
+        <span className="inline-flex items-center gap-1.5">
+          <span aria-hidden="true" className="h-3 w-0.5 rounded-full bg-[var(--text-secondary)]" />
+          লক্ষ্যমাত্রা {pctBn(COVERAGE_TARGET)}
+        </span>
+        {swatch("success", `${pctBn(COVERAGE_TARGET)} বা বেশি`)}
+        {swatch("warning", "৭০–৮৯%")}
+        {swatch("danger", "৭০%-এর কম")}
       </p>
     </div>
   );
@@ -93,6 +114,10 @@ export function TrendArea({
 }) {
   if (points.length < 2) {
     return <p className="text-sm text-[var(--text-muted)]">কোনো তথ্য নেই।</p>;
+  }
+  // A flat line at zero labelled "সর্বোচ্চ ১" reads as a broken chart; say what it means.
+  if (points.every((p) => p === 0)) {
+    return <p className="text-sm text-[var(--text-muted)]">এই সময়ে কোনো ডোজ নথিভুক্ত হয়নি।</p>;
   }
 
   const W = 600;
@@ -137,8 +162,11 @@ export function TrendArea({
 
       {/* A line has no readable values. The same series as a table, for screen readers and
           for anyone who needs the actual number rather than the shape. */}
+      {/* sr-only on a wrapper, not on the <table>: a table ignores the 1px height clip, so the
+          hidden rows used to hang ~480px below the page as empty scroll space. */}
       {labels && (
-        <table className="sr-only">
+        <div className="sr-only">
+        <table>
           <caption>{caption}</caption>
           <thead>
             <tr>
@@ -155,6 +183,7 @@ export function TrendArea({
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </figure>
   );
